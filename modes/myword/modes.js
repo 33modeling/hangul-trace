@@ -1,5 +1,5 @@
-const TRACE_MYWORD_PEN = '#e06699';
-const TRACE_MYWORD_GUIDE = 'rgba(224, 102, 153, 0.48)';
+const TRACE_MYWORD_PEN = '#ec4899';
+const TRACE_MYWORD_GUIDE = 'rgba(167, 139, 250, 0.55)';
 
 class MyWordMode {
   constructor() {
@@ -224,7 +224,7 @@ class MyWordMode {
       feedbackEl.textContent = `획 ${this.strokeCount} / ${target} — ${remaining}획 더!`;
       feedbackEl.style.color = '#888';
     } else {
-      feedbackEl.style.color = '#c95886';
+      feedbackEl.style.color = '#ec4899';
       const key = `${this.wordIdx}-${this.syllableIdx}-${this._isLandscape() ? 'L' : 'P'}`;
       if (!this.doneSet.has(key)) {
         this.doneSet.add(key);

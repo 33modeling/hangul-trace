@@ -87,7 +87,7 @@ class DrawingCanvas {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
-  drawGuide(char, color = 'rgba(224, 102, 153, 0.48)') {
+  drawGuide(char, color = 'rgba(167, 139, 250, 0.55)') {
     const { width: w, height: h } = this.canvas;
     if (w < 2 || h < 2 || !this.ctx) return;
 
@@ -104,7 +104,7 @@ class DrawingCanvas {
     ctx.clearRect(0, 0, w, h);
 
     // 그리드라인
-    ctx.strokeStyle = 'rgba(180, 110, 130, 0.14)';
+    ctx.strokeStyle = 'rgba(124, 58, 237, 0.10)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(w / 2, 0);
@@ -116,7 +116,7 @@ class DrawingCanvas {
     ctx.stroke();
 
     // 프레임
-    ctx.strokeStyle = 'rgba(170, 100, 120, 0.18)';
+    ctx.strokeStyle = 'rgba(124, 58, 237, 0.14)';
     ctx.strokeRect(w * 0.1, h * 0.1, w * 0.8, h * 0.8);
 
     // 글자
@@ -135,7 +135,7 @@ class DrawingCanvas {
    * @param {string[]} chars 음절 문자열 배열 (길이 1~4)
    * @param {string} [color]
    */
-  drawGuideRow(chars, color = 'rgba(224, 102, 153, 0.48)') {
+  drawGuideRow(chars, color = 'rgba(167, 139, 250, 0.55)') {
     const { width: w, height: h } = this.canvas;
     if (w < 2 || h < 2 || !this.ctx) return;
 
@@ -162,7 +162,7 @@ class DrawingCanvas {
     const base = Math.min(cellW, h);
     const fs = base * 0.62;
 
-    ctx.strokeStyle = 'rgba(180, 110, 130, 0.14)';
+    ctx.strokeStyle = 'rgba(124, 58, 237, 0.10)';
     ctx.lineWidth = 1;
     for (let i = 1; i < n; i++) {
       const x = cellW * i;
@@ -176,7 +176,7 @@ class DrawingCanvas {
     ctx.lineTo(w, h / 2);
     ctx.stroke();
 
-    ctx.strokeStyle = 'rgba(170, 100, 120, 0.18)';
+    ctx.strokeStyle = 'rgba(124, 58, 237, 0.14)';
     for (let i = 0; i < n; i++) {
       const padX = cellW * 0.08;
       const padY = h * 0.1;
@@ -194,7 +194,7 @@ class DrawingCanvas {
     ctx.restore();
   }
 
-  drawLine(x1, y1, x2, y2, color = '#e06699', width = null) {
+  drawLine(x1, y1, x2, y2, color = '#ec4899', width = null) {
     if (!this.ctx) return;
     const lineW = width || this.lineWidth;
     const ctx = this.ctx;
@@ -219,7 +219,7 @@ class DrawingCanvas {
     ctx.restore();
   }
 
-  drawDot(x, y, color = '#e06699', size = 6) {
+  drawDot(x, y, color = '#ec4899', size = 6) {
     if (!this.ctx) return;
     const ctx = this.ctx;
     ctx.save();
@@ -408,7 +408,7 @@ function showStrokeOrder(guideLayer, ch, highlightStep = 0) {
     const radius = fontSize * 0.7;
     ctx.beginPath();
     ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = isHighlight ? 'rgba(224, 102, 153, 0.92)' : 'rgba(224, 102, 153, 0.45)';
+    ctx.fillStyle = isHighlight ? 'rgba(167, 139, 250, 0.92)' : 'rgba(167, 139, 250, 0.45)';
     ctx.fill();
 
     // 번호
@@ -418,13 +418,13 @@ function showStrokeOrder(guideLayer, ch, highlightStep = 0) {
     // 획 심볼 라벨 (번호 아래)
     const labelY = pos.y + radius + fontSize * 0.6;
     ctx.font = `bold ${Math.max(10, fontSize * 0.75)}px "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif`;
-    ctx.fillStyle = isHighlight ? '#c94b7f' : 'rgba(180, 100, 120, 0.5)';
+    ctx.fillStyle = isHighlight ? '#7c3aed' : 'rgba(124, 58, 237, 0.5)';
     ctx.fillText(step.s, pos.x, labelY);
 
     // 한국어 라벨 (심볼 아래)
     const subY = labelY + fontSize * 0.8;
     ctx.font = `${Math.max(9, fontSize * 0.6)}px "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif`;
-    ctx.fillStyle = isHighlight ? '#c94b7f' : 'rgba(150, 100, 110, 0.45)';
+    ctx.fillStyle = isHighlight ? '#7c3aed' : 'rgba(124, 58, 237, 0.45)';
     ctx.fillText(step.l, pos.x, subY);
 
     // 폰트 복구
@@ -532,7 +532,7 @@ function updateFeedback(strokeCount, targetStrokes, feedbackId = 'feedback') {
     feedbackEl.style.color = '#888';
   } else if (strokeCount >= targetStrokes) {
     feedbackEl.textContent = '잘 했어요! 다음 글자도 써볼까요? 🎉';
-    feedbackEl.style.color = '#c95886';
+    feedbackEl.style.color = '#ec4899';
   }
 }
 

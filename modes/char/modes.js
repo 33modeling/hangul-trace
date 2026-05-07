@@ -128,7 +128,7 @@ class CharMode {
       feedbackEl.style.color = '#888';
     } else {
       feedbackEl.textContent = '잘 했어요! 🎉 다음 글자는 ▶ 를 눌러 주세요.';
-      feedbackEl.style.color = '#c95886';
+      feedbackEl.style.color = '#ec4899';
     }
   }
   
@@ -145,7 +145,7 @@ class CharMode {
         animateStrokeOrder(this.guideLayer, ch);
       } else {
         this.guideLayer.clear();
-        this.guideLayer.drawGuide(ch, '#e06699');
+        this.guideLayer.drawGuide(ch, '#ec4899');
         setTimeout(() => {
           this.guideLayer.resize();
           this.guideLayer.drawGuide(ch);
@@ -165,7 +165,7 @@ class CharMode {
       this.canvas.lastX = pos.x;
       this.canvas.lastY = pos.y;
       this.strokeCount++;
-      this.canvas.drawDot(pos.x, pos.y, '#e06699', 6);
+      this.canvas.drawDot(pos.x, pos.y, '#ec4899', 6);
       this.updateFeedback(this.strokeCount);
     };
     

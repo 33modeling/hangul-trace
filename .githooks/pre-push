@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# 마지막 커밋이 버전 범프가 아니면 patch 올리고 커밋한 뒤 exit 1 → 같은 브랜치에서 git push 한 번 더
+set -euo pipefail
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+last="$(git log -1 --pretty=%s 2>/dev/null || true)"
+case "$last" in
+  chore:\ bump\ version*) exit 0 ;;
+esac
+if [[ ! -f scripts/bump-version.sh ]]; then exit 0; fi
+bash scripts/bump-version.sh
+if git diff --quiet -- index.html VERSION 2>/dev/null; then
+  exit 0
+fi
+git add index.html VERSION
+git commit -m "chore: bump version $(tr -d '\n' < VERSION)"
+echo "버전이 올라갔습니다. 같은 브랜치에서 git push 를 한 번 더 실행하세요." >&2
+exit 1

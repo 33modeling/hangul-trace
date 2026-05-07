@@ -1,0 +1,15 @@
+{
+  "name": "tracing",
+  "private": true,
+  "scripts": {
+    "version:bump": "bash scripts/bump-version.sh",
+    "version:hooks": "bash scripts/install-git-hooks.sh",
+    "smoke": "bash scripts/smoke-test.sh",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1"
+  }
+}

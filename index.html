@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#c95886">
+  <meta name="description" content="손가락으로 한글·숫자·영어를 따라 써요.">
+  <title>한글 따라쓰기 v0.0.10</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="shared/styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 메인 메뉴 -->
+    <div id="main-menu">
+      <div id="menu-header">
+        <div class="menu-header-byline">통통이 김채윤</div>
+        <h1>한글 따라쓰기 v0.0.10</h1>
+        <p>손가락으로 글자를 써보세요!</p>
+      </div>
+      
+      <div id="mode-cards">
+        <button type="button" class="mode-card" data-mode="char">
+          🅰️ 자음/모음 모드
+          <span>24 자</span>
+        </button>
+        
+        <button type="button" class="mode-card" data-mode="word">
+          📝 단어 모드
+          <span>140 단어</span>
+        </button>
+
+        <button type="button" class="mode-card" data-mode="myword">
+          ✏️ 내 단어 모드
+          <span>등록한 단어</span>
+        </button>
+
+        <button type="button" class="mode-card" data-mode="myword-add">
+          ➕ 내 단어 추가
+          <span>등록·순서</span>
+        </button>
+        
+        <button type="button" class="mode-card" data-mode="number">
+          🔢 숫자 모드
+          <span>0-9</span>
+        </button>
+        
+        <button type="button" class="mode-card" data-mode="english">
+          🔤 영어 모드
+          <span>A-Z</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- 자음/모음 모드 -->
+    <div id="char-mode" class="mode-ui">
+      <div id="char-nav" class="trace-mode-nav">
+        <button type="button" id="prev-btn" data-action="prev">&#8592;</button>
+        <div>
+          <div id="char-label">ㄱ · 기역</div>
+          <div id="char-sub">자음/모음 1 / 24</div>
+        </div>
+        <button type="button" id="next-btn" data-action="next">&#8594;</button>
+      </div>
+      
+      <div id="stroke-hint"></div>
+      
+      <div id="canvas-wrap" class="canvas-wrap">
+        <canvas id="guide-canvas"></canvas>
+        <canvas id="draw-canvas"></canvas>
+      </div>
+      
+      <div id="toolbar">
+        <button id="clear-btn" class="tool-btn">지우기</button>
+        <button id="hint-btn" class="tool-btn">획순 보기</button>
+        <button type="button" id="back-btn" class="tool-btn primary">메뉴로</button>
+      </div>
+      
+      <div id="feedback"></div>
+    </div>
+    
+    <!-- 단어 모드 -->
+    <div id="word-mode" class="mode-ui">
+      <div id="char-nav" class="trace-mode-nav">
+        <button type="button" id="word-prev-btn" data-action="prev" aria-label="이전"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg></button>
+        <div>
+          <div id="word-label">가</div>
+          <div id="word-sub">단어 1 / 140</div>
+        </div>
+        <button type="button" id="word-next-btn" data-action="next" aria-label="다음"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg></button>
+      </div>
+      
+      <div id="word-stage">
+        <span class="hint-pill">자음+모음 쓰기</span>
+      </div>
+      
+      <div id="word-complete"></div>
+      
+      <div id="word-canvas-wrap" class="canvas-wrap">
+        <canvas id="word-guide-canvas"></canvas>
+        <canvas id="word-draw-canvas"></canvas>
+      </div>
+      
+      <div id="word-toolbar" style="display: flex; gap: 8px; margin-top: 12px;">
+        <button id="word-clear-btn" class="tool-btn" style="flex: 1;">지우기</button>
+        <button type="button" id="word-back-btn" class="tool-btn primary" style="flex: 1;">메뉴로</button>
+      </div>
+      
+      <div id="word-feedback"></div>
+    </div>
+
+    <!-- 내 단어 모드 -->
+    <div id="myword-mode" class="mode-ui">
+      <div id="char-nav" class="trace-mode-nav">
+        <button type="button" id="myword-prev-btn" data-action="prev" aria-label="이전"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg></button>
+        <div>
+          <div id="myword-label">가</div>
+          <div id="myword-sub">내 단어 1 / 1</div>
+        </div>
+        <button type="button" id="myword-next-btn" data-action="next" aria-label="다음"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg></button>
+      </div>
+
+      <div id="myword-stage">
+        <span id="myword-hint-pill" class="hint-pill">세로: 한 글자씩 · 가로: 최대 4글자</span>
+      </div>
+
+      <div id="myword-complete"></div>
+
+      <div id="myword-canvas-wrap" class="canvas-wrap">
+        <canvas id="myword-guide-canvas"></canvas>
+        <canvas id="myword-draw-canvas"></canvas>
+      </div>
+
+      <div id="myword-toolbar" class="myword-toolbar">
+        <button id="myword-clear-btn" class="tool-btn" type="button">지우기</button>
+        <button type="button" id="myword-goto-add-btn" class="tool-btn">단어 추가</button>
+        <button type="button" id="myword-back-btn" class="tool-btn primary">메뉴로</button>
+      </div>
+
+      <div id="myword-feedback"></div>
+    </div>
+
+    <!-- 내 단어 추가 모드 -->
+    <div id="myword-add-mode" class="mode-ui">
+      <div class="myword-add-top">
+        <div class="myword-add-header">
+          <h2 class="myword-add-title">내 단어 추가</h2>
+          <button type="button" id="myword-add-menu-btn" class="tool-btn primary">메뉴로</button>
+        </div>
+        <p class="myword-add-desc">완성형 한글 1~4글자 (예: 강아지, 토끼). 순서가 연습 순서예요.</p>
+        <div class="myword-add-form">
+          <input type="text" id="myword-add-input" class="myword-add-input" maxlength="4" inputmode="text" autocomplete="off" placeholder="단어 입력" />
+          <button type="button" id="myword-add-submit" class="tool-btn">추가</button>
+        </div>
+        <p id="myword-add-msg" class="myword-add-msg" aria-live="polite"></p>
+      </div>
+      <ul id="myword-add-list" class="myword-add-list"></ul>
+      <div class="myword-add-toolbar">
+        <button type="button" id="myword-add-back-btn" class="tool-btn primary">메뉴로</button>
+      </div>
+    </div>
+    
+    <!-- 숫자 모드 -->
+    <div id="number-mode" class="mode-ui">
+      <div id="char-nav" class="trace-mode-nav">
+        <button type="button" id="num-prev-btn" data-action="prev">&#8592;</button>
+        <div>
+          <div id="num-label">1 · 일</div>
+          <div id="num-sub">숫자 1 / 10</div>
+        </div>
+        <button type="button" id="num-next-btn" data-action="next">&#8594;</button>
+      </div>
+      
+      <div id="num-stroke-hint"></div>
+      
+      <div id="num-canvas-wrap" class="canvas-wrap">
+        <canvas id="num-guide-canvas"></canvas>
+        <canvas id="num-draw-canvas"></canvas>
+      </div>
+      
+      <div id="num-toolbar" style="display: flex; gap: 8px; margin-top: 12px;">
+        <button id="num-clear-btn" class="tool-btn" style="flex: 1;">지우기</button>
+        <button id="num-hint-btn" class="tool-btn" style="flex: 1;">획순 보기</button>
+        <button type="button" id="num-back-btn" class="tool-btn primary" style="flex: 1;">메뉴로</button>
+      </div>
+      
+      <div id="num-feedback"></div>
+    </div>
+    
+    <!-- 영어 모드 -->
+    <div id="english-mode" class="mode-ui">
+      <div class="alpha-type-toggle">
+        <button class="alpha-type-btn active" data-type="upper">대문자</button>
+        <button class="alpha-type-btn" data-type="lower">소문자</button>
+      </div>
+      
+      <div id="char-nav" class="trace-mode-nav">
+        <button type="button" id="eng-prev-btn" data-action="prev">&#8592;</button>
+        <div>
+          <div id="eng-label">A · 에이</div>
+          <div id="eng-sub">영어 1 / 52</div>
+        </div>
+        <button type="button" id="eng-next-btn" data-action="next">&#8594;</button>
+      </div>
+      
+      <div id="eng-stroke-hint"></div>
+      
+      <div id="eng-canvas-wrap" class="canvas-wrap">
+        <canvas id="eng-guide-canvas"></canvas>
+        <canvas id="eng-draw-canvas"></canvas>
+      </div>
+      
+      <div id="eng-toolbar" style="display: flex; gap: 8px; margin-top: 12px;">
+        <button id="eng-clear-btn" class="tool-btn" style="flex: 1;">지우기</button>
+        <button id="eng-hint-btn" class="tool-btn" style="flex: 1;">획순 보기</button>
+        <button type="button" id="eng-back-btn" class="tool-btn primary" style="flex: 1;">메뉴로</button>
+      </div>
+      
+      <div id="eng-feedback"></div>
+    </div>
+  </div>
+  
+  <script src="shared/common.js"></script>
+  <script src="shared/core.js"></script>
+  <script src="shared/strokeOrder.js"></script>
+  <script src="shared/navigation.js"></script>
+  <script src="shared/utils.js"></script>
+  <script src="shared/myWords.js"></script>
+  <script src="modes/char/modes.js"></script>
+  <script src="modes/word/modes.js"></script>
+  <script src="modes/number/modes.js"></script>
+  <script src="modes/english/modes.js"></script>
+  <script src="modes/myword/modes.js"></script>
+  <script src="modes/myword-add/modes.js"></script>
+  <script src="index.js"></script>
+</body>
+</html>

@@ -324,6 +324,17 @@ class AdvancedMode {
   }
 
   next() {
+    // 미완료 차단 — 학습 목적이니 현재 보이는 글자(들)을 다 따라쓴 뒤에야 진행.
+    const target = this._strokeTarget();
+    if (this.strokeCount < target) {
+      const remaining = target - this.strokeCount;
+      const fb = document.getElementById('adv-feedback');
+      if (fb) {
+        fb.textContent = `${remaining}획 더 그려야 다음으로 갈 수 있어요!`;
+        fb.style.color = '#c44';
+      }
+      return;
+    }
     if (this._isLandscape()) {
       const sylLen = this._syllables().length;
       const maxStart = Math.max(0, sylLen - TRACE_MY_WORD_WINDOW_SIZE);

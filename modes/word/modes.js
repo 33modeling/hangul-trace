@@ -205,11 +205,15 @@ class WordMode {
   next() {
     const w = WORDS[this.currentIdx];
     const target = traceWordStrokeTarget(w);
-    if (this.strokeCount >= target) {
-      this.currentIdx = (this.currentIdx + 1) % WORDS.length;
-      const wc = document.getElementById('word-complete');
-      if (wc) wc.textContent = '';
-      this.updateUI();
+    // 미완료 차단 — 학습 목적이니 다 따라쓰지 않으면 다음으로 못 감.
+    // 사용자에게 남은 획수 안내.
+    if (this.strokeCount < target) {
+      const remaining = target - this.strokeCount;
+      const fb = document.getElementById('word-feedback');
+      if (fb) {
+        fb.textContent = `${remaining}획 더 그려야 다음으로 갈 수 있어요!`;
+        fb.style.color = '#c44';
+      }
       return;
     }
     this.currentIdx = (this.currentIdx + 1) % WORDS.length;

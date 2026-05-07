@@ -12,12 +12,13 @@
 /* CACHE 버전 — 자산이 바뀌었으면 이 값을 올려서 옛 사용자 브라우저의
  * 캐시를 강제 무효화해야 한다. 새 SW가 install되면 activate에서 옛
  * 캐시 키를 삭제하므로 새 자산이 prefetch된다. */
-const CACHE = 'tracing-v2';
+const CACHE = 'tracing-v3';
 
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
+  './VERSION',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-192.png',

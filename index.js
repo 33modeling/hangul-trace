@@ -199,7 +199,43 @@ function initAppShell() {
   }
 
   initSecretEgg();
+  initIntroScreen();
   showMainMenu();
+}
+
+/* === 인트로 화면 ===
+ * 첫 진입 시 보이는 splash 화면. 화면 터치 한 번에 fade-out → 메뉴.
+ * 사용자가 추후 로그인 화면을 이 자리에 끼워넣을 예정. */
+function initIntroScreen() {
+  // VERSION 파일에서 버전 읽어 표시 (실패해도 placeholder 유지)
+  fetch('VERSION')
+    .then((r) => (r.ok ? r.text() : ''))
+    .then((v) => {
+      const ver = (v || '').trim();
+      if (!ver) return;
+      document.querySelectorAll('.intro-version, .menu-version').forEach((el) => {
+        el.textContent = 'v' + ver;
+      });
+    })
+    .catch(() => {});
+
+  const intro = document.getElementById('intro-screen');
+  if (!intro) return;
+  let dismissed = false;
+  const dismiss = (e) => {
+    if (dismissed) return;
+    dismissed = true;
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    intro.classList.add('intro-dismiss');
+    setTimeout(() => {
+      intro.style.display = 'none';
+    }, 380);
+  };
+  intro.addEventListener('click', dismiss);
+  intro.addEventListener('touchstart', dismiss, { passive: false });
+  intro.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') dismiss(e);
+  });
 }
 
 if (document.readyState === 'loading') {

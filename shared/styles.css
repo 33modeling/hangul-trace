@@ -175,6 +175,124 @@ to { opacity: 1; transform: translateY(0); }
   user-select: none;
 }
 
+/* ==========================================================================
+   인트로 화면 — 첫 진입 splash. 터치 한 번에 fade-out 후 메뉴.
+   ========================================================================== */
+.intro-screen
+{
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 40px 20px 64px;
+  background: var(--trace-gradient-soft);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  animation: introFadeIn 0.5s ease;
+}
+
+.intro-screen.intro-dismiss
+{
+  animation: introFadeOut 0.35s ease forwards;
+  pointer-events: none;
+}
+
+.intro-hero
+{
+  width: min(56vw, 240px);
+  height: auto;
+  aspect-ratio: 1 / 1;
+  border-radius: 28px;
+  box-shadow: 0 18px 48px rgba(124, 58, 237, 0.28);
+  margin-bottom: 6px;
+}
+
+.intro-title
+{
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--trace-accent-dark);
+  letter-spacing: -0.02em;
+  margin: 4px 0 0;
+}
+
+.intro-sub
+{
+  font-size: 16px;
+  font-weight: 600;
+  color: #6e5a8a;
+  margin: 0;
+}
+
+.intro-touch
+{
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--trace-pink);
+  margin: 18px 0 0;
+  animation: introBlink 1.3s ease-in-out infinite;
+}
+
+.intro-footer,
+.menu-footer
+{
+  position: absolute;
+  bottom: max(14px, env(safe-area-inset-bottom, 0px));
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 11px;
+  color: rgba(110, 90, 138, 0.7);
+  font-weight: 500;
+  margin: 0;
+  letter-spacing: 0.02em;
+}
+
+.intro-footer strong,
+.menu-footer strong
+{
+  font-weight: 700;
+  color: var(--trace-accent-dark);
+}
+
+.menu-footer
+{
+  /* 메뉴 안에서는 absolute 말고 그냥 자연스러운 흐름 */
+  position: relative;
+  bottom: auto;
+  margin-top: 24px;
+  padding-bottom: 8px;
+}
+
+@keyframes introFadeIn
+{
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes introFadeOut
+{
+  to { opacity: 0; transform: scale(1.02); }
+}
+
+@keyframes introBlink
+{
+  0%, 100% { opacity: 0.45; transform: translateY(0); }
+  50%      { opacity: 1;   transform: translateY(-2px); }
+}
+
+@media (max-width: 380px)
+{
+  .intro-title { font-size: 30px; }
+  .intro-sub   { font-size: 14px; }
+  .intro-hero  { width: 60vw; }
+}
+
 /* 비밀 모드 화면 — 메뉴에 노출 X */
 #secret-mode .secret-content
 {

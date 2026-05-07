@@ -12,6 +12,18 @@
 </head>
 <body>
   <div id="app">
+    <!--
+      인트로 화면 — 첫 로딩 시 한 번 보이고 화면 터치로 dismiss.
+      나중에 로그인 폼이 이 자리에 들어갈 예정.
+    -->
+    <div id="intro-screen" class="intro-screen" role="button" tabindex="0" aria-label="시작하기">
+      <img class="intro-hero" src="icons/icon-512.png" alt="" aria-hidden="true" />
+      <h1 class="intro-title">채윤 한글</h1>
+      <p class="intro-sub">한글 따라쓰기 시작하세요</p>
+      <p class="intro-touch">👆 화면을 터치해 주세요</p>
+      <p class="intro-footer">made by <strong>아빠 Matt</strong> · <span class="intro-version">v0.0.0</span></p>
+    </div>
+
     <!-- 메인 메뉴 -->
     <div id="main-menu">
       <div id="menu-header">
@@ -65,6 +77,8 @@
           <span>A-Z</span>
         </button>
       </div>
+
+      <p class="menu-footer">made by <strong>아빠 Matt</strong> · <span class="menu-version">v0.0.0</span></p>
     </div>
     
     <!--

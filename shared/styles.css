@@ -95,6 +95,12 @@ body
   flex-wrap: wrap;
   gap: 6px;
   justify-content: center;
+  margin-bottom: 12px;
+}
+
+.dots:empty
+{
+  margin-bottom: 0;
 }/* 메인 메뉴 */#main-menu
 {
   display: flex;
@@ -123,13 +129,13 @@ to { opacity: 1; transform: translateY(0); }
 #menu-header
 {
   text-align: center;
-  margin-bottom: 24px;
-  padding: 22px 18px 24px;
-  border-radius: 22px;
+  margin-bottom: 16px;
+  padding: 24px 20px 26px;
+  border-radius: 24px;
   background: var(--trace-gradient-soft);
   box-shadow: var(--trace-shadow-card);
   width: 100%;
-  max-width: 420px;
+  max-width: 480px;
 }
 
 #menu-header .menu-header-byline
@@ -137,23 +143,23 @@ to { opacity: 1; transform: translateY(0); }
   font-size: 13px;
   font-weight: 600;
   color: var(--trace-accent-dark);
-  margin: 0 0 6px;
-  letter-spacing: 0.04em;
+  margin: 0 0 8px;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 #menu-header h1
 {
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 800;
   color: #2d1b4e;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   letter-spacing: -0.01em;
 }
 
 #menu-header p
 {
-  font-size: 14px;
+  font-size: 15px;
   color: #6e5a8a;
 }
 
@@ -162,9 +168,9 @@ to { opacity: 1; transform: translateY(0); }
   display: flex;
   gap: 10px;
   justify-content: center;
-  margin: 0 auto 18px;
+  margin: 0 auto 20px;
   width: 100%;
-  max-width: 420px;
+  max-width: 480px;
 }
 
 .sound-toggle-btn
@@ -172,17 +178,17 @@ to { opacity: 1; transform: translateY(0); }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 10px 18px;
   border-radius: 999px;
   border: 1px solid var(--trace-border);
   background: var(--trace-surface);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--trace-accent-dark);
   cursor: pointer;
   transition: all 0.18s ease;
   -webkit-tap-highlight-color: transparent;
-  min-height: 36px;
+  min-height: 40px;
 }
 
 .sound-toggle-btn:active
@@ -218,29 +224,40 @@ to { opacity: 1; transform: translateY(0); }
 
 #mode-cards
 {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 12px;
   width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+@media (min-width: 480px)
+{
+  #mode-cards {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .mode-card
 {
-  padding: 18px 22px;
-  border-radius: 18px;
+  padding: 20px 18px;
+  border-radius: 20px;
   border: 1px solid var(--trace-border);
   background: var(--trace-surface);
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 700;
   color: #2d1b4e;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+  text-align: center;
   transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   box-shadow: var(--trace-shadow-card);
-  min-height: 64px;
+  min-height: 84px;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -259,7 +276,7 @@ to { opacity: 1; transform: translateY(0); }
 
 .mode-card span
 {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--trace-chip-text);
   font-weight: 500;
 }/* 모드 UI 공통 */.mode-ui
@@ -317,9 +334,9 @@ to { opacity: 1; transform: translateX(0); }
 
 #char-label
 {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
-  color: #333;
+  color: #2d1b4e;
   text-align: center;
 }
 
@@ -343,9 +360,9 @@ to {
 
 #char-sub
 {
-  font-size: 13px;
-  color: #888;
-  margin-top: 4px;
+  font-size: 14px;
+  color: #6e5a8a;
+  margin-top: 6px;
   text-align: center;
 }
 
@@ -414,13 +431,25 @@ to {
   color: var(--trace-accent-dark);
 }
 
-#word-label
+#word-label,
+#adv-label
 {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
-  color: #333;
+  color: #2d1b4e;
   text-align: center;
   font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+
+#word-sub,
+#adv-sub,
+#num-sub,
+#eng-sub
+{
+  font-size: 14px;
+  color: #6e5a8a;
+  margin-top: 6px;
+  text-align: center;
 }
 
 #dots
@@ -456,18 +485,18 @@ to {
 
 #myword-label
 {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
-  color: #333;
+  color: #2d1b4e;
   text-align: center;
   font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
 }
 
 #myword-sub
 {
-  font-size: 13px;
-  color: #888;
-  margin-top: 4px;
+  font-size: 14px;
+  color: #6e5a8a;
+  margin-top: 6px;
   text-align: center;
 }
 
@@ -819,11 +848,20 @@ button.myword-add-mini.tool-btn.myword-add-del
   #myword-add-menu-btn {
     order: 2;
   }
-}/* 툴바 */#toolbar
+}/* 툴바 — 모드 안 모든 toolbar 공통 */
+#toolbar,
+.mode-toolbar
 {
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+#toolbar > .tool-btn,
+.mode-toolbar > .tool-btn
+{
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .tool-btn
@@ -874,46 +912,74 @@ button.myword-add-mini.tool-btn.myword-add-del
   background: var(--trace-success);
   border-color: var(--trace-success-muted);
   color: white;
-}/* 피드백 */#feedback
+}/* 피드백 — 모든 모드 공통 */
+#feedback,
+#word-feedback,
+#num-feedback,
+#eng-feedback,
+#myword-feedback,
+#adv-feedback
 {
   text-align: center;
-  margin-top: 10px;
-  font-size: 14px;
+  margin-top: 12px;
+  font-size: 15px;
   color: #888;
   min-height: 24px;
   font-weight: 500;
-}/* 히ント */#stroke-hint
+}
+
+/* 모드 진입 시 캔버스 위 hint 영역 — 모든 모드 공통 */
+#stroke-hint,
+#num-stroke-hint,
+#eng-stroke-hint
 {
   display: flex;
   gap: 8px;
   justify-content: center;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   flex-wrap: wrap;
+  min-height: 26px;
+}
+
+#word-stage,
+#adv-stage,
+#myword-stage
+{
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  min-height: 26px;
 }
 
 .hint-pill
 {
-  font-size: 12px;
-  padding: 4px 10px;
+  font-size: 13px;
+  padding: 5px 12px;
   border-radius: 20px;
   background: var(--trace-chip);
   color: var(--trace-chip-text);
-  font-weight: 500;
-}/* 단어 모드 */#word-stage
+  font-weight: 600;
+}/* 완성 메시지 — 빈 상태에서는 공간 안 차지 */
+#word-complete,
+#adv-complete,
+#myword-complete
 {
   text-align: center;
-  margin-bottom: 10px;
-  font-size: 14px;
-  color: #666;
-}
-
-#word-complete
-{
-  text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   font-size: 18px;
   color: var(--trace-success);
-  font-weight: 600;
+  font-weight: 700;
+  min-height: 24px;
+}
+
+#word-complete:empty,
+#adv-complete:empty,
+#myword-complete:empty
+{
+  min-height: 0;
+  margin-bottom: 0;
 }/* 반응형 — 가로 모드: 메인 2열,
 연습 화면은 정보+캔버스 2열 그리드 (JS 리사이즈와 맞춤) */@media (orientation: landscape)
 {
@@ -953,14 +1019,16 @@ button.myword-add-mini.tool-btn.myword-add-del
 
 .alpha-type-btn
 {
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 2px solid var(--trace-border-ui);
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 1px solid var(--trace-border-ui);
   background: var(--trace-surface);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
+  color: var(--trace-accent-dark);
   cursor: pointer;
   transition: all 0.2s ease;
+  min-height: 40px;
 }
 
 .alpha-type-btn.active

@@ -59,7 +59,7 @@ const LOWERCASE = [
 
 class EnglishMode {
   constructor() {
-    this.modeName = '영어';
+    this.modeName = '알파벳';
     this.currentIdx = 0;
     this.alphaType = 'upper';
     this.canvas = null;

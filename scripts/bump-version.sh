@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# 패치 버전 올리고 index.html 의 <title>, 메인 <h1> 과 VERSION 동기화
+# 패치 버전 올리고 VERSION 파일과 index.html <title>을 동기화
+# (메인 <h1>은 버전 표기를 빼서 더 이상 갱신하지 않음)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -17,27 +18,17 @@ parts[-1] = str(int(parts[-1]) + 1)
 new = ".".join(parts)
 vf.write_text(new + "\n", encoding="utf-8")
 
-repls = [
-    (
-        root / "index.html",
-        "한글 따라쓰기",
-        r"<h1>한글 따라쓰기(?:\s+v|v)\d+\.\d+\.\d+</h1>",
-    ),
-]
-for path, prefix, h1_re in repls:
-    t = path.read_text(encoding="utf-8")
-    t2, n = re.subn(
-        r"<title>[^<]*</title>",
-        f"<title>{prefix} v{new}</title>",
-        t,
-        count=1,
-    )
-    if n != 1:
-        raise SystemExit(f"{path.name}: expected one <title>, replaced {n}")
-    h1_new = f"<h1>{prefix} v{new}</h1>"
-    t2, n = re.subn(h1_re, h1_new, t2, count=1)
-    if n != 1:
-        raise SystemExit(f"{path.name}: expected one main <h1>, replaced {n}")
-    path.write_text(t2, encoding="utf-8")
+prefix = "한글 따라쓰기"
+index_html = root / "index.html"
+t = index_html.read_text(encoding="utf-8")
+t2, n = re.subn(
+    r"<title>[^<]*</title>",
+    f"<title>{prefix} v{new}</title>",
+    t,
+    count=1,
+)
+if n != 1:
+    raise SystemExit(f"index.html: expected one <title>, replaced {n}")
+index_html.write_text(t2, encoding="utf-8")
 print(new)
 PY

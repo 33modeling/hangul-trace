@@ -15,7 +15,7 @@
     <!-- 메인 메뉴 -->
     <div id="main-menu">
       <div id="menu-header">
-        <div class="menu-header-byline">통통이 김채윤</div>
+        <div class="menu-header-byline"><span id="secret-trigger">통통이</span> 김채윤</div>
         <h1>한글 따라쓰기</h1>
         <p>손가락으로 글자를 써보세요!</p>
       </div>
@@ -67,6 +67,21 @@
       </div>
     </div>
     
+    <!--
+      비밀 모드 (이스터에그) — 메뉴 카드에 안 보임. byline의 '통통이'를
+      15회 빠르게 누르면 진입. 메뉴로 돌아가기 버튼만 노출.
+    -->
+    <div id="secret-mode" class="mode-ui">
+      <div class="secret-content">
+        <img id="secret-photo" src="assets/secret/chaeyoon.jpg" alt="" class="secret-photo" onerror="this.style.display='none'" />
+        <p class="secret-message">김채윤 사랑해.</p>
+        <p class="secret-signoff">— 아빠가 —</p>
+      </div>
+      <div class="mode-toolbar">
+        <button type="button" id="secret-back-btn" class="tool-btn primary">메뉴로</button>
+      </div>
+    </div>
+
     <!-- 자음/모음 모드 -->
     <div id="char-mode" class="mode-ui">
       <div id="char-nav" class="trace-mode-nav">

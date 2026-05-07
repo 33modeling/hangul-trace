@@ -163,6 +163,65 @@ to { opacity: 1; transform: translateY(0); }
   color: #6e5a8a;
 }
 
+/*
+ * 이스터에그 트리거 — 외관상 일반 텍스트와 똑같이 보여야 한다.
+ * cursor 변화 없음, 호버 효과 없음. user-select만 막아서 더블탭/
+ * 드래그 텍스트 선택 시 카운트가 흐트러지는 것 방지.
+ */
+#secret-trigger
+{
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* 비밀 모드 화면 — 메뉴에 노출 X */
+#secret-mode .secret-content
+{
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  gap: 18px;
+  text-align: center;
+}
+
+.secret-photo
+{
+  width: min(72vw, 320px);
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 4px solid var(--trace-accent);
+  box-shadow: 0 16px 40px rgba(124, 58, 237, 0.25);
+  background: var(--trace-chip);
+}
+
+.secret-photo[src=""]
+{
+  display: none;
+}
+
+.secret-message
+{
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--trace-accent-dark);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.secret-signoff
+{
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--trace-pink);
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
 .menu-sound-toggles
 {
   display: flex;

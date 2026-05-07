@@ -32,6 +32,50 @@ function showAdvancedMode() {
   showSingleMode('advanced');
 }
 
+/* === 이스터에그: byline '통통이' 15클릭 → 비밀 모드 ===
+ * 외관상 일반 텍스트라 모르는 사람에겐 보이지 않음.
+ * 5초 안에 15회 누르지 못하면 카운트 자동 리셋.
+ */
+const TRACE_SECRET_TARGET = 15;
+const TRACE_SECRET_RESET_MS = 5000;
+let _traceSecretClicks = 0;
+let _traceSecretTimer = null;
+
+function _traceTriggerSecret() {
+  _traceSecretClicks = 0;
+  if (_traceSecretTimer) {
+    clearTimeout(_traceSecretTimer);
+    _traceSecretTimer = null;
+  }
+  document.querySelectorAll('.mode-ui').forEach((el) => el.classList.remove('active'));
+  const main = document.getElementById('main-menu');
+  if (main) main.style.display = 'none';
+  const panel = document.getElementById('secret-mode');
+  if (panel) panel.classList.add('active');
+}
+
+function initSecretEgg() {
+  const trigger = document.getElementById('secret-trigger');
+  if (!trigger) return;
+  trigger.addEventListener(
+    'click',
+    (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      _traceSecretClicks += 1;
+      if (_traceSecretTimer) clearTimeout(_traceSecretTimer);
+      _traceSecretTimer = setTimeout(() => {
+        _traceSecretClicks = 0;
+        _traceSecretTimer = null;
+      }, TRACE_SECRET_RESET_MS);
+      if (_traceSecretClicks >= TRACE_SECRET_TARGET) {
+        _traceTriggerSecret();
+      }
+    },
+    { passive: false }
+  );
+}
+
 /** click/pointer의 target이 텍스트 노드일 때(버튼 안 ← 문자) closest를 쓰려면 Element 필요 */
 function traceClickElement(e) {
   for (const n of e.composedPath()) {
@@ -99,7 +143,7 @@ function initAppShell() {
       const el = traceClickElement(e);
       if (!el) return;
       const back = el.closest(
-        '#back-btn, #word-back-btn, #num-back-btn, #eng-back-btn, #myword-back-btn, #myword-add-back-btn, #myword-add-menu-btn, #adv-back-btn'
+        '#back-btn, #word-back-btn, #num-back-btn, #eng-back-btn, #myword-back-btn, #myword-add-back-btn, #myword-add-menu-btn, #adv-back-btn, #secret-back-btn'
       );
       if (back && app.contains(back)) {
         e.preventDefault();
@@ -154,6 +198,7 @@ function initAppShell() {
     );
   }
 
+  initSecretEgg();
   showMainMenu();
 }
 

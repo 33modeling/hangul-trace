@@ -19,6 +19,15 @@
         <h1>한글 따라쓰기</h1>
         <p>손가락으로 글자를 써보세요!</p>
       </div>
+
+      <div id="menu-sound-toggles" class="menu-sound-toggles">
+        <button type="button" id="bgm-toggle" class="sound-toggle-btn" aria-pressed="false">
+          <span class="sound-icon" aria-hidden="true">🎼</span><span class="sound-label">배경음</span>
+        </button>
+        <button type="button" id="sfx-toggle" class="sound-toggle-btn" aria-pressed="true">
+          <span class="sound-icon" aria-hidden="true">🔔</span><span class="sound-label">효과음</span>
+        </button>
+      </div>
       
       <div id="mode-cards">
         <button type="button" class="mode-card" data-mode="char">
@@ -269,6 +278,7 @@
   <script src="shared/navigation.js"></script>
   <script src="shared/utils.js"></script>
   <script src="shared/myWords.js"></script>
+  <script src="shared/sound.js"></script>
   <script src="modes/char/modes.js"></script>
   <script src="modes/word/modes.js"></script>
   <script src="modes/advanced/modes.js"></script>

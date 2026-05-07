@@ -134,6 +134,7 @@ class WordMode {
       if (!this.doneSet.has(this.currentIdx)) {
         this.doneSet.add(this.currentIdx);
         document.getElementById('word-complete').textContent = `${w.syllable} ✓`;
+        if (typeof TraceSound !== 'undefined') TraceSound.complete();
       }
       feedbackEl.textContent = '완성! 🎉 다음 단어는 ▶ 를 눌러 주세요.';
     }

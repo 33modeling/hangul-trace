@@ -272,6 +272,7 @@ class MyWordMode {
         this.doneSet.add(visibleKey);
         const w = this.words[this.wordIdx];
         document.getElementById('myword-complete').textContent = `${w} ✓`;
+        if (typeof TraceSound !== 'undefined') TraceSound.complete();
       }
       feedbackEl.textContent = '완성! 🎉 다음은 ▶ 를 눌러 주세요.';
     }

@@ -191,6 +191,7 @@ class NumberMode {
       if (this.strokeCount >= num.strokes && !this.navigation.getIsDone()) {
         this.navigation.doneSet.add(this.currentIdx);
         this.navigation.renderDots();
+        if (typeof TraceSound !== 'undefined') TraceSound.complete();
       }
     };
     

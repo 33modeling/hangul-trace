@@ -188,6 +188,7 @@ class CharMode {
       if (this.strokeCount >= char.strokes && !this.navigation.getIsDone()) {
         this.navigation.doneSet.add(this.currentIdx);
         this.navigation.renderDots();
+        if (typeof TraceSound !== 'undefined') TraceSound.complete();
       }
     };
     

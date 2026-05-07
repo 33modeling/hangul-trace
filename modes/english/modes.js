@@ -262,6 +262,7 @@ class EnglishMode {
       if (this.strokeCount >= alpha.strokes && !this.navigation.getIsDone()) {
         this.navigation.doneSet.add(this.currentIdx);
         this.navigation.renderDots();
+        if (typeof TraceSound !== 'undefined') TraceSound.complete();
       }
     };
     

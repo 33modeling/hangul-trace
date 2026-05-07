@@ -300,6 +300,7 @@ function attachCanvasPointerDrawing(canvas, h) {
     } catch (_err) {
       /* 캡처 실패 시에도 window에서 move/up 추적 */
     }
+    if (typeof TraceSound !== 'undefined') TraceSound.stroke();
     h.onDown(e);
     window.addEventListener('pointermove', onPointerWinMove, CANVAS_OPTS);
     window.addEventListener('pointerup', onPointerWinUp, CANVAS_OPTS);

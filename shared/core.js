@@ -367,15 +367,6 @@ function attachCanvasPointerDrawing(canvas, h) {
   };
 }
 
-// 공통 획수 카운팅
-function countStroke(startPoint, currentPoint, threshold = 10) {
-  const dist = Math.sqrt(
-    Math.pow(currentPoint.x - startPoint.x, 2) +
-    Math.pow(currentPoint.y - startPoint.y, 2)
-  );
-  return dist > threshold;
-}
-
 /**
  * 획순 오버레이 표시 — 캔버스 위에 획별 번호와 방향을 그림
  * @param {DrawingCanvas} guideLayer 가이드 캔버스

@@ -14,7 +14,6 @@ module.exports = defineConfig({
   use: {
     baseURL: `http://127.0.0.1:${PORT}`,
     trace: 'on-first-retry',
-    ...devices['Desktop Chrome'],
   },
   webServer: {
     command: `python3 -m http.server ${PORT} --bind 127.0.0.1`,
@@ -23,5 +22,9 @@ module.exports = defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
   },
-  projects: [{ name: 'chromium' }],
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox',  use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit',   use: { ...devices['Desktop Safari'] } },
+  ],
 });

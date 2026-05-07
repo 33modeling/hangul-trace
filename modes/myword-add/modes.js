@@ -23,7 +23,7 @@ class MyWordAddMode {
     if (input) {
       input.placeholder = this.kind === 'en'
         ? '영단어 입력 (1~20글자, a-z / A-Z)'
-        : '단어 입력 (1~20글자, 가~힣)';
+        : '단어 입력 (1~20글자, 한글)';
       input.value = '';
     }
     const msg = document.getElementById('myword-add-msg');

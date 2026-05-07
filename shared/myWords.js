@@ -60,7 +60,7 @@ function traceValidateMyWordInput(raw, kind) {
   if (resolved === 'ko') {
     for (const ch of letters) {
       if (!/^[가-힣]$/.test(ch)) {
-        return { valid: false, message: '한글(가~힣)만 입력할 수 있어요.' };
+        return { valid: false, message: '한글만 입력할 수 있어요.' };
       }
     }
   } else if (resolved === 'en') {

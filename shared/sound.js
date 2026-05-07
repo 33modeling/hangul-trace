@@ -68,6 +68,12 @@ const TraceSound = (() => {
     _tone(784, 0.20, 0.07, 'sine', 0.27);
   }
 
+  function click() {
+    if (!sfxEnabled) return;
+    // 짧고 부드러운 'pop' — stroke(880Hz)와 구분되도록 살짝 낮은 톤
+    _tone(620, 0.05, 0.035, 'triangle');
+  }
+
   // 잔잔한 멜로디: [freq, durationSec]
   const BGM_MELODY = [
     [392, 0.6], [440, 0.6], [523, 1.0],
@@ -171,9 +177,22 @@ const TraceSound = (() => {
     _bindUI();
   }
 
+  // 글로벌 버튼 클릭 SFX — capture phase로 모든 <button> 클릭 캐치.
+  // 자식 요소를 클릭해도 closest('button')으로 잡아냄. 비활성화된 버튼은 제외.
+  document.addEventListener('click', (e) => {
+    if (!sfxEnabled) return;
+    const t = e.target;
+    if (!t || typeof t.closest !== 'function') return;
+    const btn = t.closest('button');
+    if (!btn) return;
+    if (btn.disabled) return;
+    click();
+  }, { capture: true });
+
   return {
     stroke,
     complete,
+    click,
     setBgmEnabled,
     setSfxEnabled,
     isBgmEnabled,

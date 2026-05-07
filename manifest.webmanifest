@@ -1,6 +1,6 @@
 {
-  "name": "한글 따라쓰기",
-  "short_name": "따라쓰기",
+  "name": "채윤 한글",
+  "short_name": "채윤 한글",
   "description": "손가락으로 한글·숫자·영어를 따라 써요.",
   "start_url": "./index.html",
   "scope": "./",

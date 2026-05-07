@@ -18,7 +18,7 @@ parts[-1] = str(int(parts[-1]) + 1)
 new = ".".join(parts)
 vf.write_text(new + "\n", encoding="utf-8")
 
-prefix = "한글 따라쓰기"
+prefix = "채윤 한글"
 index_html = root / "index.html"
 t = index_html.read_text(encoding="utf-8")
 t2, n = re.subn(

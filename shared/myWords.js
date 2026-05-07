@@ -2,15 +2,24 @@
 
 const TRACE_MY_WORDS_STORAGE_KEY = 'tracing.myWords.v1';
 
-/** 완성형 한글 음절 1~4글자만 허용 */
+/** 한 단어당 음절 한도: 1~20글자 (가로 모드는 4글자 윈도우로 슬라이드) */
+const TRACE_MY_WORD_MAX_SYLLABLES = 20;
+/** 가로 모드에서 한 번에 보이는 음절 수 */
+const TRACE_MY_WORD_WINDOW_SIZE = 4;
+/** 등록 가능한 전체 단어 개수 한도 */
+const TRACE_MY_WORDS_MAX_COUNT = 30;
+
 function traceValidateMyWordInput(raw) {
   const trimmed = String(raw || '').trim();
   if (!trimmed) {
     return { valid: false, message: '단어를 입력하세요.' };
   }
   const syllables = Array.from(trimmed);
-  if (syllables.length > 4) {
-    return { valid: false, message: '한글 음절은 최대 4글자까지 등록할 수 있어요.' };
+  if (syllables.length > TRACE_MY_WORD_MAX_SYLLABLES) {
+    return {
+      valid: false,
+      message: `한글 음절은 최대 ${TRACE_MY_WORD_MAX_SYLLABLES}글자까지 등록할 수 있어요.`
+    };
   }
   for (const ch of syllables) {
     if (!/^[가-힣]$/.test(ch)) {

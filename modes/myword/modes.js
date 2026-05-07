@@ -5,7 +5,8 @@ class MyWordMode {
   constructor() {
     this.words = traceLoadMyWords();
     this.wordIdx = 0;
-    this.syllableIdx = 0;
+    this.syllableIdx = 0;     // 세로 모드: 현재 음절 인덱스
+    this.windowStart = 0;     // 가로 모드: 4글자 윈도우 시작 인덱스
     this.strokeCount = 0;
     this.guideLayer = null;
     this.canvas = null;
@@ -29,14 +30,28 @@ class MyWordMode {
     return w ? Array.from(w) : [];
   }
 
-  _strokeTarget() {
+  /** 화면에 실제로 그려지는 음절 목록 */
+  _visibleSyllables() {
     const syl = this._syllables();
-    if (syl.length === 0) return 1;
+    if (syl.length === 0) return [];
     if (this._isLandscape()) {
-      return traceMyWordStrokeTargetForSyllables(syl);
+      const start = this._clampedWindowStart(syl.length);
+      return syl.slice(start, start + TRACE_MY_WORD_WINDOW_SIZE);
     }
-    const one = syl[this.syllableIdx] || syl[0];
-    return traceMyWordStrokeTargetForSyllables([one]);
+    const ch = syl[Math.min(this.syllableIdx, syl.length - 1)];
+    return ch ? [ch] : [];
+  }
+
+  /** 가로 모드 윈도우 시작점을 음절 길이 안에 클램프 */
+  _clampedWindowStart(sylLen) {
+    const maxStart = Math.max(0, sylLen - TRACE_MY_WORD_WINDOW_SIZE);
+    return Math.max(0, Math.min(this.windowStart, maxStart));
+  }
+
+  _strokeTarget() {
+    const visible = this._visibleSyllables();
+    if (visible.length === 0) return 1;
+    return traceMyWordStrokeTargetForSyllables(visible);
   }
 
   init() {
@@ -78,9 +93,20 @@ class MyWordMode {
     this._onResizeBound = () => {
       const L = self._isLandscape();
       if (self._lastLandscape !== null && self._lastLandscape !== L) {
+        // orientation 전환 시 syllableIdx ↔ windowStart 매핑
+        const sylLen = self._syllables().length;
+        if (L) {
+          // 세로 → 가로: 현재 음절이 보이도록 윈도우 시작 잡기
+          const maxStart = Math.max(0, sylLen - TRACE_MY_WORD_WINDOW_SIZE);
+          self.windowStart = Math.max(0, Math.min(self.syllableIdx, maxStart));
+        } else {
+          // 가로 → 세로: 윈도우 첫 글자를 현재 음절로
+          self.syllableIdx = Math.max(0, Math.min(self.windowStart, sylLen - 1));
+        }
         self.strokeCount = 0;
         if (self.canvas) self.canvas.clear();
-        self.updateFeedback();
+        self.updateUI();
+        return;
       }
       self._lastLandscape = L;
       self._syncMyWordCanvases();
@@ -128,17 +154,16 @@ class MyWordMode {
       return;
     }
 
-    const syl = this._syllables();
-    if (syl.length === 0) {
+    const visible = this._visibleSyllables();
+    if (visible.length === 0) {
       this.guideLayer.clear();
       return;
     }
 
     if (this._isLandscape()) {
-      this.guideLayer.drawGuideRow(syl, TRACE_MYWORD_GUIDE);
+      this.guideLayer.drawGuideRow(visible, TRACE_MYWORD_GUIDE);
     } else {
-      const ch = syl[Math.min(this.syllableIdx, syl.length - 1)] || syl[0];
-      this.guideLayer.drawGuide(ch, TRACE_MYWORD_GUIDE);
+      this.guideLayer.drawGuide(visible[0], TRACE_MYWORD_GUIDE);
     }
   }
 
@@ -158,8 +183,11 @@ class MyWordMode {
     this.words = traceLoadMyWords();
     const pill = document.getElementById('myword-hint-pill');
     if (pill) {
+      const sylLen = this._syllables().length;
       pill.textContent = this._isLandscape()
-        ? '가로: 단어 글자 한꺼번에 (최대 4글자)'
+        ? (sylLen > TRACE_MY_WORD_WINDOW_SIZE
+            ? `가로: ${TRACE_MY_WORD_WINDOW_SIZE}글자 윈도우 슬라이드`
+            : '가로: 단어 통째로')
         : '세로: 한 글자씩 따라 써요';
     }
 
@@ -180,6 +208,7 @@ class MyWordMode {
     if (typeof word !== 'string' || word.length === 0) {
       this.wordIdx = 0;
       this.syllableIdx = 0;
+      this.windowStart = 0;
       this.words = traceLoadMyWords();
       if (this.words.length === 0) {
         document.getElementById('myword-label').textContent = '등록된 단어 없음';
@@ -195,14 +224,25 @@ class MyWordMode {
     }
     const syl = Array.from(word);
     if (this.syllableIdx >= syl.length) this.syllableIdx = 0;
+    this.windowStart = this._clampedWindowStart(syl.length);
+
+    const labelEl = document.getElementById('myword-label');
+    const subEl = document.getElementById('myword-sub');
 
     if (this._isLandscape()) {
-      document.getElementById('myword-label').textContent = word;
-      document.getElementById('myword-sub').textContent = `내 단어 ${this.wordIdx + 1} / ${this.words.length}`;
+      const visible = this._visibleSyllables();
+      labelEl.textContent = visible.join('');
+      if (syl.length > TRACE_MY_WORD_WINDOW_SIZE) {
+        const start = this.windowStart + 1;
+        const end = this.windowStart + visible.length;
+        subEl.textContent = `내 단어 ${this.wordIdx + 1} / ${this.words.length} · 글자 ${start}-${end} / ${syl.length}`;
+      } else {
+        subEl.textContent = `내 단어 ${this.wordIdx + 1} / ${this.words.length}`;
+      }
     } else {
       const ch = syl[this.syllableIdx];
-      document.getElementById('myword-label').textContent = ch;
-      document.getElementById('myword-sub').textContent = `내 단어 ${this.wordIdx + 1} / ${this.words.length} · 글자 ${this.syllableIdx + 1} / ${syl.length}`;
+      labelEl.textContent = ch;
+      subEl.textContent = `내 단어 ${this.wordIdx + 1} / ${this.words.length} · 글자 ${this.syllableIdx + 1} / ${syl.length}`;
     }
 
     this.strokeCount = 0;
@@ -225,9 +265,11 @@ class MyWordMode {
       feedbackEl.style.color = '#888';
     } else {
       feedbackEl.style.color = '#ec4899';
-      const key = `${this.wordIdx}-${this.syllableIdx}-${this._isLandscape() ? 'L' : 'P'}`;
-      if (!this.doneSet.has(key)) {
-        this.doneSet.add(key);
+      const visibleKey = this._isLandscape()
+        ? `L:${this.wordIdx}:${this.windowStart}`
+        : `P:${this.wordIdx}:${this.syllableIdx}`;
+      if (!this.doneSet.has(visibleKey)) {
+        this.doneSet.add(visibleKey);
         const w = this.words[this.wordIdx];
         document.getElementById('myword-complete').textContent = `${w} ✓`;
       }
@@ -236,14 +278,13 @@ class MyWordMode {
   }
 
   setupEvents() {
-    wireButtonById('myword-prev-btn', () => {
-      const m = window.myWordMode;
-      if (m && typeof m.prev === 'function') m.prev();
-    });
-    wireButtonById('myword-next-btn', () => {
-      const m = window.myWordMode;
-      if (m && typeof m.next === 'function') m.next();
-    });
+    /*
+     * prev/next 버튼은 index.js의 capture-phase delegation 한 곳에서만
+     * 처리한다. 과거에 wireButtonById도 같이 쓰는 바람에 한 번 클릭이
+     * 두 번 호출되어 "강아지 마지막 음절 → 토끼" 대신 "강아지 → 토끼 →
+     * 강아지"로 되돌아오는 버그가 있었음. 다른 모드와 동일하게 한 경로
+     * 만 쓰도록 통일.
+     */
 
     rebindButtonClickById('myword-clear-btn', () => {
       this.canvas.clear();
@@ -304,11 +345,18 @@ class MyWordMode {
   prev() {
     this.words = traceLoadMyWords();
     if (this.words.length === 0) return;
-    const syl = this._syllables();
+
     if (this._isLandscape()) {
-      this.wordIdx = (this.wordIdx - 1 + this.words.length) % this.words.length;
-      this.syllableIdx = 0;
+      // 가로: 윈도우를 1칸 왼쪽으로, 0이면 이전 단어의 마지막 윈도우
+      if (this.windowStart > 0) {
+        this.windowStart--;
+      } else {
+        this.wordIdx = (this.wordIdx - 1 + this.words.length) % this.words.length;
+        const prevSyl = Array.from(this.words[this.wordIdx]);
+        this.windowStart = Math.max(0, prevSyl.length - TRACE_MY_WORD_WINDOW_SIZE);
+      }
     } else {
+      // 세로: 음절 1개 왼쪽으로, 0이면 이전 단어의 마지막 음절
       if (this.syllableIdx > 0) {
         this.syllableIdx--;
       } else {
@@ -323,33 +371,27 @@ class MyWordMode {
   next() {
     this.words = traceLoadMyWords();
     if (this.words.length === 0) return;
-    const target = this._strokeTarget();
-    const syl = this._syllables();
-
-    if (this.strokeCount >= target) {
-      if (this._isLandscape()) {
-        this.wordIdx = (this.wordIdx + 1) % this.words.length;
-        this.syllableIdx = 0;
-      } else {
-        if (this.syllableIdx < syl.length - 1) {
-          this.syllableIdx++;
-        } else {
-          this.wordIdx = (this.wordIdx + 1) % this.words.length;
-          this.syllableIdx = 0;
-        }
-      }
-      const wc = document.getElementById('myword-complete');
-      if (wc) wc.textContent = '';
-      this.updateUI();
-      return;
-    }
 
     if (this._isLandscape()) {
-      this.wordIdx = (this.wordIdx + 1) % this.words.length;
-      this.syllableIdx = 0;
+      // 가로: 윈도우를 1칸 오른쪽으로 슬라이드
+      const sylLen = this._syllables().length;
+      const maxStart = Math.max(0, sylLen - TRACE_MY_WORD_WINDOW_SIZE);
+      if (this.windowStart < maxStart) {
+        this.windowStart++;
+      } else {
+        // 윈도우 끝 → 다음 단어
+        this.wordIdx = (this.wordIdx + 1) % this.words.length;
+        this.windowStart = 0;
+      }
     } else {
-      this.wordIdx = (this.wordIdx + 1) % this.words.length;
-      this.syllableIdx = 0;
+      // 세로: 음절 1칸 오른쪽으로
+      const syl = this._syllables();
+      if (this.syllableIdx < syl.length - 1) {
+        this.syllableIdx++;
+      } else {
+        this.wordIdx = (this.wordIdx + 1) % this.words.length;
+        this.syllableIdx = 0;
+      }
     }
     const wc = document.getElementById('myword-complete');
     if (wc) wc.textContent = '';

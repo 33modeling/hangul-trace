@@ -11,6 +11,19 @@ class MyWordAddMode {
     window.myWordAddMode = this;
   }
 
+  _updateCounter() {
+    const el = document.getElementById('myword-add-counter');
+    if (el) {
+      el.textContent = `${this.words.length} / ${TRACE_MY_WORDS_MAX_COUNT}`;
+      el.classList.toggle('full', this.words.length >= TRACE_MY_WORDS_MAX_COUNT);
+    }
+    const input = document.getElementById('myword-add-input');
+    const submit = document.getElementById('myword-add-submit');
+    const full = this.words.length >= TRACE_MY_WORDS_MAX_COUNT;
+    if (input) input.disabled = full;
+    if (submit) submit.disabled = full;
+  }
+
   bindForm() {
     const input = document.getElementById('myword-add-input');
     const msg = document.getElementById('myword-add-msg');
@@ -24,6 +37,13 @@ class MyWordAddMode {
     wireButtonById('myword-add-back-btn', goMenu);
 
     rebindButtonClickById('myword-add-submit', () => {
+      if (this.words.length >= TRACE_MY_WORDS_MAX_COUNT) {
+        if (msg) {
+          msg.textContent = `단어는 최대 ${TRACE_MY_WORDS_MAX_COUNT}개까지만 등록할 수 있어요. 기존 단어를 지운 뒤 다시 시도해 주세요.`;
+          msg.style.color = '#c44';
+        }
+        return;
+      }
       const raw = input ? input.value : '';
       const res = traceValidateMyWordInput(raw);
       if (!res.valid) {
@@ -93,6 +113,7 @@ class MyWordAddMode {
   renderList() {
     this.words = traceLoadMyWords();
     const listEl = document.getElementById('myword-add-list');
+    this._updateCounter();
     if (!listEl) return;
     listEl.innerHTML = '';
     if (this.words.length === 0) {

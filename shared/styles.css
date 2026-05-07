@@ -426,6 +426,24 @@ to {
   min-width: 0;
 }
 
+.myword-add-counter
+{
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--trace-chip);
+  color: var(--trace-chip-text);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.myword-add-counter.full
+{
+  background: var(--trace-pink);
+  color: #fff;
+}
+
 #myword-add-menu-btn
 {
   flex-shrink: 0;

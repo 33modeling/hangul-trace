@@ -124,7 +124,7 @@
       </div>
 
       <div id="myword-stage">
-        <span id="myword-hint-pill" class="hint-pill">세로: 한 글자씩 · 가로: 최대 4글자</span>
+        <span id="myword-hint-pill" class="hint-pill">세로: 한 글자씩 · 가로: 4글자 윈도우 슬라이드</span>
       </div>
 
       <div id="myword-complete"></div>
@@ -148,11 +148,12 @@
       <div class="myword-add-top">
         <div class="myword-add-header">
           <h2 class="myword-add-title">내 단어 추가</h2>
+          <span id="myword-add-counter" class="myword-add-counter" aria-live="polite">0 / 30</span>
           <button type="button" id="myword-add-menu-btn" class="tool-btn primary">메뉴로</button>
         </div>
-        <p class="myword-add-desc">완성형 한글 1~4글자 (예: 강아지, 토끼). 순서가 연습 순서예요.</p>
+        <p class="myword-add-desc">완성형 한글 1~20글자 (예: 강아지, 사랑하는엄마). 단어는 최대 30개까지 등록할 수 있어요. 가로 모드에서는 4글자 윈도우가 한 글자씩 옆으로 이동해요.</p>
         <div class="myword-add-form">
-          <input type="text" id="myword-add-input" class="myword-add-input" maxlength="4" inputmode="text" autocomplete="off" placeholder="단어 입력" />
+          <input type="text" id="myword-add-input" class="myword-add-input" maxlength="20" inputmode="text" autocomplete="off" placeholder="단어 입력 (1~20글자)" />
           <button type="button" id="myword-add-submit" class="tool-btn">추가</button>
         </div>
         <p id="myword-add-msg" class="myword-add-msg" aria-live="polite"></p>

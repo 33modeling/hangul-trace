@@ -293,10 +293,26 @@ to { opacity: 1; transform: translateX(0); }
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   margin-bottom: 12px;
   position: relative;
   z-index: 25;
   flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
+}
+
+/* 가운데 라벨 영역(prev/next 사이의 텍스트 div)이 좁은 화면에서
+   고정 폭으로 부모를 넘치지 않도록. 양쪽 버튼이 항상 화면 안에
+   머물러야 한다. */
+.trace-mode-nav > div
+{
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  padding: 0 4px;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 
 #char-label
@@ -342,7 +358,9 @@ to {
 #num-prev-btn,
 #num-next-btn,
 #eng-prev-btn,
-#eng-next-btn
+#eng-next-btn,
+#adv-prev-btn,
+#adv-next-btn
 {
   width: 48px;
   height: 48px;
@@ -359,6 +377,8 @@ to {
   /* 모바일 터치 타겟 최소 44px 보장 */
   min-width: 44px;
   min-height: 44px;
+  /* 좁은 화면에서 가운데 라벨에 밀려나지 않도록 */
+  flex-shrink: 0;
 }
 
 #prev-btn:active,
@@ -370,7 +390,9 @@ to {
 #num-prev-btn:active,
 #num-next-btn:active,
 #eng-prev-btn:active,
-#eng-next-btn:active
+#eng-next-btn:active,
+#adv-prev-btn:active,
+#adv-next-btn:active
 {
   background: #f0f0f0;
   transform: scale(0.95);
@@ -628,8 +650,17 @@ to {
 
 button.myword-add-mini.tool-btn
 {
-  padding: 8px 10px;
-  font-size: 13px;
+  padding: 6px 10px;
+  font-size: 16px;
+  font-weight: 700;
+  min-width: 36px;
+  min-height: 36px;
+  line-height: 1;
+}
+
+button.myword-add-mini.tool-btn.myword-add-del
+{
+  color: var(--trace-pink);
 }
 
 .myword-add-empty
@@ -728,6 +759,65 @@ button.myword-add-mini.tool-btn
     max-height: min(92vw, 65dvh, 65svh);
     margin-left: auto;
     margin-right: auto;
+  }
+}
+
+/* 매우 좁은 폰 (≤ 380px): 네비·라벨·툴바·메뉴 카드 패딩/폰트 축소 */
+@media (max-width: 380px)
+{
+  #prev-btn, #next-btn,
+  #word-prev-btn, #word-next-btn,
+  #myword-prev-btn, #myword-next-btn,
+  #num-prev-btn, #num-next-btn,
+  #eng-prev-btn, #eng-next-btn,
+  #adv-prev-btn, #adv-next-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  #char-label, #word-label, #num-label, #eng-label,
+  #myword-label, #adv-label {
+    font-size: 20px;
+  }
+
+  #char-sub, #myword-sub {
+    font-size: 12px;
+  }
+
+  .tool-btn {
+    padding: 12px 8px;
+    font-size: 14px;
+  }
+
+  .mode-card {
+    padding: 14px 16px;
+    font-size: 16px;
+  }
+
+  #menu-header {
+    padding: 18px 14px 20px;
+  }
+
+  #menu-header h1 {
+    font-size: 24px;
+  }
+
+  .myword-add-header {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .myword-add-title {
+    flex: 1 1 100%;
+    order: 0;
+  }
+
+  .myword-add-counter {
+    order: 1;
+  }
+
+  #myword-add-menu-btn {
+    order: 2;
   }
 }/* 툴바 */#toolbar
 {

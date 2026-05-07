@@ -120,6 +120,15 @@ class MyWordAddMode {
           this.renderList();
           return;
         }
+        if (action === 'top' && idx > 0) {
+          // 맨 위로 — 단어를 0번 인덱스로 한 번에 이동
+          const w = this.words.splice(idx, 1)[0];
+          this.words.unshift(w);
+          traceSaveMyWords(this.words);
+          if (msg) msg.textContent = '';
+          this.renderList();
+          return;
+        }
         if (action === 'up' && idx > 0) {
           const t = this.words[idx - 1];
           this.words[idx - 1] = this.words[idx];
@@ -133,6 +142,15 @@ class MyWordAddMode {
           const t = this.words[idx + 1];
           this.words[idx + 1] = this.words[idx];
           this.words[idx] = t;
+          traceSaveMyWords(this.words);
+          if (msg) msg.textContent = '';
+          this.renderList();
+          return;
+        }
+        if (action === 'bottom' && idx < this.words.length - 1) {
+          // 맨 아래로 — 단어를 마지막 인덱스로 한 번에 이동
+          const w = this.words.splice(idx, 1)[0];
+          this.words.push(w);
           traceSaveMyWords(this.words);
           if (msg) msg.textContent = '';
           this.renderList();
@@ -158,12 +176,16 @@ class MyWordAddMode {
       const li = document.createElement('li');
       li.className = 'myword-add-row';
       li.setAttribute('data-index', String(i));
+      const isFirst = i === 0;
+      const isLast = i === this.words.length - 1;
       li.innerHTML = `
         <span class="myword-add-word">${w}</span>
         <span class="myword-add-actions">
-          <button type="button" class="tool-btn myword-add-mini" data-action="up" aria-label="위로" ${i === 0 ? 'disabled' : ''}>위</button>
-          <button type="button" class="tool-btn myword-add-mini" data-action="down" aria-label="아래로" ${i === this.words.length - 1 ? 'disabled' : ''}>아래</button>
-          <button type="button" class="tool-btn myword-add-mini" data-action="del" aria-label="삭제">삭제</button>
+          <button type="button" class="tool-btn myword-add-mini" data-action="top" aria-label="맨 위로" title="맨 위로" ${isFirst ? 'disabled' : ''}>↟</button>
+          <button type="button" class="tool-btn myword-add-mini" data-action="up" aria-label="한 칸 위로" title="한 칸 위로" ${isFirst ? 'disabled' : ''}>↑</button>
+          <button type="button" class="tool-btn myword-add-mini" data-action="down" aria-label="한 칸 아래로" title="한 칸 아래로" ${isLast ? 'disabled' : ''}>↓</button>
+          <button type="button" class="tool-btn myword-add-mini" data-action="bottom" aria-label="맨 아래로" title="맨 아래로" ${isLast ? 'disabled' : ''}>↡</button>
+          <button type="button" class="tool-btn myword-add-mini myword-add-del" data-action="del" aria-label="삭제" title="삭제">✕</button>
         </span>
       `;
       listEl.appendChild(li);

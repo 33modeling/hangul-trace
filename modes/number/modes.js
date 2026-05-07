@@ -160,6 +160,8 @@ class NumberMode {
   }
   
   setupDrawingEvents() {
+    this._strokeTracker = makeStrokeTracker(this.canvas.canvas);
+
     const onPointerDown = (e) => {
       e.preventDefault();
       this.isDrawing = true;
@@ -167,26 +169,30 @@ class NumberMode {
       this.startPoint = pos;
       this.canvas.lastX = pos.x;
       this.canvas.lastY = pos.y;
-      this.strokeCount++;
+      this._strokeTracker.begin(pos);
       this.canvas.drawDot(pos.x, pos.y, '#ec4899', 6);
-      this.updateFeedback(this.strokeCount);
     };
-    
+
     const onPointerMove = (e) => {
       if (!this.isDrawing) return;
       e.preventDefault();
       const current = this.canvas.getPos(e);
+      this._strokeTracker.move(current);
       this.canvas.drawLine(this.canvas.lastX, this.canvas.lastY, current.x, current.y);
       this.canvas.lastX = current.x;
       this.canvas.lastY = current.y;
     };
-    
+
     const onPointerUp = (e) => {
       if (!this.isDrawing) return;
       e.preventDefault();
       this.isDrawing = false;
+      const realStroke = this._strokeTracker.end();
+      if (realStroke) {
+        this.strokeCount++;
+      }
       this.updateFeedback(this.strokeCount);
-      
+
       const num = NUMBERS[this.currentIdx];
       if (this.strokeCount >= num.strokes && !this.navigation.getIsDone()) {
         this.navigation.doneSet.add(this.currentIdx);

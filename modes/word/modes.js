@@ -141,6 +141,8 @@ class WordMode {
   }
 
   setupEvents() {
+    this._strokeTracker = makeStrokeTracker(this.canvas.canvas);
+
     rebindButtonClickById('word-clear-btn', () => {
       this.canvas.clear();
       this.strokeCount = 0;
@@ -154,15 +156,15 @@ class WordMode {
       this.startPoint = pos;
       this.canvas.lastX = pos.x;
       this.canvas.lastY = pos.y;
-      this.strokeCount++;
+      this._strokeTracker.begin(pos);
       this.canvas.drawDot(pos.x, pos.y, TRACE_WORD_PEN, 6);
-      this.updateFeedback();
     };
 
     const onPointerMove = (e) => {
       if (!this.isDrawing) return;
       e.preventDefault();
       const current = this.canvas.getPos(e);
+      this._strokeTracker.move(current);
       this.canvas.drawLine(
         this.canvas.lastX,
         this.canvas.lastY,
@@ -178,6 +180,10 @@ class WordMode {
       if (!this.isDrawing) return;
       e.preventDefault();
       this.isDrawing = false;
+      const realStroke = this._strokeTracker.end();
+      if (realStroke) {
+        this.strokeCount++;
+      }
       this.updateFeedback();
     };
 

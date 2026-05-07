@@ -23,6 +23,55 @@ function traceWaitForFonts(callback) {
     });
 }
 
+/**
+ * 한 획의 누적 이동거리를 추적해 "진짜 획"인지 판단하는 헬퍼.
+ *
+ * 점 톡 찍기 / 손이 살짝 떨려서 down→up이 그냥 일어난 케이스를 제외하고,
+ * 사용자가 의도적으로 그은 획만 카운트하기 위함이다. 이전에는 매 pointerdown
+ * 마다 strokeCount++ 했기 때문에 빠르게 톡톡 두드리는 것만으로 완성 효과음이
+ * 잘못 발사되는 문제가 있었다.
+ *
+ * @param {HTMLCanvasElement} canvas 기준 캔버스 (짧은 변 기준 minDist 계산)
+ * @param {{ minDistRatio?: number, minDistPx?: number }} [opts]
+ * @returns {{begin:Function, move:Function, end:Function}}
+ */
+function makeStrokeTracker(canvas, opts) {
+  const ratio = (opts && typeof opts.minDistRatio === 'number') ? opts.minDistRatio : 0.08;
+  const minPx = (opts && typeof opts.minDistPx === 'number') ? opts.minDistPx : 18;
+  let active = false;
+  let lastX = 0;
+  let lastY = 0;
+  let dist = 0;
+
+  return {
+    begin(pos) {
+      active = true;
+      lastX = pos.x;
+      lastY = pos.y;
+      dist = 0;
+    },
+    move(pos) {
+      if (!active) return;
+      const dx = pos.x - lastX;
+      const dy = pos.y - lastY;
+      dist += Math.sqrt(dx * dx + dy * dy);
+      lastX = pos.x;
+      lastY = pos.y;
+    },
+    /** Returns true if the just-ended motion looks like a real stroke. */
+    end() {
+      const wasActive = active;
+      const total = dist;
+      active = false;
+      dist = 0;
+      if (!wasActive) return false;
+      if (!canvas || !canvas.width || !canvas.height) return total >= minPx;
+      const minDist = Math.max(minPx, Math.min(canvas.width, canvas.height) * ratio);
+      return total >= minDist;
+    }
+  };
+}
+
 /** Pointer / Touch / Mouse 에서 client 좌표 추출 */
 function traceReadClientXY(e) {
   if (e.touches && e.touches.length > 0) {

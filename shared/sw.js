@@ -17,6 +17,8 @@ const ASSETS = [
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
+  './icons/icon-maskable-192.png',
+  './icons/icon-maskable-512.png',
   './shared/styles.css',
   './shared/common.js',
   './shared/core.js',

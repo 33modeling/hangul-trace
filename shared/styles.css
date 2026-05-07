@@ -317,13 +317,20 @@ to {
   transform: scale(0.95);
 }
 
+#prev-btn svg,
+#next-btn svg,
 #word-prev-btn svg,
 #word-next-btn svg,
 #myword-prev-btn svg,
-#myword-next-btn svg
+#myword-next-btn svg,
+#num-prev-btn svg,
+#num-next-btn svg,
+#eng-prev-btn svg,
+#eng-next-btn svg
 {
   display: block;
   flex-shrink: 0;
+  color: var(--trace-accent-dark);
 }
 
 #word-label

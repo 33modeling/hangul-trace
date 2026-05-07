@@ -163,6 +163,21 @@ if (document.readyState === 'loading') {
   initAppShell();
 }
 
+// Service Worker 등록 — 오프라인 + PWA install 점수.
+// file:// 에서 직접 열면 등록 실패하므로 https/http만.
+if (
+  'serviceWorker' in navigator &&
+  (location.protocol === 'https:' || location.protocol === 'http:')
+) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('shared/sw.js', { scope: './' })
+      .catch((err) => {
+        console.warn('tracing: SW register failed', err);
+      });
+  });
+}
+
 window.addEventListener('orientationchange', () => {
   setTimeout(() => {
     window.dispatchEvent(new Event('resize'));

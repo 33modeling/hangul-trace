@@ -2,3 +2,18 @@
 [build]
   publish = "."
   command = "true"
+
+# TWA Digital Asset Links — Content-Type을 application/json으로 강제하지
+# 않으면 GoogleBot이 검증을 거부할 수 있음. 또한 캐시는 짧게 둬서
+# Bubblewrap 빌드 후 SHA-256 갱신이 빨리 반영되게 함.
+[[headers]]
+  for = "/.well-known/assetlinks.json"
+  [headers.values]
+    Content-Type = "application/json"
+    Cache-Control = "public, max-age=300"
+
+# Service Worker — 자기 자신은 캐시하지 말기 (업데이트 즉시 반영)
+[[headers]]
+  for = "/shared/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"

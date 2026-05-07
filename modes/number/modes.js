@@ -68,6 +68,11 @@ class NumberMode {
     this.setupEvents();
     this.updateUI(0);
     this._reflowWhenReady();
+    traceWaitForFonts(() => {
+      if (this.wrapper && this.wrapper.clientWidth > 0) {
+        this.updateUI(this.currentIdx);
+      }
+    });
     window.currentNumberMode = this;
   }
 

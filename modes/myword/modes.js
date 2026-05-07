@@ -95,6 +95,11 @@ class MyWordMode {
     this.setupEvents();
     this.updateUI();
     this._reflowWhenReady();
+    traceWaitForFonts(() => {
+      if (this.wrapper && this.wrapper.clientWidth > 0) {
+        this._syncMyWordCanvases();
+      }
+    });
     window.myWordMode = this;
   }
 

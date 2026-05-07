@@ -80,6 +80,11 @@ class WordMode {
     this.updateUI();
     this.setupEvents();
     this._reflowWhenReady();
+    traceWaitForFonts(() => {
+      if (this.wrapper && this.wrapper.clientWidth > 0) {
+        this._syncWordCanvases();
+      }
+    });
     window.wordMode = this;
   }
 

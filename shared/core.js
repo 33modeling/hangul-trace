@@ -1,4 +1,28 @@
 // 공통 캔버스 로직
+
+/**
+ * 한글/영문 웹폰트가 늦게 로드되는 환경에서 가이드 글자가 폴백 폰트로
+ * 한 번 그려진 뒤 다시 그려지지 않는 문제를 막기 위한 헬퍼.
+ * fonts.ready 미지원 환경에서는 no-op.
+ * @param {() => void} callback fonts 준비 후 실행할 작업
+ */
+function traceWaitForFonts(callback) {
+  if (typeof callback !== 'function') return;
+  if (typeof document === 'undefined') return;
+  if (!document.fonts || !document.fonts.ready) return;
+  document.fonts.ready
+    .then(() => {
+      try {
+        callback();
+      } catch (_e) {
+        /* 모드 정리 중에 호출되어도 조용히 무시 */
+      }
+    })
+    .catch(() => {
+      /* fonts.ready 자체가 reject되는 일부 브라우저 대비 */
+    });
+}
+
 /** Pointer / Touch / Mouse 에서 client 좌표 추출 */
 function traceReadClientXY(e) {
   if (e.touches && e.touches.length > 0) {

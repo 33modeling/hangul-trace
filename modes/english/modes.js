@@ -90,14 +90,11 @@ class EnglishMode {
     this.hintHint = document.getElementById('eng-stroke-hint');
     this.typeButtons = document.querySelectorAll('.alpha-type-btn');
     
+    // 대/소문자별 진도를 따로 보존 — 토글해도 doneSet이 유지됨
+    this.doneSetsByType = { upper: new Set(), lower: new Set() };
+
     this.setupTypeToggle();
-    this.navigation = new Navigation(
-      this.getCurrentList(),
-      this.updateUI.bind(this),
-      this.updateFeedback.bind(this),
-      this.modeName,
-      { dotsId: 'eng-dots', strokeHintId: 'eng-stroke-hint' }
-    );
+    this.navigation = this._buildNavigation();
     window.englishMode = this;
 
     this.setupEvents();
@@ -134,24 +131,31 @@ class EnglishMode {
     return this.alphaType === 'upper' ? UPPERCASE : LOWERCASE;
   }
   
+  /** Navigation 생성 + 현재 alphaType에 해당하는 doneSet 주입 */
+  _buildNavigation() {
+    const nav = new Navigation(
+      this.getCurrentList(),
+      this.updateUI.bind(this),
+      this.updateFeedback.bind(this),
+      this.modeName,
+      { dotsId: 'eng-dots', strokeHintId: 'eng-stroke-hint' }
+    );
+    // Navigation 내부 doneSet 참조를 유형별 set으로 교체 → 진도 유지
+    nav.doneSet = this.doneSetsByType[this.alphaType];
+    nav.renderDots();
+    return nav;
+  }
+
   setupTypeToggle() {
     this.typeButtons.forEach(btn => {
       btn.onclick = () => {
         this.typeButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        
+
         this.alphaType = btn.dataset.type;
         this.currentIdx = 0;
-        // init() 재호출 대신 상태만 리셋
-        this.doneSet = new Set();
         this.strokeCount = 0;
-        this.navigation = new Navigation(
-          this.getCurrentList(),
-          this.updateUI.bind(this),
-          this.updateFeedback.bind(this),
-          this.modeName,
-          { dotsId: 'eng-dots', strokeHintId: 'eng-stroke-hint' }
-        );
+        this.navigation = this._buildNavigation();
         this.updateUI(0);
       };
     });

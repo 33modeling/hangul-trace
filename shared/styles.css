@@ -503,6 +503,37 @@ to {
   color: #fff;
 }
 
+.myword-kind-toggle
+{
+  display: flex;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+.myword-kind-btn
+{
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--trace-border-ui);
+  background: var(--trace-surface);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--trace-accent-dark);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 36px;
+}
+
+.myword-kind-btn.active
+{
+  background: var(--trace-gradient-primary);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 2px 8px var(--trace-accent-glow);
+}
+
 #myword-add-menu-btn
 {
   flex-shrink: 0;

@@ -1,6 +1,7 @@
 class MyWordAddMode {
   constructor() {
     this.words = traceLoadMyWords();
+    this.kind = 'ko'; // 'ko' | 'en' — 입력 종류 토글
     this.init();
   }
 
@@ -8,7 +9,25 @@ class MyWordAddMode {
     this.words = traceLoadMyWords();
     this.renderList();
     this.bindForm();
+    this._applyKindUI();
     window.myWordAddMode = this;
+  }
+
+  _applyKindUI() {
+    const buttons = document.querySelectorAll('.myword-kind-btn');
+    buttons.forEach((b) => {
+      b.classList.toggle('active', b.dataset.kind === this.kind);
+      b.setAttribute('aria-pressed', b.dataset.kind === this.kind ? 'true' : 'false');
+    });
+    const input = document.getElementById('myword-add-input');
+    if (input) {
+      input.placeholder = this.kind === 'en'
+        ? '영단어 입력 (1~20글자, a-z / A-Z)'
+        : '단어 입력 (1~20글자, 가~힣)';
+      input.value = '';
+    }
+    const msg = document.getElementById('myword-add-msg');
+    if (msg) msg.textContent = '';
   }
 
   _updateCounter() {
@@ -36,6 +55,18 @@ class MyWordAddMode {
     wireButtonById('myword-add-menu-btn', goMenu);
     wireButtonById('myword-add-back-btn', goMenu);
 
+    // 한글/영문 토글
+    const kindButtons = document.querySelectorAll('.myword-kind-btn');
+    kindButtons.forEach((btn) => {
+      btn.onclick = (e) => {
+        e.preventDefault();
+        const next = btn.dataset.kind === 'en' ? 'en' : 'ko';
+        if (next === this.kind) return;
+        this.kind = next;
+        this._applyKindUI();
+      };
+    });
+
     rebindButtonClickById('myword-add-submit', () => {
       if (this.words.length >= TRACE_MY_WORDS_MAX_COUNT) {
         if (msg) {
@@ -45,7 +76,7 @@ class MyWordAddMode {
         return;
       }
       const raw = input ? input.value : '';
-      const res = traceValidateMyWordInput(raw);
+      const res = traceValidateMyWordInput(raw, this.kind);
       if (!res.valid) {
         if (msg) {
           msg.textContent = res.message || '';

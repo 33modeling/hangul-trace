@@ -9,7 +9,10 @@
  * fetch 핸들러가 등록되어 있어야 하는데, 이 파일이 그 요건을 충족한다.
  */
 
-const CACHE = 'tracing-v1';
+/* CACHE 버전 — 자산이 바뀌었으면 이 값을 올려서 옛 사용자 브라우저의
+ * 캐시를 강제 무효화해야 한다. 새 SW가 install되면 activate에서 옛
+ * 캐시 키를 삭제하므로 새 자산이 prefetch된다. */
+const CACHE = 'tracing-v2';
 
 const ASSETS = [
   './',

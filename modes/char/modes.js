@@ -59,13 +59,11 @@ class CharMode {
     this.setupEvents();
     this.updateUI(0);
     this._reflowWhenReady();
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => {
-        if (this.wrapper && this.wrapper.clientWidth > 0) {
-          this.updateUI(this.currentIdx);
-        }
-      });
-    }
+    traceWaitForFonts(() => {
+      if (this.wrapper && this.wrapper.clientWidth > 0) {
+        this.updateUI(this.currentIdx);
+      }
+    });
     window.currentCharMode = this;
   }
 
@@ -130,7 +128,7 @@ class CharMode {
       feedbackEl.style.color = '#888';
     } else {
       feedbackEl.textContent = '잘 했어요! 🎉 다음 글자는 ▶ 를 눌러 주세요.';
-      feedbackEl.style.color = '#c95886';
+      feedbackEl.style.color = '#ec4899';
     }
   }
   
@@ -147,7 +145,7 @@ class CharMode {
         animateStrokeOrder(this.guideLayer, ch);
       } else {
         this.guideLayer.clear();
-        this.guideLayer.drawGuide(ch, '#e06699');
+        this.guideLayer.drawGuide(ch, '#ec4899');
         setTimeout(() => {
           this.guideLayer.resize();
           this.guideLayer.drawGuide(ch);
@@ -159,6 +157,8 @@ class CharMode {
   }
   
   setupDrawingEvents() {
+    this._strokeTracker = makeStrokeTracker(this.canvas.canvas);
+
     const onPointerDown = (e) => {
       e.preventDefault();
       this.isDrawing = true;
@@ -166,30 +166,35 @@ class CharMode {
       this.startPoint = pos;
       this.canvas.lastX = pos.x;
       this.canvas.lastY = pos.y;
-      this.strokeCount++;
-      this.canvas.drawDot(pos.x, pos.y, '#e06699', 6);
-      this.updateFeedback(this.strokeCount);
+      this._strokeTracker.begin(pos);
+      this.canvas.drawDot(pos.x, pos.y, '#ec4899', 6);
     };
-    
+
     const onPointerMove = (e) => {
       if (!this.isDrawing) return;
       e.preventDefault();
       const current = this.canvas.getPos(e);
+      this._strokeTracker.move(current);
       this.canvas.drawLine(this.canvas.lastX, this.canvas.lastY, current.x, current.y);
       this.canvas.lastX = current.x;
       this.canvas.lastY = current.y;
     };
-    
+
     const onPointerUp = (e) => {
       if (!this.isDrawing) return;
       e.preventDefault();
       this.isDrawing = false;
+      const realStroke = this._strokeTracker.end();
+      if (realStroke) {
+        this.strokeCount++;
+      }
       this.updateFeedback(this.strokeCount);
-      
+
       const char = CHAR_ITEMS[this.currentIdx];
       if (this.strokeCount >= char.strokes && !this.navigation.getIsDone()) {
         this.navigation.doneSet.add(this.currentIdx);
         this.navigation.renderDots();
+        if (typeof TraceSound !== 'undefined') TraceSound.complete();
       }
     };
     

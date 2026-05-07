@@ -1,4 +1,77 @@
 // 공통 캔버스 로직
+
+/**
+ * 한글/영문 웹폰트가 늦게 로드되는 환경에서 가이드 글자가 폴백 폰트로
+ * 한 번 그려진 뒤 다시 그려지지 않는 문제를 막기 위한 헬퍼.
+ * fonts.ready 미지원 환경에서는 no-op.
+ * @param {() => void} callback fonts 준비 후 실행할 작업
+ */
+function traceWaitForFonts(callback) {
+  if (typeof callback !== 'function') return;
+  if (typeof document === 'undefined') return;
+  if (!document.fonts || !document.fonts.ready) return;
+  document.fonts.ready
+    .then(() => {
+      try {
+        callback();
+      } catch (_e) {
+        /* 모드 정리 중에 호출되어도 조용히 무시 */
+      }
+    })
+    .catch(() => {
+      /* fonts.ready 자체가 reject되는 일부 브라우저 대비 */
+    });
+}
+
+/**
+ * 한 획의 누적 이동거리를 추적해 "진짜 획"인지 판단하는 헬퍼.
+ *
+ * 점 톡 찍기 / 손이 살짝 떨려서 down→up이 그냥 일어난 케이스를 제외하고,
+ * 사용자가 의도적으로 그은 획만 카운트하기 위함이다. 이전에는 매 pointerdown
+ * 마다 strokeCount++ 했기 때문에 빠르게 톡톡 두드리는 것만으로 완성 효과음이
+ * 잘못 발사되는 문제가 있었다.
+ *
+ * @param {HTMLCanvasElement} canvas 기준 캔버스 (짧은 변 기준 minDist 계산)
+ * @param {{ minDistRatio?: number, minDistPx?: number }} [opts]
+ * @returns {{begin:Function, move:Function, end:Function}}
+ */
+function makeStrokeTracker(canvas, opts) {
+  const ratio = (opts && typeof opts.minDistRatio === 'number') ? opts.minDistRatio : 0.08;
+  const minPx = (opts && typeof opts.minDistPx === 'number') ? opts.minDistPx : 18;
+  let active = false;
+  let lastX = 0;
+  let lastY = 0;
+  let dist = 0;
+
+  return {
+    begin(pos) {
+      active = true;
+      lastX = pos.x;
+      lastY = pos.y;
+      dist = 0;
+    },
+    move(pos) {
+      if (!active) return;
+      const dx = pos.x - lastX;
+      const dy = pos.y - lastY;
+      dist += Math.sqrt(dx * dx + dy * dy);
+      lastX = pos.x;
+      lastY = pos.y;
+    },
+    /** Returns true if the just-ended motion looks like a real stroke. */
+    end() {
+      const wasActive = active;
+      const total = dist;
+      active = false;
+      dist = 0;
+      if (!wasActive) return false;
+      if (!canvas || !canvas.width || !canvas.height) return total >= minPx;
+      const minDist = Math.max(minPx, Math.min(canvas.width, canvas.height) * ratio);
+      return total >= minDist;
+    }
+  };
+}
+
 /** Pointer / Touch / Mouse 에서 client 좌표 추출 */
 function traceReadClientXY(e) {
   if (e.touches && e.touches.length > 0) {
@@ -63,7 +136,7 @@ class DrawingCanvas {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
-  drawGuide(char, color = 'rgba(224, 102, 153, 0.48)') {
+  drawGuide(char, color = 'rgba(167, 139, 250, 0.55)') {
     const { width: w, height: h } = this.canvas;
     if (w < 2 || h < 2 || !this.ctx) return;
 
@@ -80,7 +153,7 @@ class DrawingCanvas {
     ctx.clearRect(0, 0, w, h);
 
     // 그리드라인
-    ctx.strokeStyle = 'rgba(180, 110, 130, 0.14)';
+    ctx.strokeStyle = 'rgba(124, 58, 237, 0.10)';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(w / 2, 0);
@@ -92,7 +165,7 @@ class DrawingCanvas {
     ctx.stroke();
 
     // 프레임
-    ctx.strokeStyle = 'rgba(170, 100, 120, 0.18)';
+    ctx.strokeStyle = 'rgba(124, 58, 237, 0.14)';
     ctx.strokeRect(w * 0.1, h * 0.1, w * 0.8, h * 0.8);
 
     // 글자
@@ -111,7 +184,7 @@ class DrawingCanvas {
    * @param {string[]} chars 음절 문자열 배열 (길이 1~4)
    * @param {string} [color]
    */
-  drawGuideRow(chars, color = 'rgba(224, 102, 153, 0.48)') {
+  drawGuideRow(chars, color = 'rgba(167, 139, 250, 0.55)') {
     const { width: w, height: h } = this.canvas;
     if (w < 2 || h < 2 || !this.ctx) return;
 
@@ -138,7 +211,7 @@ class DrawingCanvas {
     const base = Math.min(cellW, h);
     const fs = base * 0.62;
 
-    ctx.strokeStyle = 'rgba(180, 110, 130, 0.14)';
+    ctx.strokeStyle = 'rgba(124, 58, 237, 0.10)';
     ctx.lineWidth = 1;
     for (let i = 1; i < n; i++) {
       const x = cellW * i;
@@ -152,7 +225,7 @@ class DrawingCanvas {
     ctx.lineTo(w, h / 2);
     ctx.stroke();
 
-    ctx.strokeStyle = 'rgba(170, 100, 120, 0.18)';
+    ctx.strokeStyle = 'rgba(124, 58, 237, 0.14)';
     for (let i = 0; i < n; i++) {
       const padX = cellW * 0.08;
       const padY = h * 0.1;
@@ -170,7 +243,7 @@ class DrawingCanvas {
     ctx.restore();
   }
 
-  drawLine(x1, y1, x2, y2, color = '#e06699', width = null) {
+  drawLine(x1, y1, x2, y2, color = '#ec4899', width = null) {
     if (!this.ctx) return;
     const lineW = width || this.lineWidth;
     const ctx = this.ctx;
@@ -195,7 +268,7 @@ class DrawingCanvas {
     ctx.restore();
   }
 
-  drawDot(x, y, color = '#e06699', size = 6) {
+  drawDot(x, y, color = '#ec4899', size = 6) {
     if (!this.ctx) return;
     const ctx = this.ctx;
     ctx.save();
@@ -276,6 +349,7 @@ function attachCanvasPointerDrawing(canvas, h) {
     } catch (_err) {
       /* 캡처 실패 시에도 window에서 move/up 추적 */
     }
+    if (typeof TraceSound !== 'undefined') TraceSound.stroke();
     h.onDown(e);
     window.addEventListener('pointermove', onPointerWinMove, CANVAS_OPTS);
     window.addEventListener('pointerup', onPointerWinUp, CANVAS_OPTS);
@@ -343,15 +417,6 @@ function attachCanvasPointerDrawing(canvas, h) {
   };
 }
 
-// 공통 획수 카운팅
-function countStroke(startPoint, currentPoint, threshold = 10) {
-  const dist = Math.sqrt(
-    Math.pow(currentPoint.x - startPoint.x, 2) +
-    Math.pow(currentPoint.y - startPoint.y, 2)
-  );
-  return dist > threshold;
-}
-
 /**
  * 획순 오버레이 표시 — 캔버스 위에 획별 번호와 방향을 그림
  * @param {DrawingCanvas} guideLayer 가이드 캔버스
@@ -393,7 +458,7 @@ function showStrokeOrder(guideLayer, ch, highlightStep = 0) {
     const radius = fontSize * 0.7;
     ctx.beginPath();
     ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = isHighlight ? 'rgba(224, 102, 153, 0.92)' : 'rgba(224, 102, 153, 0.45)';
+    ctx.fillStyle = isHighlight ? 'rgba(167, 139, 250, 0.92)' : 'rgba(167, 139, 250, 0.45)';
     ctx.fill();
 
     // 번호
@@ -403,13 +468,13 @@ function showStrokeOrder(guideLayer, ch, highlightStep = 0) {
     // 획 심볼 라벨 (번호 아래)
     const labelY = pos.y + radius + fontSize * 0.6;
     ctx.font = `bold ${Math.max(10, fontSize * 0.75)}px "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif`;
-    ctx.fillStyle = isHighlight ? '#c94b7f' : 'rgba(180, 100, 120, 0.5)';
+    ctx.fillStyle = isHighlight ? '#7c3aed' : 'rgba(124, 58, 237, 0.5)';
     ctx.fillText(step.s, pos.x, labelY);
 
     // 한국어 라벨 (심볼 아래)
     const subY = labelY + fontSize * 0.8;
     ctx.font = `${Math.max(9, fontSize * 0.6)}px "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif`;
-    ctx.fillStyle = isHighlight ? '#c94b7f' : 'rgba(150, 100, 110, 0.45)';
+    ctx.fillStyle = isHighlight ? '#7c3aed' : 'rgba(124, 58, 237, 0.45)';
     ctx.fillText(step.l, pos.x, subY);
 
     // 폰트 복구
@@ -517,7 +582,7 @@ function updateFeedback(strokeCount, targetStrokes, feedbackId = 'feedback') {
     feedbackEl.style.color = '#888';
   } else if (strokeCount >= targetStrokes) {
     feedbackEl.textContent = '잘 했어요! 다음 글자도 써볼까요? 🎉';
-    feedbackEl.style.color = '#c95886';
+    feedbackEl.style.color = '#ec4899';
   }
 }
 

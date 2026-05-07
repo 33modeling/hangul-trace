@@ -28,9 +28,9 @@ def write_solid_png(path: Path, size: int, rgb: tuple[int, int, int]) -> None:
 def main() -> None:
     root = Path(__file__).resolve().parent.parent
     icons = root / "icons"
-    pink = (224, 102, 153)
-    write_solid_png(icons / "icon-192.png", 192, pink)
-    write_solid_png(icons / "icon-512.png", 512, pink)
+    lavender = (167, 139, 250)
+    write_solid_png(icons / "icon-192.png", 192, lavender)
+    write_solid_png(icons / "icon-512.png", 512, lavender)
     print("Wrote", icons / "icon-192.png", icons / "icon-512.png")
 
 

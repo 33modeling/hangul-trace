@@ -1,6 +1,7 @@
 class MyWordAddMode {
   constructor() {
     this.words = traceLoadMyWords();
+    this.kind = 'ko'; // 'ko' | 'en' — 입력 종류 토글
     this.init();
   }
 
@@ -8,7 +9,38 @@ class MyWordAddMode {
     this.words = traceLoadMyWords();
     this.renderList();
     this.bindForm();
+    this._applyKindUI();
     window.myWordAddMode = this;
+  }
+
+  _applyKindUI() {
+    const buttons = document.querySelectorAll('.myword-kind-btn');
+    buttons.forEach((b) => {
+      b.classList.toggle('active', b.dataset.kind === this.kind);
+      b.setAttribute('aria-pressed', b.dataset.kind === this.kind ? 'true' : 'false');
+    });
+    const input = document.getElementById('myword-add-input');
+    if (input) {
+      input.placeholder = this.kind === 'en'
+        ? '영단어 입력 (1~20글자, a-z / A-Z)'
+        : '단어 입력 (1~20글자, 한글)';
+      input.value = '';
+    }
+    const msg = document.getElementById('myword-add-msg');
+    if (msg) msg.textContent = '';
+  }
+
+  _updateCounter() {
+    const el = document.getElementById('myword-add-counter');
+    if (el) {
+      el.textContent = `${this.words.length} / ${TRACE_MY_WORDS_MAX_COUNT}`;
+      el.classList.toggle('full', this.words.length >= TRACE_MY_WORDS_MAX_COUNT);
+    }
+    const input = document.getElementById('myword-add-input');
+    const submit = document.getElementById('myword-add-submit');
+    const full = this.words.length >= TRACE_MY_WORDS_MAX_COUNT;
+    if (input) input.disabled = full;
+    if (submit) submit.disabled = full;
   }
 
   bindForm() {
@@ -23,9 +55,28 @@ class MyWordAddMode {
     wireButtonById('myword-add-menu-btn', goMenu);
     wireButtonById('myword-add-back-btn', goMenu);
 
+    // 한글/영문 토글
+    const kindButtons = document.querySelectorAll('.myword-kind-btn');
+    kindButtons.forEach((btn) => {
+      btn.onclick = (e) => {
+        e.preventDefault();
+        const next = btn.dataset.kind === 'en' ? 'en' : 'ko';
+        if (next === this.kind) return;
+        this.kind = next;
+        this._applyKindUI();
+      };
+    });
+
     rebindButtonClickById('myword-add-submit', () => {
+      if (this.words.length >= TRACE_MY_WORDS_MAX_COUNT) {
+        if (msg) {
+          msg.textContent = `단어는 최대 ${TRACE_MY_WORDS_MAX_COUNT}개까지만 등록할 수 있어요. 기존 단어를 지운 뒤 다시 시도해 주세요.`;
+          msg.style.color = '#c44';
+        }
+        return;
+      }
       const raw = input ? input.value : '';
-      const res = traceValidateMyWordInput(raw);
+      const res = traceValidateMyWordInput(raw, this.kind);
       if (!res.valid) {
         if (msg) {
           msg.textContent = res.message || '';
@@ -69,6 +120,15 @@ class MyWordAddMode {
           this.renderList();
           return;
         }
+        if (action === 'top' && idx > 0) {
+          // 맨 위로 — 단어를 0번 인덱스로 한 번에 이동
+          const w = this.words.splice(idx, 1)[0];
+          this.words.unshift(w);
+          traceSaveMyWords(this.words);
+          if (msg) msg.textContent = '';
+          this.renderList();
+          return;
+        }
         if (action === 'up' && idx > 0) {
           const t = this.words[idx - 1];
           this.words[idx - 1] = this.words[idx];
@@ -85,6 +145,15 @@ class MyWordAddMode {
           traceSaveMyWords(this.words);
           if (msg) msg.textContent = '';
           this.renderList();
+          return;
+        }
+        if (action === 'bottom' && idx < this.words.length - 1) {
+          // 맨 아래로 — 단어를 마지막 인덱스로 한 번에 이동
+          const w = this.words.splice(idx, 1)[0];
+          this.words.push(w);
+          traceSaveMyWords(this.words);
+          if (msg) msg.textContent = '';
+          this.renderList();
         }
       });
     }
@@ -93,6 +162,7 @@ class MyWordAddMode {
   renderList() {
     this.words = traceLoadMyWords();
     const listEl = document.getElementById('myword-add-list');
+    this._updateCounter();
     if (!listEl) return;
     listEl.innerHTML = '';
     if (this.words.length === 0) {
@@ -106,12 +176,16 @@ class MyWordAddMode {
       const li = document.createElement('li');
       li.className = 'myword-add-row';
       li.setAttribute('data-index', String(i));
+      const isFirst = i === 0;
+      const isLast = i === this.words.length - 1;
       li.innerHTML = `
         <span class="myword-add-word">${w}</span>
         <span class="myword-add-actions">
-          <button type="button" class="tool-btn myword-add-mini" data-action="up" aria-label="위로" ${i === 0 ? 'disabled' : ''}>위</button>
-          <button type="button" class="tool-btn myword-add-mini" data-action="down" aria-label="아래로" ${i === this.words.length - 1 ? 'disabled' : ''}>아래</button>
-          <button type="button" class="tool-btn myword-add-mini" data-action="del" aria-label="삭제">삭제</button>
+          <button type="button" class="tool-btn myword-add-mini" data-action="top" aria-label="맨 위로" title="맨 위로" ${isFirst ? 'disabled' : ''}>↟</button>
+          <button type="button" class="tool-btn myword-add-mini" data-action="up" aria-label="한 칸 위로" title="한 칸 위로" ${isFirst ? 'disabled' : ''}>↑</button>
+          <button type="button" class="tool-btn myword-add-mini" data-action="down" aria-label="한 칸 아래로" title="한 칸 아래로" ${isLast ? 'disabled' : ''}>↓</button>
+          <button type="button" class="tool-btn myword-add-mini" data-action="bottom" aria-label="맨 아래로" title="맨 아래로" ${isLast ? 'disabled' : ''}>↡</button>
+          <button type="button" class="tool-btn myword-add-mini myword-add-del" data-action="del" aria-label="삭제" title="삭제">✕</button>
         </span>
       `;
       listEl.appendChild(li);

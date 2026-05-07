@@ -42,7 +42,22 @@ else
 fi
 
 if command -v node >/dev/null 2>&1; then
-  for f in shared/common.js shared/core.js shared/navigation.js index.js modes/char/modes.js modes/word/modes.js modes/number/modes.js modes/english/modes.js; do
+  for f in \
+    shared/common.js \
+    shared/core.js \
+    shared/strokeOrder.js \
+    shared/navigation.js \
+    shared/utils.js \
+    shared/myWords.js \
+    shared/sound.js \
+    index.js \
+    modes/char/modes.js \
+    modes/word/modes.js \
+    modes/number/modes.js \
+    modes/english/modes.js \
+    modes/myword/modes.js \
+    modes/myword-add/modes.js \
+    modes/advanced/modes.js; do
     node --check "$f"
   done
   echo "OK: node --check 모든 모듈"

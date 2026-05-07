@@ -32,8 +32,8 @@ function traceWordStrokeTarget(w) {
   return w.consonant.strokes + w.vowel.strokes;
 }
 
-const TRACE_WORD_PEN = '#e06699';
-const TRACE_WORD_GUIDE_MAIN = 'rgba(224, 102, 153, 0.48)';
+const TRACE_WORD_PEN = '#ec4899';
+const TRACE_WORD_GUIDE_MAIN = 'rgba(167, 139, 250, 0.55)';
 
 class WordMode {
   constructor() {
@@ -80,6 +80,11 @@ class WordMode {
     this.updateUI();
     this.setupEvents();
     this._reflowWhenReady();
+    traceWaitForFonts(() => {
+      if (this.wrapper && this.wrapper.clientWidth > 0) {
+        this._syncWordCanvases();
+      }
+    });
     window.wordMode = this;
   }
 
@@ -125,16 +130,19 @@ class WordMode {
       feedbackEl.textContent = `획 ${this.strokeCount} / ${target} — ${remaining}획 더!`;
       feedbackEl.style.color = '#888';
     } else {
-      feedbackEl.style.color = '#c95886';
+      feedbackEl.style.color = '#ec4899';
       if (!this.doneSet.has(this.currentIdx)) {
         this.doneSet.add(this.currentIdx);
         document.getElementById('word-complete').textContent = `${w.syllable} ✓`;
+        if (typeof TraceSound !== 'undefined') TraceSound.complete();
       }
       feedbackEl.textContent = '완성! 🎉 다음 단어는 ▶ 를 눌러 주세요.';
     }
   }
 
   setupEvents() {
+    this._strokeTracker = makeStrokeTracker(this.canvas.canvas);
+
     rebindButtonClickById('word-clear-btn', () => {
       this.canvas.clear();
       this.strokeCount = 0;
@@ -148,15 +156,15 @@ class WordMode {
       this.startPoint = pos;
       this.canvas.lastX = pos.x;
       this.canvas.lastY = pos.y;
-      this.strokeCount++;
+      this._strokeTracker.begin(pos);
       this.canvas.drawDot(pos.x, pos.y, TRACE_WORD_PEN, 6);
-      this.updateFeedback();
     };
 
     const onPointerMove = (e) => {
       if (!this.isDrawing) return;
       e.preventDefault();
       const current = this.canvas.getPos(e);
+      this._strokeTracker.move(current);
       this.canvas.drawLine(
         this.canvas.lastX,
         this.canvas.lastY,
@@ -172,6 +180,10 @@ class WordMode {
       if (!this.isDrawing) return;
       e.preventDefault();
       this.isDrawing = false;
+      const realStroke = this._strokeTracker.end();
+      if (realStroke) {
+        this.strokeCount++;
+      }
       this.updateFeedback();
     };
 

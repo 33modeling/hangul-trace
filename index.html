@@ -31,6 +31,11 @@
           <span>140 단어</span>
         </button>
 
+        <button type="button" class="mode-card" data-mode="advanced">
+          🔥 상급 단어 모드
+          <span>쌍자음·복잡 모음</span>
+        </button>
+
         <button type="button" class="mode-card" data-mode="myword">
           ✏️ 내 단어 모드
           <span>등록한 단어</span>
@@ -110,6 +115,36 @@
       </div>
       
       <div id="word-feedback"></div>
+    </div>
+
+    <!-- 상급 단어 모드 -->
+    <div id="advanced-mode" class="mode-ui">
+      <div id="char-nav" class="trace-mode-nav">
+        <button type="button" id="adv-prev-btn" data-action="prev" aria-label="이전"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg></button>
+        <div>
+          <div id="adv-label">깎</div>
+          <div id="adv-sub">상급 1 / 50</div>
+        </div>
+        <button type="button" id="adv-next-btn" data-action="next" aria-label="다음"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg></button>
+      </div>
+
+      <div id="adv-stage">
+        <span id="adv-hint-pill" class="hint-pill">세로: 한 글자씩 따라 써요 — 어려운 음절 위주</span>
+      </div>
+
+      <div id="adv-complete"></div>
+
+      <div id="adv-canvas-wrap" class="canvas-wrap">
+        <canvas id="adv-guide-canvas"></canvas>
+        <canvas id="adv-draw-canvas"></canvas>
+      </div>
+
+      <div id="adv-toolbar" style="display: flex; gap: 8px; margin-top: 12px;">
+        <button id="adv-clear-btn" class="tool-btn" style="flex: 1;">지우기</button>
+        <button type="button" id="adv-back-btn" class="tool-btn primary" style="flex: 1;">메뉴로</button>
+      </div>
+
+      <div id="adv-feedback"></div>
     </div>
 
     <!-- 내 단어 모드 -->
@@ -236,6 +271,7 @@
   <script src="shared/myWords.js"></script>
   <script src="modes/char/modes.js"></script>
   <script src="modes/word/modes.js"></script>
+  <script src="modes/advanced/modes.js"></script>
   <script src="modes/number/modes.js"></script>
   <script src="modes/english/modes.js"></script>
   <script src="modes/myword/modes.js"></script>

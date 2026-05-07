@@ -28,6 +28,10 @@ function showMyWordAddMode() {
   showSingleMode('myword-add');
 }
 
+function showAdvancedMode() {
+  showSingleMode('advanced');
+}
+
 /** click/pointer의 target이 텍스트 노드일 때(버튼 안 ← 문자) closest를 쓰려면 Element 필요 */
 function traceClickElement(e) {
   for (const n of e.composedPath()) {
@@ -53,7 +57,8 @@ function showSingleMode(modeName) {
     number: NumberMode,
     english: EnglishMode,
     myword: MyWordMode,
-    'myword-add': MyWordAddMode
+    'myword-add': MyWordAddMode,
+    advanced: typeof AdvancedMode !== 'undefined' ? AdvancedMode : undefined
   }[modeName];
 
   function startMode() {
@@ -64,6 +69,7 @@ function showSingleMode(modeName) {
       else if (modeName === 'english') window.englishMode = new ModeClass();
       else if (modeName === 'myword') window.myWordMode = new ModeClass();
       else if (modeName === 'myword-add') window.myWordAddMode = new ModeClass();
+      else if (modeName === 'advanced') window.advancedMode = new ModeClass();
     } catch (err) {
       console.error('tracing: mode init failed', modeName, err);
     }
@@ -93,7 +99,7 @@ function initAppShell() {
       const el = traceClickElement(e);
       if (!el) return;
       const back = el.closest(
-        '#back-btn, #word-back-btn, #num-back-btn, #eng-back-btn, #myword-back-btn, #myword-add-back-btn, #myword-add-menu-btn'
+        '#back-btn, #word-back-btn, #num-back-btn, #eng-back-btn, #myword-back-btn, #myword-add-back-btn, #myword-add-menu-btn, #adv-back-btn'
       );
       if (back && app.contains(back)) {
         e.preventDefault();
@@ -126,6 +132,10 @@ function initAppShell() {
         } else if (id === 'myword-prev-btn' || id === 'myword-next-btn') {
           if (window.myWordMode && typeof window.myWordMode[action] === 'function') {
             window.myWordMode[action]();
+          }
+        } else if (id === 'adv-prev-btn' || id === 'adv-next-btn') {
+          if (window.advancedMode && typeof window.advancedMode[action] === 'function') {
+            window.advancedMode[action]();
           }
         }
         return;
@@ -168,4 +178,5 @@ if (typeof window !== 'undefined') {
   window.showEnglishMode = showEnglishMode;
   window.showMyWordMode = showMyWordMode;
   window.showMyWordAddMode = showMyWordAddMode;
+  window.showAdvancedMode = showAdvancedMode;
 }

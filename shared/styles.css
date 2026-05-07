@@ -540,7 +540,8 @@ button.myword-add-mini.tool-btn
 #num-canvas-wrap,
 #eng-canvas-wrap,
 #word-canvas-wrap,
-#myword-canvas-wrap
+#myword-canvas-wrap,
+#adv-canvas-wrap
 {
   position: relative;
   width: 100%;
@@ -572,7 +573,9 @@ button.myword-add-mini.tool-btn
 #word-guide-canvas,
 #word-draw-canvas,
 #myword-guide-canvas,
-#myword-draw-canvas
+#myword-draw-canvas,
+#adv-guide-canvas,
+#adv-draw-canvas
 {
   position: absolute;
   top: 0;
@@ -588,7 +591,8 @@ button.myword-add-mini.tool-btn
 #num-guide-canvas,
 #eng-guide-canvas,
 #word-guide-canvas,
-#myword-guide-canvas
+#myword-guide-canvas,
+#adv-guide-canvas
 {
   z-index: 1;
   pointer-events: none;
@@ -598,7 +602,8 @@ button.myword-add-mini.tool-btn
 #num-draw-canvas,
 #eng-draw-canvas,
 #word-draw-canvas,
-#myword-draw-canvas
+#myword-draw-canvas,
+#adv-draw-canvas
 {
   z-index: 2;
   pointer-events: auto;
@@ -608,7 +613,8 @@ button.myword-add-mini.tool-btn
   #num-canvas-wrap,
   #eng-canvas-wrap,
   #word-canvas-wrap,
-  #myword-canvas-wrap {
+  #myword-canvas-wrap,
+  #adv-canvas-wrap {
     width: min(100%, 92vw, 65dvh, 65svh);
     max-width: 100%;
     max-height: min(92vw, 65dvh, 65svh);

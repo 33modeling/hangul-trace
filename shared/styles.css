@@ -135,12 +135,16 @@ body
 .dots:empty
 {
   margin-bottom: 0;
-}/* 메인 메뉴 */#main-menu
+}/* 메인 메뉴 — overflow-safe 정렬:
+   justify-content를 center로 두면 콘텐츠가 컨테이너보다 클 때
+   상단이 viewport 위로 잘려나가는 flex 버그가 있다.
+   flex-start로 두고, 첫·마지막 자식의 auto 마진으로 짧은 콘텐츠일 때만
+   시각적 중앙 정렬을 얻는다. */#main-menu
 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   flex: 1 1 auto;
   min-height: 0;
   overflow-x: hidden;
@@ -152,6 +156,10 @@ body
   position: relative;
   z-index: 2;
 }
+
+/* 짧은 콘텐츠일 땐 자동 마진으로 중앙 정렬, 길면 0으로 collapse */
+#main-menu > :first-child { margin-top: auto; }
+#main-menu > :last-child  { margin-bottom: auto; }
 
 @keyframes fadeIn
 {
@@ -1292,11 +1300,60 @@ button.myword-add-mini.tool-btn.myword-add-del
     overflow: hidden;
   }
 
-  /* 가로면 메인 메뉴 카드 2열 */
+  /* 가로면 메인 메뉴 — 화면 너비에 따라 자동으로 열수 조정.
+     phone landscape(~700px) → 4-5열, tablet → 5-6열로 7카드를 2행 안에 넣어
+     세로 스크롤 없이 한 화면에 모이게 한다. */
   #mode-cards {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    max-width: min(820px, 100%);
+    padding: 2px;
+  }
+
+  /* 가로면에선 카드 자체도 살짝 컴팩트하게 — 이모지·제목·서브타이틀 모두 축소 */
+  .mode-card {
+    min-height: 88px;
+    padding: 12px 10px 10px;
+    border-radius: 18px;
+  }
+
+  .mode-card .mode-icon {
+    font-size: 26px;
+    margin-bottom: 0;
+  }
+
+  .mode-card .mode-title {
+    font-size: 14px;
+  }
+
+  .mode-card .mode-subtitle {
+    font-size: 11px;
+  }
+
+  /* 가로면 헤더도 컴팩트 — 세로 공간 절약 */
+  #menu-header {
+    padding: 14px 18px 16px;
+    margin-bottom: 10px;
+    border-radius: 18px;
+  }
+
+  #menu-header h1 {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+
+  #menu-header p {
+    font-size: 13px;
+  }
+
+  #menu-header .menu-header-byline {
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+
+  .menu-sound-toggles {
+    margin-bottom: 12px;
   }
 
   /* 가로면 캔버스가 화면 높이를 기준으로 정사각 */

@@ -9,6 +9,23 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="shared/styles.css">
+  <script>
+    /* 모바일 URL바·홈인디케이터 영역 보정 — dvh 미지원 브라우저용 폴백.
+       window.innerHeight는 iOS Safari에서 visible viewport 높이를 반환.
+       --app-vh를 styles.css의 #app/.intro-screen이 fallback으로 사용. */
+    (function () {
+      var setVh = function () {
+        var h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+        document.documentElement.style.setProperty('--app-vh', h + 'px');
+      };
+      setVh();
+      window.addEventListener('resize', setVh, { passive: true });
+      window.addEventListener('orientationchange', setVh, { passive: true });
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', setVh, { passive: true });
+      }
+    })();
+  </script>
 </head>
 <body>
   <div id="app">

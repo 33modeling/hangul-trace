@@ -98,13 +98,18 @@ body
   min-height: 100%;
   min-height: 100dvh;
   min-height: 100svh;
-}/* 모바일·데스크톱 공통: 뷰포트에 고정해 flex % 높이 깨짐·이중 스크롤 방지 */#app
+}/* 모바일·데스크톱 공통: visual viewport 높이를 직접 잡아 URL바·홈인디케이터 영역과 충돌 방지 */#app
 {
   position: fixed;
   left: 0;
   right: 0;
   top: 0;
-  bottom: 0;
+  /* 모바일 URL바 보임/숨김에 따라 자동으로 맞춰지는 visual viewport 높이.
+     cascade: vh(전부) → JS측정값(--app-vh) → svh(작은 viewport) → dvh(동적, 가장 정확) */
+  height: 100vh;
+  height: var(--app-vh, 100vh);
+  height: 100svh;
+  height: 100dvh;
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
@@ -210,14 +215,24 @@ to { opacity: 1; transform: translateY(0); }
 .intro-screen
 {
   position: fixed;
-  inset: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  /* 인트로도 dynamic viewport로 잡아서 모바일 URL바 영역과 충돌 방지 */
+  height: 100vh;
+  height: var(--app-vh, 100vh);
+  height: 100svh;
+  height: 100dvh;
   z-index: 100;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 14px;
-  padding: 40px 20px 64px;
+  padding:
+    max(40px, calc(env(safe-area-inset-top, 0px) + 28px))
+    20px
+    max(64px, calc(env(safe-area-inset-bottom, 0px) + 32px));
   background: var(--trace-gradient-soft);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -481,7 +496,6 @@ to { opacity: 1; transform: translateY(0); }
 
 .mode-card::before
 {
-  /* 우측 상단 컬러 글로우 */
   content: '';
   position: absolute;
   top: -30px;

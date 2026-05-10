@@ -369,12 +369,15 @@ class MyWordMode {
     if (this.words.length === 0) return;
 
     if (this._isLandscape()) {
-      // 가로: 윈도우를 1칸 왼쪽으로, 0이면 이전 단어의 마지막 윈도우
+      // 가로: 윈도우 한 페이지(=WINDOW_SIZE)씩 왼쪽으로 점프.
+      // windowStart가 이미 0이면 이전 단어의 마지막 페이지로.
       if (this.windowStart > 0) {
-        this.windowStart--;
+        this.windowStart = Math.max(0, this.windowStart - TRACE_MY_WORD_WINDOW_SIZE);
       } else {
         this.wordIdx = (this.wordIdx - 1 + this.words.length) % this.words.length;
         const prevSyl = Array.from(this.words[this.wordIdx]);
+        // 이전 단어의 마지막 페이지 시작점 — sylLen 이 WINDOW_SIZE 의
+        // 정수배일 땐 (length - WINDOW_SIZE) 가 그대로 마지막 페이지.
         this.windowStart = Math.max(0, prevSyl.length - TRACE_MY_WORD_WINDOW_SIZE);
       }
     } else {
@@ -396,13 +399,13 @@ class MyWordMode {
     if (this.words.length === 0) return;
 
     if (this._isLandscape()) {
-      // 가로: 윈도우를 1칸 오른쪽으로 슬라이드
+      // 가로: 윈도우 한 페이지(=WINDOW_SIZE)씩 오른쪽으로 점프.
       const sylLen = this._syllables().length;
       const maxStart = Math.max(0, sylLen - TRACE_MY_WORD_WINDOW_SIZE);
       if (this.windowStart < maxStart) {
-        this.windowStart++;
+        this.windowStart = Math.min(maxStart, this.windowStart + TRACE_MY_WORD_WINDOW_SIZE);
       } else {
-        // 윈도우 끝 → 다음 단어
+        // 마지막 페이지였음 → 다음 단어
         this.wordIdx = (this.wordIdx + 1) % this.words.length;
         this.windowStart = 0;
       }

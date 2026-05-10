@@ -349,7 +349,22 @@ class MyWordMode {
     }
   }
 
+  /** mid-stroke 이동 시 잔여 상태 정리 (다음 화면에 spike line 방지). */
+  _resetDrawingState() {
+    this.isDrawing = false;
+    if (this.canvas) {
+      this.canvas.lastX = 0;
+      this.canvas.lastY = 0;
+    }
+    if (this._strokeTracker && typeof this._strokeTracker.cancel === 'function') {
+      try { this._strokeTracker.cancel(); } catch (_) {}
+    }
+    const wc = document.getElementById('myword-complete');
+    if (wc) wc.textContent = '';
+  }
+
   prev() {
+    this._resetDrawingState();
     this.words = traceLoadMyWords();
     if (this.words.length === 0) return;
 
@@ -376,6 +391,7 @@ class MyWordMode {
   }
 
   next() {
+    this._resetDrawingState();
     this.words = traceLoadMyWords();
     if (this.words.length === 0) return;
 

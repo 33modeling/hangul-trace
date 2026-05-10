@@ -68,6 +68,13 @@ function makeStrokeTracker(canvas, opts) {
       if (!canvas || !canvas.width || !canvas.height) return total >= minPx;
       const minDist = Math.max(minPx, Math.min(canvas.width, canvas.height) * ratio);
       return total >= minDist;
+    },
+    /** mid-stroke 강제 종료 — navigation 등으로 stroke를 폐기할 때 호출. */
+    cancel() {
+      active = false;
+      dist = 0;
+      lastX = 0;
+      lastY = 0;
     }
   };
 }

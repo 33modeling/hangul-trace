@@ -197,28 +197,33 @@ class WordMode {
     }
   }
 
-  prev() {
-    this.currentIdx = (this.currentIdx - 1 + WORDS.length) % WORDS.length;
-    this.updateUI();
+  /** mid-stroke 중 이동시 isDrawing/lastXY/strokeTracker가 남아 다음 화면에 spike line 생기는 것을 방지. */
+  _resetDrawingState() {
+    this.isDrawing = false;
+    if (this.canvas) {
+      this.canvas.lastX = 0;
+      this.canvas.lastY = 0;
+    }
+    if (this._strokeTracker && typeof this._strokeTracker.cancel === 'function') {
+      try { this._strokeTracker.cancel(); } catch (_) { /* tracker may not have cancel */ }
+    }
   }
 
-  next() {
-    const w = WORDS[this.currentIdx];
-    const target = traceWordStrokeTarget(w);
-    // 미완료 차단 — 학습 목적이니 다 따라쓰지 않으면 다음으로 못 감.
-    // 사용자에게 남은 획수 안내.
-    if (this.strokeCount < target) {
-      const remaining = target - this.strokeCount;
-      const fb = document.getElementById('word-feedback');
-      if (fb) {
-        fb.textContent = `${remaining}획 더 그려야 다음으로 갈 수 있어요!`;
-        fb.style.color = '#c44';
-      }
-      return;
-    }
-    this.currentIdx = (this.currentIdx + 1) % WORDS.length;
+  /** 자유 이동 — 어디로든 인덱스 점프, UI/캔버스 깔끔하게 리셋. */
+  goTo(idx) {
+    if (typeof idx !== 'number' || isNaN(idx)) return;
+    this._resetDrawingState();
+    this.currentIdx = ((idx % WORDS.length) + WORDS.length) % WORDS.length;
     const wc = document.getElementById('word-complete');
     if (wc) wc.textContent = '';
     this.updateUI();
+  }
+
+  prev() {
+    this.goTo(this.currentIdx - 1);
+  }
+
+  next() {
+    this.goTo(this.currentIdx + 1);
   }
 }

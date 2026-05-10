@@ -303,6 +303,7 @@ class AdvancedMode {
   }
 
   prev() {
+    this._resetDrawingState();
     if (this._isLandscape()) {
       if (this.windowStart > 0) {
         this.windowStart--;
@@ -323,18 +324,22 @@ class AdvancedMode {
     this.updateUI();
   }
 
-  next() {
-    // 미완료 차단 — 학습 목적이니 현재 보이는 글자(들)을 다 따라쓴 뒤에야 진행.
-    const target = this._strokeTarget();
-    if (this.strokeCount < target) {
-      const remaining = target - this.strokeCount;
-      const fb = document.getElementById('adv-feedback');
-      if (fb) {
-        fb.textContent = `${remaining}획 더 그려야 다음으로 갈 수 있어요!`;
-        fb.style.color = '#c44';
-      }
-      return;
+  /** mid-stroke 이동 시 잔여 상태 정리. */
+  _resetDrawingState() {
+    this.isDrawing = false;
+    if (this.canvas) {
+      this.canvas.lastX = 0;
+      this.canvas.lastY = 0;
     }
+    if (this._strokeTracker && typeof this._strokeTracker.cancel === 'function') {
+      try { this._strokeTracker.cancel(); } catch (_) {}
+    }
+    const wc = document.getElementById('adv-complete');
+    if (wc) wc.textContent = '';
+  }
+
+  next() {
+    this._resetDrawingState();
     if (this._isLandscape()) {
       const sylLen = this._syllables().length;
       const maxStart = Math.max(0, sylLen - TRACE_MY_WORD_WINDOW_SIZE);

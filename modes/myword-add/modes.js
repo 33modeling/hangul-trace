@@ -102,60 +102,70 @@ class MyWordAddMode {
     });
 
     const listEl = document.getElementById('myword-add-list');
-    if (listEl && !listEl.__traceDelegated) {
-      listEl.__traceDelegated = true;
-      listEl.addEventListener('click', (e) => {
+    if (listEl) {
+      // 이전 mode 인스턴스의 핸들러가 stale closure 로 남으면 새 단어가
+      // 안 보이게 (덮어쓰임) 되는 문제가 있어서, 매 setupEvents 마다 기존
+      // 핸들러를 제거하고 새로 바인딩한다.
+      if (listEl.__traceDelegateHandler) {
+        listEl.removeEventListener('click', listEl.__traceDelegateHandler);
+      }
+      const handler = (e) => {
+        // 항상 최신 모드 인스턴스를 통해 동작하도록 window.myWordAddMode 사용.
+        const inst = (typeof window !== 'undefined' && window.myWordAddMode) || this;
         const btn = e.target.closest('button[data-action]');
         if (!btn || !listEl.contains(btn)) return;
         const li = btn.closest('li[data-index]');
         if (!li) return;
         const idx = parseInt(li.getAttribute('data-index'), 10);
-        if (Number.isNaN(idx) || idx < 0 || idx >= this.words.length) return;
+        // 스토리지 기준으로 최신 단어 목록 다시 로드 — DOM/메모리 사이의 race
+        // 방지 (사용자가 빠르게 추가→정렬 클릭 시).
+        inst.words = traceLoadMyWords();
+        if (Number.isNaN(idx) || idx < 0 || idx >= inst.words.length) return;
 
         const action = btn.getAttribute('data-action');
         if (action === 'del') {
-          this.words.splice(idx, 1);
-          traceSaveMyWords(this.words);
+          inst.words.splice(idx, 1);
+          traceSaveMyWords(inst.words);
           if (msg) msg.textContent = '';
-          this.renderList();
+          inst.renderList();
           return;
         }
         if (action === 'top' && idx > 0) {
-          // 맨 위로 — 단어를 0번 인덱스로 한 번에 이동
-          const w = this.words.splice(idx, 1)[0];
-          this.words.unshift(w);
-          traceSaveMyWords(this.words);
+          const w = inst.words.splice(idx, 1)[0];
+          inst.words.unshift(w);
+          traceSaveMyWords(inst.words);
           if (msg) msg.textContent = '';
-          this.renderList();
+          inst.renderList();
           return;
         }
         if (action === 'up' && idx > 0) {
-          const t = this.words[idx - 1];
-          this.words[idx - 1] = this.words[idx];
-          this.words[idx] = t;
-          traceSaveMyWords(this.words);
+          const t = inst.words[idx - 1];
+          inst.words[idx - 1] = inst.words[idx];
+          inst.words[idx] = t;
+          traceSaveMyWords(inst.words);
           if (msg) msg.textContent = '';
-          this.renderList();
+          inst.renderList();
           return;
         }
-        if (action === 'down' && idx < this.words.length - 1) {
-          const t = this.words[idx + 1];
-          this.words[idx + 1] = this.words[idx];
-          this.words[idx] = t;
-          traceSaveMyWords(this.words);
+        if (action === 'down' && idx < inst.words.length - 1) {
+          const t = inst.words[idx + 1];
+          inst.words[idx + 1] = inst.words[idx];
+          inst.words[idx] = t;
+          traceSaveMyWords(inst.words);
           if (msg) msg.textContent = '';
-          this.renderList();
+          inst.renderList();
           return;
         }
-        if (action === 'bottom' && idx < this.words.length - 1) {
-          // 맨 아래로 — 단어를 마지막 인덱스로 한 번에 이동
-          const w = this.words.splice(idx, 1)[0];
-          this.words.push(w);
-          traceSaveMyWords(this.words);
+        if (action === 'bottom' && idx < inst.words.length - 1) {
+          const w = inst.words.splice(idx, 1)[0];
+          inst.words.push(w);
+          traceSaveMyWords(inst.words);
           if (msg) msg.textContent = '';
-          this.renderList();
+          inst.renderList();
         }
-      });
+      };
+      listEl.addEventListener('click', handler);
+      listEl.__traceDelegateHandler = handler;
     }
   }
 

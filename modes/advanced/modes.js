@@ -126,6 +126,9 @@ class AdvancedMode {
         self.strokeCount = 0;
         if (self.canvas) self.canvas.clear();
         self.updateUI();
+        // 전환 분기 안에서도 _lastLandscape 갱신 — 후속 resize에서 분기가 반복 재실행
+        // 되어 stroke 진행도가 사라지는 버그 방지.
+        self._lastLandscape = L;
         return;
       }
       self._lastLandscape = L;

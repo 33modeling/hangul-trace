@@ -38,6 +38,10 @@ class NumberMode {
       }
     };
     if (typeof ResizeObserver !== 'undefined' && this.wrapper) {
+      if (window.__traceNumberRO && typeof window.__traceNumberRO.disconnect === 'function') {
+        try { window.__traceNumberRO.disconnect(); } catch (_e) { /* ignore */ }
+        window.__traceNumberRO = null;
+      }
       this._wrapRo = new ResizeObserver(() => {
         if (self._wrapRoRaf) cancelAnimationFrame(self._wrapRoRaf);
         self._wrapRoRaf = requestAnimationFrame(() => {
@@ -49,6 +53,7 @@ class NumberMode {
         });
       });
       this._wrapRo.observe(this.wrapper);
+      window.__traceNumberRO = this._wrapRo;
     }
     
     this.charLabel = document.getElementById('num-label');

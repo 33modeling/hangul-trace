@@ -83,7 +83,29 @@ class EnglishMode {
         self._syncCanvases();
       }
     };
-    
+
+    // 다른 모드와 동일하게 ResizeObserver 사용 — 가상키보드 등 wrapper만
+    // 변하는 시나리오에서도 캔버스가 정확히 다시 그려지도록.
+    if (typeof ResizeObserver !== 'undefined' && this.wrapper) {
+      if (window.__traceEnglishRO && typeof window.__traceEnglishRO.disconnect === 'function') {
+        try { window.__traceEnglishRO.disconnect(); } catch (_e) { /* ignore */ }
+        window.__traceEnglishRO = null;
+      }
+      this._wrapRoRaf = 0;
+      this._wrapRo = new ResizeObserver(() => {
+        if (self._wrapRoRaf) cancelAnimationFrame(self._wrapRoRaf);
+        self._wrapRoRaf = requestAnimationFrame(() => {
+          self._wrapRoRaf = 0;
+          const r = self.wrapper.getBoundingClientRect();
+          if (r.width >= 8 && r.height >= 8) {
+            self._syncCanvases();
+          }
+        });
+      });
+      this._wrapRo.observe(this.wrapper);
+      window.__traceEnglishRO = this._wrapRo;
+    }
+
     this.charLabel = document.getElementById('eng-label');
     this.charSub = document.getElementById('eng-sub');
     this.feedback = document.getElementById('eng-feedback');

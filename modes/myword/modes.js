@@ -106,6 +106,9 @@ class MyWordMode {
         self.strokeCount = 0;
         if (self.canvas) self.canvas.clear();
         self.updateUI();
+        // 전환 분기 안에서도 _lastLandscape 갱신 — 이후 resize 마다 분기 재실행되어
+        // strokeCount 가 자꾸 0으로 리셋되는 버그 방지.
+        self._lastLandscape = L;
         return;
       }
       self._lastLandscape = L;

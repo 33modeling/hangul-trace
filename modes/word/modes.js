@@ -64,6 +64,10 @@ class WordMode {
       };
     }
     if (typeof ResizeObserver !== 'undefined' && this.wrapper) {
+      if (window.__traceWordRO && typeof window.__traceWordRO.disconnect === 'function') {
+        try { window.__traceWordRO.disconnect(); } catch (_e) { /* ignore */ }
+        window.__traceWordRO = null;
+      }
       this._wrapRo = new ResizeObserver(() => {
         if (self._wrapRoRaf) cancelAnimationFrame(self._wrapRoRaf);
         self._wrapRoRaf = requestAnimationFrame(() => {
@@ -75,6 +79,7 @@ class WordMode {
         });
       });
       this._wrapRo.observe(this.wrapper);
+      window.__traceWordRO = this._wrapRo;
     }
 
     this.updateUI();

@@ -1,4 +1,16 @@
 function showMainMenu() {
+  // 진행 중인 stroke order strip 애니메이션 모두 취소 — 메뉴로 나간 뒤에도
+  // 타이머가 살아있어 stale DOM을 건드리거나 display:none 요소에 scrollIntoView
+  // 호출해 콘솔 경고를 띄우는 문제 방지.
+  if (typeof cancelStrokeOrderStrip === 'function') {
+    ['stroke-strip', 'num-stroke-strip', 'eng-stroke-strip'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        cancelStrokeOrderStrip(el);
+        el.innerHTML = '';
+      }
+    });
+  }
   document.querySelectorAll('.mode-ui').forEach((el) => el.classList.remove('active'));
   const menu = document.getElementById('main-menu');
   if (menu) menu.style.display = 'flex';

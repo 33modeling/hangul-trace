@@ -29,6 +29,12 @@ class CharMode {
       };
     }
     if (typeof ResizeObserver !== 'undefined' && this.wrapper) {
+      // 메뉴 ↔ 모드 왕복으로 인스턴스가 새로 만들어질 때 이전 RO 가
+      // 그대로 살아있어 stale 상태로 stale char 그리는 버그 방지.
+      if (window.__traceCharRO && typeof window.__traceCharRO.disconnect === 'function') {
+        try { window.__traceCharRO.disconnect(); } catch (_e) { /* ignore */ }
+        window.__traceCharRO = null;
+      }
       this._wrapRo = new ResizeObserver(() => {
         if (self._wrapRoRaf) cancelAnimationFrame(self._wrapRoRaf);
         self._wrapRoRaf = requestAnimationFrame(() => {
@@ -40,6 +46,7 @@ class CharMode {
         });
       });
       this._wrapRo.observe(this.wrapper);
+      window.__traceCharRO = this._wrapRo;
     }
     
     this.charLabel = document.getElementById('char-label');

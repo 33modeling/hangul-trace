@@ -1395,7 +1395,155 @@ button.myword-add-mini.tool-btn.myword-add-del
   border-color: transparent;
   color: white;
   box-shadow: 0 2px 8px rgba(167, 139, 250, 0.3);
-}/* 스크롤 방지 */body,
+}
+/* ==========================================================================
+   획순 보기 strip — 캔버스 아래 가로 스크롤 카드. 각 카드는 번호·심볼·라벨을
+   분리해 표시. 기존의 캔버스 위 번호 오버레이(겹침·작은 글자) 대체.
+   ========================================================================== */
+.stroke-strip
+{
+  display: flex;
+  gap: 8px;
+  padding: 8px 4px;
+  margin: 12px auto 0;
+  width: 100%;
+  max-width: 540px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  flex-shrink: 0;
+}
+
+.stroke-strip:empty
+{
+  display: none;
+}
+
+.stroke-step
+{
+  flex: 0 0 auto;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--trace-border);
+  background: var(--trace-surface);
+  cursor: pointer;
+  transition:
+    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.22s ease,
+    border-color 0.2s ease,
+    background 0.25s ease;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  scroll-snap-align: start;
+  font-family: inherit;
+  color: inherit;
+  white-space: nowrap;
+}
+
+.stroke-step:active
+{
+  transform: scale(0.96);
+}
+
+.stroke-step.active
+{
+  background: var(--trace-gradient-soft);
+  border-color: var(--trace-accent);
+  box-shadow: 0 6px 14px var(--trace-accent-glow);
+  transform: translateY(-2px);
+}
+
+.stroke-step .step-num
+{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--trace-accent);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.stroke-step.active .step-num
+{
+  background: var(--trace-pink);
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.18);
+}
+
+/* SVG 아이콘 슬롯 — 화살표가 currentColor로 그려짐 */
+.stroke-step .step-symbol
+{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: var(--trace-accent-dark);
+  line-height: 1;
+}
+
+.stroke-step .step-symbol svg
+{
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.stroke-step.active .step-symbol
+{
+  color: var(--trace-pink);
+}
+
+.stroke-step .step-label
+{
+  font-size: 13px;
+  color: var(--trace-chip-text);
+  font-weight: 600;
+  white-space: nowrap;
+  letter-spacing: -0.005em;
+}
+
+.stroke-step.active .step-label
+{
+  color: var(--trace-success-muted);
+}
+
+/* 좁은 화면에서는 카드 살짝 축소 */
+@media (max-width: 380px)
+{
+  .stroke-step {
+    padding: 6px 10px;
+    gap: 6px;
+    min-height: 40px;
+  }
+  .stroke-step .step-symbol { width: 22px; height: 22px; }
+  .stroke-step .step-num    { width: 20px; height: 20px; font-size: 11px; }
+  .stroke-step .step-label  { font-size: 12px; }
+}
+
+/* 가로 모드: strip이 캔버스 옆에 있을 수 있으니 가로 폭 좀 더 줌 */
+@media (orientation: landscape)
+{
+  .stroke-strip {
+    max-width: min(720px, 100%);
+    margin-top: 8px;
+  }
+}
+
+/* 스크롤 방지 */body,
 html
 {
   touch-action: manipulation;

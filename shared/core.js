@@ -576,13 +576,67 @@ function animateStrokeOrder(guideLayer, ch, onComplete) {
 }
 
 /**
+ * 획순 심볼 → SVG 화살표 매핑.
+ * 모든 stroke 종류를 일관된 화살표 아이콘으로 시각화.
+ * viewBox 0 0 24 24, currentColor stroke 2.5.
+ * @param {string} s STROKE_ORDER 데이터의 s 필드
+ * @returns {string} SVG markup
+ */
+function _strokeIconSvg(s) {
+  const open = '<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+  const close = '</svg>';
+  let body;
+  switch (s) {
+    case '─':  // 가로 (왼→오)
+      body = '<path d="M3 12 L19 12"/><path d="M15 7 L20 12 L15 17"/>';
+      break;
+    case '│':  // 세로 (위→아래)
+      body = '<path d="M12 3 L12 19"/><path d="M7 15 L12 20 L17 15"/>';
+      break;
+    case '╲':  // 왼 대각선 ↘
+      body = '<path d="M5 5 L17 17"/><path d="M17 12 L18 18 L12 17"/>';
+      break;
+    case '╱':  // 오른 대각선 ↙
+      body = '<path d="M19 5 L7 17"/><path d="M7 12 L6 18 L12 17"/>';
+      break;
+    case '○':  // 원 (시계방향)
+      body = '<path d="M19.5 9.5 A8 8 0 1 1 13 4.2"/><path d="M16 3.6 L13 4.2 L14 7.4"/>';
+      break;
+    case '⌒':  // 위로 볼록한 곡선 (왼→오)
+      body = '<path d="M4 18 Q12 3 20 18"/><path d="M16 13.5 L20 18 L19.5 13"/>';
+      break;
+    case '⌢':  // 아래로 볼록한 곡선 (왼→오)
+      body = '<path d="M4 6 Q12 21 20 6"/><path d="M16 10.5 L20 6 L19.5 11"/>';
+      break;
+    case '⌒⌒':  // 두 개의 볼록 곡선 (B자 옆모양)
+      body = '<path d="M5 4 Q15 4 15 8 Q15 12 5 12"/><path d="M5 12 Q16 12 16 16 Q16 20 5 20"/>';
+      break;
+    case '∞':  // 8자 — 위 원 + 아래 원
+      body = '<path d="M12 5 A4 4 0 1 1 12 13 A4 4 0 1 0 12 21 A4 4 0 1 0 12 13 A4 4 0 1 1 12 5"/>';
+      break;
+    case '⌇':  // S 곡선
+      body = '<path d="M19 5 Q19 11 12 12 Q5 13 5 19"/><path d="M8 16.5 L5 19.5 L8 21"/>';
+      break;
+    case '·':  // 점
+      body = '<circle cx="12" cy="12" r="2.8" fill="currentColor"/>';
+      break;
+    case '╲╱':  // V 쌍 (위에서 가운데로 모이는 두 대각선)
+      body = '<path d="M5 5 L12 18 L19 5"/><path d="M9 14.5 L12 18 L9 17.5"/><path d="M15 14.5 L12 18 L15 17.5"/>';
+      break;
+    default:  // 기존 텍스트 폴백
+      body = `<text x="12" y="16" font-size="13" font-weight="700" text-anchor="middle" fill="currentColor" stroke="none">${s.replace(/[<>&]/g, '')}</text>`;
+  }
+  return open + body + close;
+}
+
+/**
  * 획순 strip 렌더링 — 캔버스 아래 가로 스크롤 카드.
- * 각 카드: 번호 배지 + 큰 심볼 + 한국어 라벨.
+ * 가로 레이아웃: [번호 배지][화살표 SVG][한국어 라벨]
  * 데이터 출처는 STROKE_ORDER 동일.
  *
- * @param {HTMLElement} container 카드를 담을 컨테이너 (.stroke-strip)
+ * @param {HTMLElement} container .stroke-strip 컨테이너
  * @param {string} ch 글자
- * @param {number} activeStep 1-based 강조 인덱스 (0 또는 미지정 = 강조 없음)
+ * @param {number} activeStep 1-based 강조 인덱스 (0 = 강조 없음)
  */
 function renderStrokeOrderStrip(container, ch, activeStep) {
   if (!container) return;
@@ -594,10 +648,9 @@ function renderStrokeOrderStrip(container, ch, activeStep) {
   const steps = data.steps;
   const active = (typeof activeStep === 'number' && activeStep > 0) ? activeStep : 0;
 
-  // DOM 직접 생성 — innerHTML 보다 안전, 동일 카드 재사용 가능
-  // 카드 수가 바뀌면 재생성, 같으면 active 클래스만 갱신.
+  // 같은 글자 재렌더면 active 클래스만 갱신 (DOM 재생성 비용 절약 + 깜빡임 방지)
   const existing = container.querySelectorAll('.stroke-step');
-  if (existing.length === steps.length) {
+  if (existing.length === steps.length && container.dataset.ch === ch) {
     existing.forEach((card, i) => {
       const isActive = (i + 1) === active;
       card.classList.toggle('active', isActive);
@@ -605,6 +658,7 @@ function renderStrokeOrderStrip(container, ch, activeStep) {
     return;
   }
 
+  container.dataset.ch = ch;
   container.innerHTML = '';
   const frag = document.createDocumentFragment();
   steps.forEach((step, i) => {
@@ -623,7 +677,7 @@ function renderStrokeOrderStrip(container, ch, activeStep) {
 
     const sym = document.createElement('span');
     sym.className = 'step-symbol';
-    sym.textContent = step.s;
+    sym.innerHTML = _strokeIconSvg(step.s);
     card.appendChild(sym);
 
     const lbl = document.createElement('span');
@@ -631,7 +685,6 @@ function renderStrokeOrderStrip(container, ch, activeStep) {
     lbl.textContent = step.l;
     card.appendChild(lbl);
 
-    // 카드 탭 → 해당 step 활성화 (다른 카드들 active 제거)
     card.addEventListener('click', () => {
       const all = container.querySelectorAll('.stroke-step');
       all.forEach((c) => c.classList.remove('active'));

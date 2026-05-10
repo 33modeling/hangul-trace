@@ -575,6 +575,149 @@ function animateStrokeOrder(guideLayer, ch, onComplete) {
   nextStep();
 }
 
+/**
+ * 획순 strip 렌더링 — 캔버스 아래 가로 스크롤 카드.
+ * 각 카드: 번호 배지 + 큰 심볼 + 한국어 라벨.
+ * 데이터 출처는 STROKE_ORDER 동일.
+ *
+ * @param {HTMLElement} container 카드를 담을 컨테이너 (.stroke-strip)
+ * @param {string} ch 글자
+ * @param {number} activeStep 1-based 강조 인덱스 (0 또는 미지정 = 강조 없음)
+ */
+function renderStrokeOrderStrip(container, ch, activeStep) {
+  if (!container) return;
+  const data = STROKE_ORDER[ch];
+  if (!data || !data.steps || data.steps.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+  const steps = data.steps;
+  const active = (typeof activeStep === 'number' && activeStep > 0) ? activeStep : 0;
+
+  // DOM 직접 생성 — innerHTML 보다 안전, 동일 카드 재사용 가능
+  // 카드 수가 바뀌면 재생성, 같으면 active 클래스만 갱신.
+  const existing = container.querySelectorAll('.stroke-step');
+  if (existing.length === steps.length) {
+    existing.forEach((card, i) => {
+      const isActive = (i + 1) === active;
+      card.classList.toggle('active', isActive);
+    });
+    return;
+  }
+
+  container.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  steps.forEach((step, i) => {
+    const n = i + 1;
+    const isActive = n === active;
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'stroke-step' + (isActive ? ' active' : '');
+    card.dataset.step = String(n);
+    card.setAttribute('aria-label', `획 ${n}: ${step.l}`);
+
+    const num = document.createElement('span');
+    num.className = 'step-num';
+    num.textContent = String(n);
+    card.appendChild(num);
+
+    const sym = document.createElement('span');
+    sym.className = 'step-symbol';
+    sym.textContent = step.s;
+    card.appendChild(sym);
+
+    const lbl = document.createElement('span');
+    lbl.className = 'step-label';
+    lbl.textContent = step.l;
+    card.appendChild(lbl);
+
+    // 카드 탭 → 해당 step 활성화 (다른 카드들 active 제거)
+    card.addEventListener('click', () => {
+      const all = container.querySelectorAll('.stroke-step');
+      all.forEach((c) => c.classList.remove('active'));
+      card.classList.add('active');
+    }, { passive: true });
+
+    frag.appendChild(card);
+  });
+  container.appendChild(frag);
+}
+
+/**
+ * 획순 strip 플레이 — 카드를 1번부터 순차적으로 강조.
+ * 캔버스에는 글자만 깔끔하게 보여주고 (오버레이 X), 정보는 strip이 담당.
+ * 동일 컨테이너에 이전 플레이 진행 중이면 취소하고 새로 시작.
+ *
+ * @param {HTMLElement} container .stroke-strip 엘리먼트
+ * @param {DrawingCanvas} guideLayer 가이드 캔버스 (글자 그리기용)
+ * @param {string} ch 글자
+ * @param {function} onComplete 완료 콜백
+ */
+function playStrokeOrderStrip(container, guideLayer, ch, onComplete) {
+  const data = STROKE_ORDER[ch];
+
+  // 이전 플레이 진행 중이면 취소
+  if (container && container.__strokePlayTimer) {
+    clearTimeout(container.__strokePlayTimer);
+    container.__strokePlayTimer = null;
+  }
+
+  if (!data || !data.steps || data.steps.length === 0) {
+    if (onComplete) onComplete();
+    return;
+  }
+
+  // 캔버스는 항상 깔끔하게 글자만
+  if (guideLayer && guideLayer.clear && guideLayer.drawGuide) {
+    guideLayer.clear();
+    guideLayer.drawGuide(ch);
+  }
+
+  // 모든 카드 초기 상태로 렌더 (active=0)
+  renderStrokeOrderStrip(container, ch, 0);
+
+  let step = 1;
+  const total = data.steps.length;
+
+  const tick = () => {
+    if (step > total) {
+      // 마지막 카드까지 보여준 뒤 잠깐 유지하고 active 해제
+      container.__strokePlayTimer = setTimeout(() => {
+        renderStrokeOrderStrip(container, ch, 0);
+        container.__strokePlayTimer = null;
+        if (onComplete) onComplete();
+      }, 800);
+      return;
+    }
+    renderStrokeOrderStrip(container, ch, step);
+
+    // 활성 카드를 가시 영역으로 스크롤
+    const active = container.querySelector('.stroke-step.active');
+    if (active && typeof active.scrollIntoView === 'function') {
+      try {
+        active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      } catch (_) { /* older browsers */ }
+    }
+
+    step++;
+    container.__strokePlayTimer = setTimeout(tick, 800);
+  };
+
+  tick();
+}
+
+/**
+ * 컨테이너의 진행 중인 strip 플레이를 강제 취소 (모드 이탈/리셋용).
+ */
+function cancelStrokeOrderStrip(container) {
+  if (!container) return;
+  if (container.__strokePlayTimer) {
+    clearTimeout(container.__strokePlayTimer);
+    container.__strokePlayTimer = null;
+  }
+}
+
+
 // setupDrawingEvents 제거됨 — 모든 모드는 attachCanvasPointerDrawing 사용
 // (중복 이벤트 리스너로 인해 모바일에서 터치가 두 번 처리되는 버그 수정)
 

@@ -92,6 +92,12 @@ class CharMode {
   
   updateUI(idx) {
     this.currentIdx = idx;
+    // 새 글자 진입 시 이전 글자의 stroke strip 잔재 제거
+    const _strip = document.getElementById('stroke-strip');
+    if (_strip) {
+      cancelStrokeOrderStrip(_strip);
+      _strip.innerHTML = '';
+    }
     const char = CHAR_ITEMS[idx];
     
     this.charLabel.textContent = `${char.ch} · ${char.name}`;
@@ -141,9 +147,14 @@ class CharMode {
 
     rebindButtonClickById('hint-btn', () => {
       const ch = CHAR_ITEMS[this.currentIdx].ch;
+      const strip = document.getElementById('stroke-strip');
       if (STROKE_ORDER[ch]) {
-        animateStrokeOrder(this.guideLayer, ch);
+        // 새 디자인: 캔버스 아래 카드 strip + 카드 순차 하이라이트.
+        // 캔버스는 글자만 깔끔하게 유지.
+        playStrokeOrderStrip(strip, this.guideLayer, ch);
       } else {
+        // STROKE_ORDER 데이터 없는 글자: 글자 자체를 잠깐 강조하는 fallback
+        if (strip) strip.innerHTML = '';
         this.guideLayer.clear();
         this.guideLayer.drawGuide(ch, '#ec4899');
         setTimeout(() => {

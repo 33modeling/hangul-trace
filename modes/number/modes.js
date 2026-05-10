@@ -101,6 +101,11 @@ class NumberMode {
   
   updateUI(idx) {
     this.currentIdx = idx;
+    const _strip = document.getElementById('num-stroke-strip');
+    if (_strip) {
+      cancelStrokeOrderStrip(_strip);
+      _strip.innerHTML = '';
+    }
     const num = NUMBERS[idx];
     
     this.charLabel.textContent = `${num.ch} · ${num.name}`;
@@ -144,9 +149,11 @@ class NumberMode {
     });
     rebindButtonClickById('num-hint-btn', () => {
       const ch = NUMBERS[this.currentIdx].ch;
+      const strip = document.getElementById('num-stroke-strip');
       if (STROKE_ORDER[ch]) {
-        animateStrokeOrder(this.guideLayer, ch);
+        playStrokeOrderStrip(strip, this.guideLayer, ch);
       } else {
+        if (strip) strip.innerHTML = '';
         this.guideLayer.clear();
         this.guideLayer.drawGuide(ch, '#ec4899');
         setTimeout(() => {

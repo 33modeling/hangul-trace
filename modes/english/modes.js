@@ -168,6 +168,11 @@ class EnglishMode {
   
   updateUI(idx) {
     this.currentIdx = idx;
+    const _strip = document.getElementById('eng-stroke-strip');
+    if (_strip) {
+      cancelStrokeOrderStrip(_strip);
+      _strip.innerHTML = '';
+    }
     const list = this.getCurrentList();
     const alpha = list[idx];
     
@@ -214,9 +219,11 @@ class EnglishMode {
     rebindButtonClickById('eng-hint-btn', () => {
       const list = this.getCurrentList();
       const ch = list[this.currentIdx].ch;
+      const strip = document.getElementById('eng-stroke-strip');
       if (STROKE_ORDER[ch]) {
-        animateStrokeOrder(this.guideLayer, ch);
+        playStrokeOrderStrip(strip, this.guideLayer, ch);
       } else {
+        if (strip) strip.innerHTML = '';
         this.guideLayer.clear();
         this.guideLayer.drawGuide(ch, '#ec4899');
         setTimeout(() => {

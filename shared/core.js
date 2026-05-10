@@ -863,3 +863,78 @@ if (document.readyState === 'loading') {
 } else {
   initCommon();
 }
+
+
+/* ==========================================================================
+   터치 ripple — 모든 .tool-btn / .mode-card / .stroke-step / .sound-toggle-btn
+   pointerdown에 .trace-ripple span을 동적으로 삽입. 0.55s 후 자동 제거.
+   ========================================================================== */
+function traceAttachRipple() {
+  if (typeof document === 'undefined' || document.__traceRippleBound) return;
+  document.__traceRippleBound = true;
+  document.addEventListener('pointerdown', (e) => {
+    const target = e.target.closest(
+      '.tool-btn, .mode-card, .stroke-step, .sound-toggle-btn, .myword-kind-btn'
+    );
+    if (!target) return;
+    if (target.disabled) return;
+    const rect = target.getBoundingClientRect();
+    if (rect.width < 1 || rect.height < 1) return;
+    const size = Math.max(rect.width, rect.height) * 1.6;
+    const x = (e.clientX || rect.left + rect.width / 2) - rect.left - size / 2;
+    const y = (e.clientY || rect.top + rect.height / 2) - rect.top - size / 2;
+    const ripple = document.createElement('span');
+    ripple.className = 'trace-ripple';
+    ripple.style.left = x + 'px';
+    ripple.style.top = y + 'px';
+    ripple.style.width = size + 'px';
+    ripple.style.height = size + 'px';
+    // ensure parent positioned & overflow:hidden
+    const cs = window.getComputedStyle(target);
+    if (cs.position === 'static') target.style.position = 'relative';
+    if (cs.overflow !== 'hidden') target.style.overflow = 'hidden';
+    target.appendChild(ripple);
+    setTimeout(() => {
+      if (ripple && ripple.parentNode) ripple.parentNode.removeChild(ripple);
+    }, 600);
+  }, { passive: true });
+}
+
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', traceAttachRipple);
+  } else {
+    traceAttachRipple();
+  }
+}
+
+/* ==========================================================================
+   획 진행도 점 시각화 — feedback 영역에 들어갈 HTML 생성.
+   사용 예: feedbackEl.innerHTML = traceRenderProgress(strokeCount, target);
+   ========================================================================== */
+function traceRenderProgress(count, target, opts) {
+  const c = Math.max(0, Math.min(target, Number(count) || 0));
+  const t = Math.max(1, Number(target) || 1);
+  let dots = '';
+  // 너무 많은 획(20+)은 숫자만, 그 외엔 점으로 시각화
+  if (t <= 20) {
+    for (let i = 0; i < t; i++) {
+      dots += '<span class="trace-pdot' + (i < c ? ' filled' : '') + '"></span>';
+    }
+  } else {
+    dots = '';
+  }
+  const isDone = c >= t;
+  const fraction = `${c} / ${t}`;
+  const tail = (opts && opts.doneText) || '완성! 🎉';
+  if (isDone) {
+    return '<span class="trace-progress done">'
+      + (dots ? '<span class="trace-pdots">' + dots + '</span>' : '')
+      + '<span class="trace-done-text">' + tail + '</span>'
+      + '</span>';
+  }
+  return '<span class="trace-progress">'
+    + (dots ? '<span class="trace-pdots">' + dots + '</span>' : '')
+    + '<span class="trace-pcount">' + fraction + '</span>'
+    + '</span>';
+}

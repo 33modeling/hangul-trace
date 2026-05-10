@@ -221,15 +221,10 @@ class EnglishMode {
     const list = this.getCurrentList();
     const alpha = list[this.currentIdx];
     const feedbackEl = document.getElementById('eng-feedback');
-    
-    if (strokeCount < alpha.strokes) {
-      const remaining = alpha.strokes - strokeCount;
-      feedbackEl.textContent = `획 ${strokeCount} / ${alpha.strokes} — ${remaining} 획 더!`;
-      feedbackEl.style.color = '#888';
-    } else {
-      feedbackEl.textContent = '잘 했어요! 🎉 다음 글자는 ▶ 를 눌러 주세요.';
-      feedbackEl.style.color = '#ec4899';
-    }
+    feedbackEl.style.color = '';
+    feedbackEl.innerHTML = traceRenderProgress(strokeCount, alpha.strokes, {
+      doneText: '잘 했어요! 🎉 다음은 ▶'
+    });
   }
   
   setupEvents() {

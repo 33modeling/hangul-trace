@@ -135,15 +135,10 @@ class NumberMode {
   updateFeedback(strokeCount) {
     const num = NUMBERS[this.currentIdx];
     const feedbackEl = document.getElementById('num-feedback');
-    
-    if (strokeCount < num.strokes) {
-      const remaining = num.strokes - strokeCount;
-      feedbackEl.textContent = `획 ${strokeCount} / ${num.strokes} — ${remaining}획 더!`;
-      feedbackEl.style.color = '#888';
-    } else {
-      feedbackEl.textContent = '잘 했어요! 🎉 다음 숫자는 ▶ 를 눌러 주세요.';
-      feedbackEl.style.color = '#ec4899';
-    }
+    feedbackEl.style.color = '';
+    feedbackEl.innerHTML = traceRenderProgress(strokeCount, num.strokes, {
+      doneText: '잘 했어요! 🎉 다음은 ▶'
+    });
   }
   
   setupEvents() {

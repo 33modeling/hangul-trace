@@ -194,17 +194,30 @@ class MyWordMode {
         : '세로: 한 글자씩 따라 써요';
     }
 
+    const emptyEl = document.getElementById('myword-empty');
+    const wrapEl = document.getElementById('myword-canvas-wrap');
+    const navEl = document.getElementById('myword-nav') || document.querySelector('#myword-mode .trace-mode-nav');
+
     if (this.words.length === 0) {
-      document.getElementById('myword-label').textContent = '등록된 단어 없음';
-      document.getElementById('myword-sub').textContent = '「내 단어 추가」에서 단어를 넣어 주세요';
+      // 빈 상태 — 큰 일러스트 + CTA 버튼만 보여주고, nav/캔버스/툴바 숨김
+      if (emptyEl) emptyEl.hidden = false;
+      if (wrapEl) wrapEl.style.display = 'none';
+      if (navEl) navEl.style.display = 'none';
+      const tbEl = document.querySelector('#myword-mode .myword-toolbar');
+      if (tbEl) tbEl.style.display = 'none';
       document.getElementById('myword-complete').textContent = '';
       this.strokeCount = 0;
       this._setNavDisabled(true);
-      this._syncMyWordCanvases();
       this.updateFeedback();
       return;
     }
 
+    // 단어 있음 — 빈 상태 숨기고 정상 UI 복원
+    if (emptyEl) emptyEl.hidden = true;
+    if (wrapEl) wrapEl.style.display = '';
+    if (navEl) navEl.style.display = '';
+    const tbEl2 = document.querySelector('#myword-mode .myword-toolbar');
+    if (tbEl2) tbEl2.style.display = '';
     this._setNavDisabled(false);
     if (this.wordIdx >= this.words.length) this.wordIdx = 0;
     let word = this.words[this.wordIdx];
@@ -256,18 +269,17 @@ class MyWordMode {
 
   updateFeedback() {
     const feedbackEl = document.getElementById('myword-feedback');
-    const target = this._strokeTarget();
     if (this.words.length === 0) {
-      feedbackEl.textContent = '「단어 추가」로 첫 단어를 등록해 보세요.';
-      feedbackEl.style.color = '#888';
+      feedbackEl.textContent = '';
+      feedbackEl.style.color = '';
       return;
     }
-    if (this.strokeCount < target) {
-      const remaining = target - this.strokeCount;
-      feedbackEl.textContent = `획 ${this.strokeCount} / ${target} — ${remaining}획 더!`;
-      feedbackEl.style.color = '#888';
-    } else {
-      feedbackEl.style.color = '#ec4899';
+    const target = this._strokeTarget();
+    feedbackEl.style.color = '';
+    feedbackEl.innerHTML = traceRenderProgress(this.strokeCount, target, {
+      doneText: '완성! 🎉 다음은 ▶'
+    });
+    if (this.strokeCount >= target) {
       const visibleKey = this._isLandscape()
         ? `L:${this.wordIdx}:${this.windowStart}`
         : `P:${this.wordIdx}:${this.syllableIdx}`;
@@ -277,7 +289,6 @@ class MyWordMode {
         document.getElementById('myword-complete').textContent = `${w} ✓`;
         if (typeof TraceSound !== 'undefined') TraceSound.complete();
       }
-      feedbackEl.textContent = '완성! 🎉 다음은 ▶ 를 눌러 주세요.';
     }
   }
 
@@ -299,6 +310,13 @@ class MyWordMode {
     });
 
     rebindButtonClickById('myword-goto-add-btn', () => {
+      if (typeof window.showSingleMode === 'function') {
+        window.showSingleMode('myword-add');
+      }
+    });
+
+    // 빈 상태 CTA 버튼 — 메인 캔버스 영역에 큰 버튼으로 노출
+    rebindButtonClickById('myword-empty-add-btn', () => {
       if (typeof window.showSingleMode === 'function') {
         window.showSingleMode('myword-add');
       }

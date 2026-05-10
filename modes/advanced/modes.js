@@ -230,12 +230,11 @@ class AdvancedMode {
   updateFeedback() {
     const feedbackEl = document.getElementById('adv-feedback');
     const target = this._strokeTarget();
-    if (this.strokeCount < target) {
-      const remaining = target - this.strokeCount;
-      feedbackEl.textContent = `획 ${this.strokeCount} / ${target} — ${remaining}획 더!`;
-      feedbackEl.style.color = '#888';
-    } else {
-      feedbackEl.style.color = '#ec4899';
+    feedbackEl.style.color = '';
+    feedbackEl.innerHTML = traceRenderProgress(this.strokeCount, target, {
+      doneText: '완성! 🎉 다음은 ▶'
+    });
+    if (this.strokeCount >= target) {
       const visibleKey = this._isLandscape()
         ? `L:${this.wordIdx}:${this.windowStart}`
         : `P:${this.wordIdx}:${this.syllableIdx}`;
@@ -245,7 +244,6 @@ class AdvancedMode {
         document.getElementById('adv-complete').textContent = `${w} ✓`;
         if (typeof TraceSound !== 'undefined') TraceSound.complete();
       }
-      feedbackEl.textContent = '완성! 🎉 다음은 ▶ 를 눌러 주세요.';
     }
   }
 

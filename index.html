@@ -116,7 +116,7 @@
         <p class="secret-signoff">— 아빠가 —</p>
       </div>
       <div class="mode-toolbar">
-        <button type="button" id="secret-back-btn" class="tool-btn primary">메뉴로</button>
+        <button type="button" id="secret-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
       </div>
     </div>
 
@@ -139,11 +139,13 @@
         <canvas id="guide-canvas"></canvas>
         <canvas id="draw-canvas"></canvas>
       </div>
-      
+
+      <div id="stroke-strip" class="stroke-strip" aria-live="polite"></div>
+
       <div id="toolbar">
-        <button id="clear-btn" class="tool-btn">지우기</button>
-        <button id="hint-btn" class="tool-btn">획순 보기</button>
-        <button type="button" id="back-btn" class="tool-btn primary">메뉴로</button>
+        <button id="clear-btn" class="tool-btn"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13l-7.07 7.07a2 2 0 0 1-2.83 0l-3.17-3.17a2 2 0 0 1 0-2.83L12 7l6 6Z"/><path d="M14 5l4 4"/><path d="M9 21h12"/></svg></span><span>지우기</span></button>
+        <button id="hint-btn" class="tool-btn info"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>획순 보기</span></button>
+        <button type="button" id="back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
       </div>
       
       <div id="feedback"></div>
@@ -172,8 +174,8 @@
       </div>
       
       <div id="word-toolbar" class="mode-toolbar">
-        <button id="word-clear-btn" class="tool-btn">지우기</button>
-        <button type="button" id="word-back-btn" class="tool-btn primary">메뉴로</button>
+        <button id="word-clear-btn" class="tool-btn"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13l-7.07 7.07a2 2 0 0 1-2.83 0l-3.17-3.17a2 2 0 0 1 0-2.83L12 7l6 6Z"/><path d="M14 5l4 4"/><path d="M9 21h12"/></svg></span><span>지우기</span></button>
+        <button type="button" id="word-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
       </div>
       
       <div id="word-feedback"></div>
@@ -202,8 +204,8 @@
       </div>
 
       <div id="adv-toolbar" class="mode-toolbar">
-        <button id="adv-clear-btn" class="tool-btn">지우기</button>
-        <button type="button" id="adv-back-btn" class="tool-btn primary">메뉴로</button>
+        <button id="adv-clear-btn" class="tool-btn"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13l-7.07 7.07a2 2 0 0 1-2.83 0l-3.17-3.17a2 2 0 0 1 0-2.83L12 7l6 6Z"/><path d="M14 5l4 4"/><path d="M9 21h12"/></svg></span><span>지우기</span></button>
+        <button type="button" id="adv-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
       </div>
 
       <div id="adv-feedback"></div>
@@ -226,15 +228,22 @@
 
       <div id="myword-complete"></div>
 
+      <div id="myword-empty" class="myword-empty" hidden>
+        <div class="myword-empty-icon" aria-hidden="true">📝</div>
+        <p class="myword-empty-title">등록된 단어가 없어요</p>
+        <p class="myword-empty-desc">우리 아이가 좋아하는 단어를<br>추가해 보세요!</p>
+        <button type="button" id="myword-empty-add-btn" class="tool-btn primary myword-empty-cta"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span><span>단어 추가하기</span></button>
+      </div>
+
       <div id="myword-canvas-wrap" class="canvas-wrap">
         <canvas id="myword-guide-canvas"></canvas>
         <canvas id="myword-draw-canvas"></canvas>
       </div>
 
       <div id="myword-toolbar" class="myword-toolbar">
-        <button id="myword-clear-btn" class="tool-btn" type="button">지우기</button>
-        <button type="button" id="myword-goto-add-btn" class="tool-btn">단어 추가</button>
-        <button type="button" id="myword-back-btn" class="tool-btn primary">메뉴로</button>
+        <button id="myword-clear-btn" class="tool-btn" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13l-7.07 7.07a2 2 0 0 1-2.83 0l-3.17-3.17a2 2 0 0 1 0-2.83L12 7l6 6Z"/><path d="M14 5l4 4"/><path d="M9 21h12"/></svg></span><span>지우기</span></button>
+        <button type="button" id="myword-goto-add-btn" class="tool-btn"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span><span>단어 추가</span></button>
+        <button type="button" id="myword-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
       </div>
 
       <div id="myword-feedback"></div>
@@ -246,7 +255,7 @@
         <div class="myword-add-header">
           <h2 class="myword-add-title">내 단어 추가</h2>
           <span id="myword-add-counter" class="myword-add-counter" aria-live="polite">0 / 30</span>
-          <button type="button" id="myword-add-menu-btn" class="tool-btn primary">메뉴로</button>
+          <button type="button" id="myword-add-menu-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
         </div>
         <p class="myword-add-desc">한글 또는 영문(a-z, A-Z) 1~20글자. 단어는 최대 30개까지 등록할 수 있어요. 가로 모드에서는 4글자 윈도우가 한 글자씩 옆으로 이동해요.</p>
         <div class="myword-kind-toggle">
@@ -255,13 +264,13 @@
         </div>
         <div class="myword-add-form">
           <input type="text" id="myword-add-input" class="myword-add-input" maxlength="20" inputmode="text" autocomplete="off" placeholder="단어 입력 (1~20글자, 한글)" />
-          <button type="button" id="myword-add-submit" class="tool-btn">추가</button>
+          <button type="button" id="myword-add-submit" class="tool-btn"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span><span>추가</span></button>
         </div>
         <p id="myword-add-msg" class="myword-add-msg" aria-live="polite"></p>
       </div>
       <ul id="myword-add-list" class="myword-add-list"></ul>
       <div class="myword-add-toolbar">
-        <button type="button" id="myword-add-back-btn" class="tool-btn primary">메뉴로</button>
+        <button type="button" id="myword-add-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
       </div>
     </div>
     
@@ -284,11 +293,13 @@
         <canvas id="num-guide-canvas"></canvas>
         <canvas id="num-draw-canvas"></canvas>
       </div>
-      
+
+      <div id="num-stroke-strip" class="stroke-strip" aria-live="polite"></div>
+
       <div id="num-toolbar" class="mode-toolbar">
-        <button id="num-clear-btn" class="tool-btn">지우기</button>
-        <button id="num-hint-btn" class="tool-btn">획순 보기</button>
-        <button type="button" id="num-back-btn" class="tool-btn primary">메뉴로</button>
+        <button id="num-clear-btn" class="tool-btn"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13l-7.07 7.07a2 2 0 0 1-2.83 0l-3.17-3.17a2 2 0 0 1 0-2.83L12 7l6 6Z"/><path d="M14 5l4 4"/><path d="M9 21h12"/></svg></span><span>지우기</span></button>
+        <button id="num-hint-btn" class="tool-btn info"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>획순 보기</span></button>
+        <button type="button" id="num-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
       </div>
       
       <div id="num-feedback"></div>
@@ -318,11 +329,13 @@
         <canvas id="eng-guide-canvas"></canvas>
         <canvas id="eng-draw-canvas"></canvas>
       </div>
-      
+
+      <div id="eng-stroke-strip" class="stroke-strip" aria-live="polite"></div>
+
       <div id="eng-toolbar" class="mode-toolbar">
-        <button id="eng-clear-btn" class="tool-btn">지우기</button>
-        <button id="eng-hint-btn" class="tool-btn">획순 보기</button>
-        <button type="button" id="eng-back-btn" class="tool-btn primary">메뉴로</button>
+        <button id="eng-clear-btn" class="tool-btn"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13l-7.07 7.07a2 2 0 0 1-2.83 0l-3.17-3.17a2 2 0 0 1 0-2.83L12 7l6 6Z"/><path d="M14 5l4 4"/><path d="M9 21h12"/></svg></span><span>지우기</span></button>
+        <button id="eng-hint-btn" class="tool-btn info"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>획순 보기</span></button>
+        <button type="button" id="eng-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
       </div>
       
       <div id="eng-feedback"></div>

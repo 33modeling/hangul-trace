@@ -406,40 +406,59 @@ to { opacity: 1; transform: translateY(0); }
 {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 18px;
+  gap: 8px;
+  padding: 10px 18px 10px 14px;
   border-radius: 999px;
-  border: 1px solid var(--trace-border);
+  border: 1.5px solid var(--trace-border);
   background: var(--trace-surface);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--trace-accent-dark);
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: transform 0.18s ease, box-shadow 0.22s ease, background 0.25s ease, border-color 0.2s ease;
   -webkit-tap-highlight-color: transparent;
-  min-height: 40px;
+  min-height: 42px;
+  position: relative;
+  overflow: hidden;
 }
 
 .sound-toggle-btn:active
 {
-  transform: scale(0.97);
+  transform: scale(0.96);
 }
 
+.sound-toggle-btn .sound-icon
+{
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* ON 상태: 그라데이션 + 흰 텍스트 — 멀리서도 한눈에 켜진 게 보임 */
 .sound-toggle-btn[aria-pressed="true"]
 {
-  background: var(--trace-chip);
-  border-color: var(--trace-accent);
-  box-shadow: 0 2px 8px var(--trace-accent-glow);
+  background: var(--trace-gradient-primary);
+  border-color: transparent;
+  color: #ffffff;
+  box-shadow: 0 4px 14px var(--trace-accent-glow);
 }
 
-.sound-toggle-btn.off
+.sound-toggle-btn[aria-pressed="true"] .sound-icon
 {
-  background: var(--trace-surface);
-  border-color: var(--trace-border);
-  color: #b0a3c4;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.18));
 }
 
-.sound-toggle-btn.off .sound-icon
+/* OFF 상태: 흐릿한 muted 톤 + 아이콘에 사선 슬래시 느낌 */
+.sound-toggle-btn.off,
+.sound-toggle-btn[aria-pressed="false"]
+{
+  background: var(--trace-surface-soft);
+  border-color: var(--trace-border);
+  color: #8d7da6;
+  opacity: 0.78;
+}
+
+.sound-toggle-btn.off .sound-icon,
+.sound-toggle-btn[aria-pressed="false"] .sound-icon
 {
   filter: grayscale(1) opacity(0.55);
 }
@@ -448,7 +467,8 @@ to { opacity: 1; transform: translateY(0); }
 {
   content: ' 끔';
   font-size: 11px;
-  color: #b0a3c4;
+  color: #8d7da6;
+  opacity: 0.85;
 }
 
 #mode-cards
@@ -688,24 +708,45 @@ to {
 #adv-prev-btn,
 #adv-next-btn
 {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  border: 2px solid var(--trace-border-ui);
-  background: var(--trace-surface);
+  border: none;
+  /* primary 그라데이션 — 아이가 누르고 싶게 강조 */
+  background: var(--trace-gradient-primary);
+  color: #ffffff;
   cursor: pointer;
   font-size: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #333;
-  transition: all 0.2s ease;
-  /* 모바일 터치 타겟 최소 44px 보장 */
+  transition:
+    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.22s ease,
+    filter 0.2s ease;
+  box-shadow: 0 4px 14px var(--trace-accent-glow);
   min-width: 44px;
   min-height: 44px;
-  /* 좁은 화면에서 가운데 라벨에 밀려나지 않도록 */
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
+
+/* 호버: 화살표 방향으로 살짝 시프트 */
+#prev-btn:hover,
+#word-prev-btn:hover,
+#myword-prev-btn:hover,
+#num-prev-btn:hover,
+#eng-prev-btn:hover,
+#adv-prev-btn:hover { transform: translateX(-3px); box-shadow: 0 6px 18px var(--trace-accent-glow); }
+
+#next-btn:hover,
+#word-next-btn:hover,
+#myword-next-btn:hover,
+#num-next-btn:hover,
+#eng-next-btn:hover,
+#adv-next-btn:hover { transform: translateX(3px); box-shadow: 0 6px 18px var(--trace-accent-glow); }
 
 #prev-btn:active,
 #next-btn:active,
@@ -720,8 +761,8 @@ to {
 #adv-prev-btn:active,
 #adv-next-btn:active
 {
-  background: #f0f0f0;
-  transform: scale(0.95);
+  filter: brightness(0.92);
+  transform: scale(0.94);
 }
 
 #prev-btn svg,
@@ -733,11 +774,15 @@ to {
 #num-prev-btn svg,
 #num-next-btn svg,
 #eng-prev-btn svg,
-#eng-next-btn svg
+#eng-next-btn svg,
+#adv-prev-btn svg,
+#adv-next-btn svg
 {
   display: block;
   flex-shrink: 0;
-  color: var(--trace-accent-dark);
+  color: #ffffff;
+  width: 24px;
+  height: 24px;
 }
 
 #word-label,
@@ -772,24 +817,39 @@ to {
 
 .dot
 {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: var(--trace-border-ui);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  border: 0;
 }
 
 .dot.active
 {
-  background: var(--trace-accent);
-  transform: scale(1.2);
-  box-shadow: 0 2px 8px var(--trace-accent-glow);
+  background: var(--trace-gradient-primary);
+  transform: scale(1.35);
+  box-shadow: 0 3px 10px var(--trace-accent-glow);
 }
 
 .dot.done
 {
   background: var(--trace-success);
+}
+
+/* 완료된 점에 작은 흰색 체크 */
+.dot.done::after
+{
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='5 12 10 17 19 8'/></svg>");
+  background-size: 9px 9px;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 50%;
 }
 
 #myword-label
@@ -1030,9 +1090,15 @@ button.myword-add-mini.tool-btn.myword-add-del
   min-width: 120px;
   min-height: 120px;
   border-radius: 22px;
-  border: 1px solid var(--trace-border);
-  background: var(--trace-surface-soft);
-  box-shadow: var(--trace-shadow-card);
+  border: 1px solid rgba(167, 139, 250, 0.20);
+  /* 미세한 페이퍼 톤 그라데이션 + 깊이감 있는 다층 그림자 = 노트북 페이지 느낌 */
+  background:
+    linear-gradient(180deg, #fffefa 0%, #fdfaff 50%, #faf5ff 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 -1px 0 rgba(167, 139, 250, 0.06) inset,
+    0 12px 28px rgba(124, 58, 237, 0.10),
+    0 3px 8px rgba(124, 58, 237, 0.06);
   overflow: hidden;
   touch-action: none;
   overscroll-behavior: contain;
@@ -1176,17 +1242,60 @@ button.myword-add-mini.tool-btn.myword-add-del
 .tool-btn
 {
   flex: 1;
-  padding: 14px 12px;
+  padding: 12px 14px;
   border-radius: 14px;
-  border: 1px solid var(--trace-border-ui);
+  border: 1.5px solid var(--trace-border-ui);
   background: var(--trace-surface);
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 14.5px;
+  font-weight: 700;
   color: var(--trace-accent-dark);
   cursor: pointer;
-  transition: all 0.2s ease;
-  /* 모바일 터치 타겟 — 최소 44px 높이 */
-  min-height: 44px;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.tool-btn .btn-icon
+{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.tool-btn .btn-icon svg
+{
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.tool-btn:hover
+{
+  border-color: var(--trace-accent);
+  box-shadow: 0 3px 10px var(--trace-accent-glow);
+}
+
+/* 정보성 (획순 보기) — soft chip 톤 */
+.tool-btn.info
+{
+  background: var(--trace-chip);
+  border-color: var(--trace-border);
+  color: var(--trace-chip-text);
+}
+
+.tool-btn.info:hover
+{
+  background: #ede4ff;
+  border-color: var(--trace-accent);
 }
 
 .tool-btn:active
@@ -1541,6 +1650,176 @@ button.myword-add-mini.tool-btn.myword-add-del
     max-width: min(720px, 100%);
     margin-top: 8px;
   }
+}
+
+
+/* ==========================================================================
+   Touch ripple — JS가 .tool-btn / .mode-card / .stroke-step / .sound-toggle-btn
+   pointerdown에 .trace-ripple span을 동적으로 삽입. 0.55s 만에 fade-out.
+   ========================================================================== */
+.trace-ripple
+{
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  transform: scale(0);
+  opacity: 1;
+  z-index: 5;
+  animation: traceRipple 0.55s ease-out forwards;
+}
+
+/* 어두운 배경 위 ripple 은 낮은 투명도 흰색이라도 보이지만,
+   라이트 배경 위에서는 accent 톤 ripple 이 더 자연스러움 */
+.tool-btn:not(.primary):not(.danger):not(.success) .trace-ripple,
+.mode-card .trace-ripple,
+.stroke-step .trace-ripple,
+.sound-toggle-btn[aria-pressed="false"] .trace-ripple,
+.sound-toggle-btn.off .trace-ripple
+{
+  background: rgba(167, 139, 250, 0.30);
+}
+
+@keyframes traceRipple
+{
+  to {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+
+/* ==========================================================================
+   내 단어 빈 상태 — 큰 이모지 + 안내 + CTA 버튼
+   ========================================================================== */
+.myword-empty
+{
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 20px;
+  margin: 0 auto;
+  max-width: 420px;
+  gap: 8px;
+  animation: fadeIn 0.4s ease;
+}
+
+.myword-empty[hidden]
+{
+  display: none;
+}
+
+.myword-empty-icon
+{
+  font-size: 64px;
+  line-height: 1;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 4px 10px rgba(124, 58, 237, 0.18));
+  animation: mywordEmptyFloat 3.5s ease-in-out infinite;
+}
+
+@keyframes mywordEmptyFloat
+{
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+.myword-empty-title
+{
+  font-size: 22px;
+  font-weight: 800;
+  color: #2d1b4e;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.myword-empty-desc
+{
+  font-size: 15px;
+  color: #6e5a8a;
+  font-weight: 500;
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+
+.myword-empty-cta
+{
+  flex: 0 0 auto;
+  padding: 14px 26px;
+  font-size: 16px;
+  margin-top: 4px;
+  min-width: 200px;
+}
+
+
+/* ==========================================================================
+   획 진행도 — feedback 영역에 traceRenderProgress() 가 채우는 점들과 카운터.
+   ========================================================================== */
+.trace-progress
+{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.trace-pdots
+{
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.trace-pdot
+{
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--trace-border-ui);
+  transition: background 0.28s ease, transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: inline-block;
+}
+
+.trace-pdot.filled
+{
+  background: var(--trace-accent);
+  transform: scale(1.18);
+  box-shadow: 0 1px 4px var(--trace-accent-glow);
+}
+
+.trace-pcount
+{
+  font-size: 13px;
+  color: var(--trace-chip-text);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.trace-progress.done .trace-pdot
+{
+  background: var(--trace-success);
+  transform: scale(1.18);
+  box-shadow: 0 1px 4px rgba(236, 72, 153, 0.36);
+}
+
+.trace-progress.done .trace-done-text
+{
+  color: var(--trace-success);
+  font-weight: 800;
+  animation: traceDonePulse 0.6s ease;
+}
+
+@keyframes traceDonePulse
+{
+  0%   { transform: scale(0.9); opacity: 0.5; }
+  60%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
 }
 
 /* 스크롤 방지 */body,

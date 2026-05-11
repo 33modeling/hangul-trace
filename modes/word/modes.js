@@ -32,7 +32,7 @@ function traceWordStrokeTarget(w) {
   return w.consonant.strokes + w.vowel.strokes;
 }
 
-const TRACE_WORD_PEN = '#ec4899';
+const TRACE_WORD_PEN = '#be3974';
 const TRACE_WORD_GUIDE_MAIN = 'rgba(167, 139, 250, 0.55)';
 
 class WordMode {

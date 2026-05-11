@@ -155,7 +155,7 @@ class NumberMode {
       } else {
         if (strip) strip.innerHTML = '';
         this.guideLayer.clear();
-        this.guideLayer.drawGuide(ch, '#ec4899');
+        this.guideLayer.drawGuide(ch, '#be3974');
         setTimeout(() => {
           this.guideLayer.resize();
           this.guideLayer.drawGuide(ch);
@@ -177,7 +177,7 @@ class NumberMode {
       this.canvas.lastX = pos.x;
       this.canvas.lastY = pos.y;
       this._strokeTracker.begin(pos);
-      this.canvas.drawDot(pos.x, pos.y, '#ec4899', 6);
+      this.canvas.drawDot(pos.x, pos.y, '#be3974', 6);
     };
 
     const onPointerMove = (e) => {

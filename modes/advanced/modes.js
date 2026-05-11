@@ -24,7 +24,7 @@ const ADVANCED_WORDS = [
   '쾌청', '췌장', '꿩', '뺑소니', '뼘',
 ];
 
-const TRACE_ADV_PEN = '#ec4899';
+const TRACE_ADV_PEN = '#be3974';
 const TRACE_ADV_GUIDE = 'rgba(167, 139, 250, 0.55)';
 
 class AdvancedMode {

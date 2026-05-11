@@ -1,4 +1,4 @@
-const TRACE_MYWORD_PEN = '#ec4899';
+const TRACE_MYWORD_PEN = '#be3974';
 const TRACE_MYWORD_GUIDE = 'rgba(167, 139, 250, 0.55)';
 
 class MyWordMode {

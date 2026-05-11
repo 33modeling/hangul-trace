@@ -250,7 +250,7 @@ class DrawingCanvas {
     ctx.restore();
   }
 
-  drawLine(x1, y1, x2, y2, color = '#ec4899', width = null) {
+  drawLine(x1, y1, x2, y2, color = '#be3974', width = null) {
     if (!this.ctx) return;
     const lineW = width || this.lineWidth;
     const ctx = this.ctx;
@@ -275,7 +275,7 @@ class DrawingCanvas {
     ctx.restore();
   }
 
-  drawDot(x, y, color = '#ec4899', size = 6) {
+  drawDot(x, y, color = '#be3974', size = 6) {
     if (!this.ctx) return;
     const ctx = this.ctx;
     ctx.save();
@@ -785,7 +785,7 @@ function updateFeedback(strokeCount, targetStrokes, feedbackId = 'feedback') {
     feedbackEl.style.color = '#888';
   } else if (strokeCount >= targetStrokes) {
     feedbackEl.textContent = '잘 했어요! 다음 글자도 써볼까요? 🎉';
-    feedbackEl.style.color = '#ec4899';
+    feedbackEl.style.color = '#be3974';
   }
 }
 

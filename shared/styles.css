@@ -804,7 +804,9 @@ to {
 }
 
 #word-label,
-#adv-label
+#adv-label,
+#num-label,
+#eng-label
 {
   font-size: 26px;
   font-weight: 700;
@@ -822,15 +824,6 @@ to {
   color: #6e5a8a;
   margin-top: 6px;
   text-align: center;
-}
-
-#dots
-{
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-bottom: 12px;
 }
 
 .dot
@@ -1202,7 +1195,7 @@ button.myword-add-mini.tool-btn.myword-add-del
     font-size: 20px;
   }
 
-  #char-sub, #myword-sub {
+  #char-sub, #myword-sub, #num-sub, #eng-sub, #word-sub, #adv-sub {
     font-size: 12px;
   }
 
@@ -1488,7 +1481,8 @@ button.myword-add-mini.tool-btn.myword-add-del
   #word-canvas-wrap,
   #num-canvas-wrap,
   #eng-canvas-wrap,
-  #myword-canvas-wrap {
+  #myword-canvas-wrap,
+  #adv-canvas-wrap {
     max-width: min(72dvh, 52vw);
     max-height: min(72dvh, 52vw);
     margin: 0 auto;

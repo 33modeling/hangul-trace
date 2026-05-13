@@ -11,7 +11,7 @@ class Navigation {
     this.strokeCount = 0;
     this.dotsId = uiIds.dotsId || 'dots';
     this.strokeHintId = uiIds.strokeHintId || 'stroke-hint';
-    this.renderDots();
+    if (this.total > 0) this.renderDots();
   }
   
   prev() {
@@ -25,7 +25,6 @@ class Navigation {
   goTo(idx) {
     this.currentIdx = idx;
     this.strokeCount = 0;
-    this.doneSet.delete(idx);
     this.updateUI(idx);
     this.renderDots();
   }
@@ -90,7 +89,7 @@ class Navigation {
       const currentChar = this.items[this.currentIdx];
       if (currentChar) {
         charLabel.textContent = `${currentChar.ch} · ${currentChar.name}`;
-        subLabel.textContent = `${this.modeName} ${this.currentIdx + 1} / ${this.total}`;
+        if (subLabel) subLabel.textContent = `${this.modeName} ${this.currentIdx + 1} / ${this.total}`;
       }
     }
   }

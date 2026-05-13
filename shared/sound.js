@@ -82,10 +82,13 @@ const TraceSound = (() => {
     [392, 1.6]
   ];
 
+  let _bgmGen = 0;
+
   function _bgmTickFactory() {
     let i = 0;
+    const gen = ++_bgmGen;
     return function tick() {
-      if (!bgmEnabled) return;
+      if (!bgmEnabled || gen !== _bgmGen) return;
       const c = ensureCtx();
       if (!c) {
         bgmTimer = setTimeout(tick, 1000);
@@ -105,12 +108,13 @@ const TraceSound = (() => {
 
   function _bgmStart() {
     if (!bgmEnabled) return;
-    if (bgmTimer) return;  // 이미 동작 중
+    if (bgmTimer) return;
     const tick = _bgmTickFactory();
     tick();
   }
 
   function _bgmStop() {
+    _bgmGen++;
     if (bgmTimer) clearTimeout(bgmTimer);
     bgmTimer = null;
   }
@@ -163,9 +167,9 @@ const TraceSound = (() => {
   function _firstGestureKick() {
     ensureCtx();
     if (bgmEnabled) _bgmStart();
-    document.removeEventListener('pointerdown', _firstGestureKick, true);
-    document.removeEventListener('touchstart', _firstGestureKick, true);
-    document.removeEventListener('keydown', _firstGestureKick, true);
+    document.removeEventListener('pointerdown', _firstGestureKick, { capture: true });
+    document.removeEventListener('touchstart', _firstGestureKick, { capture: true });
+    document.removeEventListener('keydown', _firstGestureKick, { capture: true });
   }
   document.addEventListener('pointerdown', _firstGestureKick, { once: true, capture: true });
   document.addEventListener('touchstart', _firstGestureKick, { once: true, capture: true });

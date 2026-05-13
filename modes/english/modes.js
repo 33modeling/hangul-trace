@@ -11,16 +11,16 @@ const UPPERCASE = [
   { ch: 'I', strokes: 1 },
   { ch: 'J', strokes: 2 },
   { ch: 'K', strokes: 3 },
-  { ch: 'L', strokes: 3 },
+  { ch: 'L', strokes: 2 },
   { ch: 'M', strokes: 4 },
   { ch: 'N', strokes: 3 },
   { ch: 'O', strokes: 1 },
   { ch: 'P', strokes: 2 },
   { ch: 'Q', strokes: 2 },
   { ch: 'R', strokes: 3 },
-  { ch: 'S', strokes: 2 },
+  { ch: 'S', strokes: 1 },
   { ch: 'T', strokes: 2 },
-  { ch: 'U', strokes: 2 },
+  { ch: 'U', strokes: 1 },
   { ch: 'V', strokes: 2 },
   { ch: 'W', strokes: 4 },
   { ch: 'X', strokes: 2 },
@@ -33,12 +33,12 @@ const LOWERCASE = [
   { ch: 'b', strokes: 2 },
   { ch: 'c', strokes: 1 },
   { ch: 'd', strokes: 2 },
-  { ch: 'e', strokes: 2 },
-  { ch: 'f', strokes: 1 },
+  { ch: 'e', strokes: 1 },
+  { ch: 'f', strokes: 2 },
   { ch: 'g', strokes: 2 },
-  { ch: 'h', strokes: 3 },
-  { ch: 'i', strokes: 1 },
-  { ch: 'j', strokes: 3 },
+  { ch: 'h', strokes: 2 },
+  { ch: 'i', strokes: 2 },
+  { ch: 'j', strokes: 2 },
   { ch: 'k', strokes: 2 },
   { ch: 'l', strokes: 1 },
   { ch: 'm', strokes: 3 },
@@ -49,7 +49,7 @@ const LOWERCASE = [
   { ch: 'r', strokes: 1 },
   { ch: 's', strokes: 1 },
   { ch: 't', strokes: 2 },
-  { ch: 'u', strokes: 2 },
+  { ch: 'u', strokes: 1 },
   { ch: 'v', strokes: 2 },
   { ch: 'w', strokes: 4 },
   { ch: 'x', strokes: 2 },
@@ -78,11 +78,13 @@ class EnglishMode {
     this.canvas = new DrawingCanvas('eng-draw-canvas', 'eng-canvas-wrap');
     this.wrapper = document.getElementById('eng-canvas-wrap');
     const self = this;
-    this.wrapper.canvasObj = {
-      resize() {
-        self._syncCanvases();
-      }
-    };
+    if (this.wrapper) {
+      this.wrapper.canvasObj = {
+        resize() {
+          self._syncCanvases();
+        }
+      };
+    }
 
     // 다른 모드와 동일하게 ResizeObserver 사용 — 가상키보드 등 wrapper만
     // 변하는 시나리오에서도 캔버스가 정확히 다시 그려지도록.

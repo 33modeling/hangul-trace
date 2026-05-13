@@ -126,7 +126,7 @@ class DrawingCanvas {
       w = fs;
       h = fs;
     }
-    this.isLandscape = window.innerWidth > window.innerHeight;
+    this.isLandscape = (typeof window !== 'undefined') ? window.innerWidth > window.innerHeight : false;
 
     this.canvas.width = w;
     this.canvas.height = h;
@@ -252,7 +252,7 @@ class DrawingCanvas {
 
   drawLine(x1, y1, x2, y2, color = '#be3974', width = null) {
     if (!this.ctx) return;
-    const lineW = width || this.lineWidth;
+    const lineW = (width != null) ? width : this.lineWidth;
     const ctx = this.ctx;
     ctx.save();
     ctx.globalAlpha = 1;
@@ -350,6 +350,7 @@ function attachCanvasPointerDrawing(canvas, h) {
   const onPointerDown = (e) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     e.preventDefault();
+    cleanupPointerWin();
     activePointerId = e.pointerId;
     try {
       canvas.setPointerCapture(e.pointerId);
@@ -553,26 +554,39 @@ function animateStrokeOrder(guideLayer, ch, onComplete) {
   const data = STROKE_ORDER[ch];
   if (!data) {
     if (onComplete) onComplete();
-    return;
+    return { cancel() {} };
   }
 
   let step = 0;
   const total = data.steps.length;
+  let timerId = null;
+  let cancelled = false;
 
   function nextStep() {
+    if (cancelled) return;
     step++;
     if (step > total) {
-      // 애니메이션 완료 — 원래 가이드로 복구
       guideLayer.clear();
       guideLayer.drawGuide(ch);
+      timerId = null;
       if (onComplete) onComplete();
       return;
     }
     showStrokeOrder(guideLayer, ch, step);
-    setTimeout(nextStep, 800);
+    timerId = setTimeout(nextStep, 800);
   }
 
   nextStep();
+
+  return {
+    cancel() {
+      cancelled = true;
+      if (timerId) {
+        clearTimeout(timerId);
+        timerId = null;
+      }
+    }
+  };
 }
 
 /**
@@ -822,6 +836,8 @@ function initScrollPrevention() {
  * "Unsafe attempt to load URL file://... from frame..." 가 나는 경우가 있음 — 기본 DnD 차단.
  */
 function initFileDragNavigateGuard() {
+  if (document.__traceDragGuardBound) return;
+  document.__traceDragGuardBound = true;
   const stop = (e) => {
     if (e.cancelable) e.preventDefault();
     e.stopPropagation();
@@ -889,13 +905,17 @@ function traceAttachRipple() {
     ripple.style.top = y + 'px';
     ripple.style.width = size + 'px';
     ripple.style.height = size + 'px';
-    // ensure parent positioned & overflow:hidden
+    // ensure parent positioned & overflow:hidden — restore after ripple removed
     const cs = window.getComputedStyle(target);
+    const origPos = target.style.position;
+    const origOvf = target.style.overflow;
     if (cs.position === 'static') target.style.position = 'relative';
     if (cs.overflow !== 'hidden') target.style.overflow = 'hidden';
     target.appendChild(ripple);
     setTimeout(() => {
       if (ripple && ripple.parentNode) ripple.parentNode.removeChild(ripple);
+      target.style.position = origPos;
+      target.style.overflow = origOvf;
     }, 600);
   }, { passive: true });
 }

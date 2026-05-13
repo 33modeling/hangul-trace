@@ -107,12 +107,14 @@ class CharMode {
     }
     const char = CHAR_ITEMS[idx];
     
-    this.charLabel.textContent = `${char.ch} · ${char.name}`;
-    this.charSub.textContent = `${this.modeName} ${idx + 1} / ${CHAR_ITEMS.length}`;
     if (this.charLabel) {
+      this.charLabel.textContent = `${char.ch} · ${char.name}`;
       this.charLabel.classList.remove('trace-char-tick');
       void this.charLabel.offsetWidth;
       this.charLabel.classList.add('trace-char-tick');
+    }
+    if (this.charSub) {
+      this.charSub.textContent = `${this.modeName} ${idx + 1} / ${CHAR_ITEMS.length}`;
     }
     
     this.guideLayer.resize();

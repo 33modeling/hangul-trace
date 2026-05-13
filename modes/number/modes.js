@@ -32,11 +32,13 @@ class NumberMode {
     this.canvas = new DrawingCanvas('num-draw-canvas', 'num-canvas-wrap');
     this.wrapper = document.getElementById('num-canvas-wrap');
     const self = this;
-    this.wrapper.canvasObj = {
-      resize() {
-        self._syncCanvases();
-      }
-    };
+    if (this.wrapper) {
+      this.wrapper.canvasObj = {
+        resize() {
+          self._syncCanvases();
+        }
+      };
+    }
     if (typeof ResizeObserver !== 'undefined' && this.wrapper) {
       if (window.__traceNumberRO && typeof window.__traceNumberRO.disconnect === 'function') {
         try { window.__traceNumberRO.disconnect(); } catch (_e) { /* ignore */ }

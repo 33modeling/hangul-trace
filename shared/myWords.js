@@ -12,11 +12,11 @@ const TRACE_MY_WORDS_MAX_COUNT = 30;
 /** 영문 알파벳 strokes 표 (modes/english/modes.js의 UPPERCASE/LOWERCASE와 동일) */
 const TRACE_ENGLISH_STROKES = {
   A: 3, B: 2, C: 1, D: 2, E: 3, F: 3, G: 2, H: 3, I: 1, J: 2,
-  K: 3, L: 3, M: 4, N: 3, O: 1, P: 2, Q: 2, R: 3, S: 2, T: 2,
-  U: 2, V: 2, W: 4, X: 2, Y: 2, Z: 3,
-  a: 2, b: 2, c: 1, d: 2, e: 2, f: 1, g: 2, h: 3, i: 1, j: 3,
+  K: 3, L: 2, M: 4, N: 3, O: 1, P: 2, Q: 2, R: 3, S: 1, T: 2,
+  U: 1, V: 2, W: 4, X: 2, Y: 2, Z: 3,
+  a: 2, b: 2, c: 1, d: 2, e: 1, f: 2, g: 2, h: 2, i: 2, j: 2,
   k: 2, l: 1, m: 3, n: 2, o: 1, p: 2, q: 2, r: 1, s: 1, t: 2,
-  u: 2, v: 2, w: 4, x: 2, y: 2, z: 2
+  u: 1, v: 2, w: 4, x: 2, y: 2, z: 2
 };
 
 /** 단어를 'ko' / 'en' / null 로 자동 분류 */

@@ -118,6 +118,7 @@ class WordMode {
   }
 
   updateUI() {
+    this._resetDrawingState();
     const w = WORDS[this.currentIdx];
     document.getElementById('word-label').textContent = w.syllable;
     document.getElementById('word-sub').textContent = `단어 ${this.currentIdx + 1} / ${WORDS.length}`;

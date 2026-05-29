@@ -67,7 +67,7 @@ class MyWordAddMode {
       };
     });
 
-    rebindButtonClickById('myword-add-submit', () => {
+    const submitWord = () => {
       if (this.words.length >= TRACE_MY_WORDS_MAX_COUNT) {
         if (msg) {
           msg.textContent = `단어는 최대 ${TRACE_MY_WORDS_MAX_COUNT}개까지만 등록할 수 있어요. 기존 단어를 지운 뒤 다시 시도해 주세요.`;
@@ -92,14 +92,44 @@ class MyWordAddMode {
         return;
       }
       this.words.push(res.word);
-      traceSaveMyWords(this.words);
+      const saved = traceSaveMyWords(this.words);
+      // 저장이 실패하면(용량 초과·사파리 사생활모드 등) 단어가 새로고침 후
+      // 사라지므로, 성공으로 안내하지 않고 실패를 알린다. renderList()가
+      // 스토리지 기준으로 메모리 목록을 되돌린다.
+      if (!saved) {
+        if (msg) {
+          msg.textContent = '저장 공간이 부족해 단어를 추가하지 못했어요. 기존 단어를 지운 뒤 다시 시도해 주세요.';
+          msg.style.color = '#c44';
+        }
+        this.renderList();
+        return;
+      }
       if (input) input.value = '';
       if (msg) {
         msg.textContent = `「${res.word}」을(를) 추가했어요.`;
         msg.style.color = '#2a7';
       }
       this.renderList();
-    });
+    };
+    this._submitWord = submitWord;
+
+    rebindButtonClickById('myword-add-submit', submitWord);
+
+    // Enter 키로도 추가 — 모바일 키보드의 '완료/enter' 키 대응 (입력이 <form>이
+    // 아니라서 기본 submit 동작이 없으므로 직접 처리). 중복 바인딩 방지 위해
+    // 이전 핸들러 제거 후 재바인딩.
+    if (input) {
+      if (input.__traceEnterHandler) {
+        input.removeEventListener('keydown', input.__traceEnterHandler);
+      }
+      const onEnter = (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        if (!input.disabled) submitWord();
+      };
+      input.addEventListener('keydown', onEnter);
+      input.__traceEnterHandler = onEnter;
+    }
 
     const listEl = document.getElementById('myword-add-list');
     if (listEl) {

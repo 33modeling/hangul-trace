@@ -1,3 +1,38 @@
+/* 마지막으로 모드에 진입시킨 메뉴 카드 — 메뉴 복귀 시 포커스를 되돌린다. */
+let _traceReturnFocusEl = null;
+
+/**
+ * 모드 이탈/전환 시 누수 정리.
+ * 과거엔 각 모드가 "같은 모드 재진입" 때만 자기 ResizeObserver/resize 핸들러를
+ * 교체했고, 메뉴로 나가거나 다른 모드로 전환하는 네비게이션 경계에서는 아무
+ * 정리도 하지 않아 — ResizeObserver 누적, myword/advanced 의 window 'resize'
+ * 핸들러가 stale 인스턴스에서 계속 실행, 그리던 도중 이탈 시 window stroke
+ * 리스너 잔존 — 등의 누수가 있었다. 여기서 한 곳에 모아 정리한다.
+ */
+function traceTeardownActiveMode() {
+  ['__traceCharRO', '__traceWordRO', '__traceNumberRO', '__traceEnglishRO', '__traceMyWordRO', '__traceAdvRO'].forEach((k) => {
+    const ro = window[k];
+    if (ro && typeof ro.disconnect === 'function') {
+      try { ro.disconnect(); } catch (_e) { /* ignore */ }
+    }
+    window[k] = null;
+  });
+  ['__traceMyWordResizeHandler', '__traceAdvResizeHandler'].forEach((k) => {
+    const h = window[k];
+    if (typeof h === 'function') {
+      window.removeEventListener('resize', h);
+    }
+    window[k] = null;
+  });
+  // 그리던 도중 이탈 시 window 에 남는 pointer/touch stroke 리스너 정리(#28).
+  ['draw-canvas', 'word-draw-canvas', 'num-draw-canvas', 'eng-draw-canvas', 'myword-draw-canvas', 'adv-draw-canvas'].forEach((id) => {
+    const c = document.getElementById(id);
+    if (c && typeof c.__traceDrawUnbind === 'function') {
+      try { c.__traceDrawUnbind(); } catch (_e) { /* ignore */ }
+    }
+  });
+}
+
 function showMainMenu() {
   // 진행 중인 stroke order strip 애니메이션 모두 취소 — 메뉴로 나간 뒤에도
   // 타이머가 살아있어 stale DOM을 건드리거나 display:none 요소에 scrollIntoView
@@ -11,9 +46,16 @@ function showMainMenu() {
       }
     });
   }
+  traceTeardownActiveMode();
   document.querySelectorAll('.mode-ui').forEach((el) => el.classList.remove('active'));
   const menu = document.getElementById('main-menu');
   if (menu) menu.style.display = 'flex';
+
+  // 포커스 복귀 — 모드를 연 카드로 되돌려 키보드/스크린리더 위치 유지(#20).
+  if (_traceReturnFocusEl && document.contains(_traceReturnFocusEl)) {
+    try { _traceReturnFocusEl.focus({ preventScroll: true }); } catch (_e) { /* ignore */ }
+  }
+  _traceReturnFocusEl = null;
 }
 
 function showCharMode() {
@@ -102,6 +144,13 @@ function showSingleMode(modeName) {
     console.warn('tracing: unknown mode', modeName);
     return;
   }
+  // 메뉴 카드에서 진입한 경우, 메뉴 복귀 시 그 카드로 포커스를 되돌리려 기억(#20).
+  const active = document.activeElement;
+  if (active && active.classList && active.classList.contains('mode-card')) {
+    _traceReturnFocusEl = active;
+  }
+  // 이전 모드의 ResizeObserver/resize 핸들러/stroke 리스너 정리 후 전환.
+  traceTeardownActiveMode();
   const mainMenu = document.getElementById('main-menu');
   if (mainMenu) mainMenu.style.display = 'none';
   document.querySelectorAll('.mode-ui').forEach((el) => el.classList.remove('active'));
@@ -136,6 +185,11 @@ function showSingleMode(modeName) {
     startMode();
     requestAnimationFrame(() => {
       window.dispatchEvent(new Event('resize'));
+      // 새 패널로 포커스 이동 — 키보드/스크린리더가 모드 전환을 인지하도록(#20).
+      try {
+        panel.setAttribute('tabindex', '-1');
+        panel.focus({ preventScroll: true });
+      } catch (_e) { /* ignore */ }
     });
   } else {
     const script = document.createElement('script');

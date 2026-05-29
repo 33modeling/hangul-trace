@@ -15,12 +15,14 @@ const Utils = {
     return shuffled;
   },
   
-  // 로컬 스토리지 저장
+  // 로컬 스토리지 저장 — 성공 시 true, 실패(용량 초과/사파리 사생활모드/저장 비활성) 시 false
   saveLocal(key, data) {
     try {
       localStorage.setItem(key, JSON.stringify(data));
+      return true;
     } catch (e) {
       console.warn('localStorage save failed:', e);
+      return false;
     }
   },
   

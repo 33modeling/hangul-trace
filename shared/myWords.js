@@ -81,14 +81,18 @@ function traceLoadMyWords() {
   if (!Array.isArray(raw)) return [];
   return raw
     .map((s) => (typeof s === 'string' ? s.trim() : ''))
-    .filter((s) => traceValidateMyWordInput(s, 'auto').valid);
+    .filter((s) => traceValidateMyWordInput(s, 'auto').valid)
+    // 개수 상한은 load/save 계층에서 강제 — 외부에서 변조/마이그레이션된
+    // 데이터가 상한을 우회해 전부 로드되는 것을 방지.
+    .slice(0, TRACE_MY_WORDS_MAX_COUNT);
 }
 
+/** 저장 성공 시 true, 실패(용량 초과 등) 시 false 반환. */
 function traceSaveMyWords(words) {
-  const clean = words.filter(
-    (s) => typeof s === 'string' && traceValidateMyWordInput(s, 'auto').valid
-  );
-  Utils.saveLocal(TRACE_MY_WORDS_STORAGE_KEY, clean);
+  const clean = words
+    .filter((s) => typeof s === 'string' && traceValidateMyWordInput(s, 'auto').valid)
+    .slice(0, TRACE_MY_WORDS_MAX_COUNT);
+  return Utils.saveLocal(TRACE_MY_WORDS_STORAGE_KEY, clean);
 }
 
 /**
@@ -100,24 +104,31 @@ function traceSaveMyWords(words) {
  * 매칭을 시도해서 NFD 결과를 한 자모도 잡지 못했고, 그 결과 모든
  * 한글 음절 strokes가 fallback 1로 계산되어 한 획만 그어도 완성으로
  * 판정되는 버그가 있었다.
+ *
+ * 획수의 단일 소스는 common.js(CHARS)다. 이 표의 값은 CHARS의 기본
+ * 자모 획수(ㄱ2 ㄴ2 ㄷ3 ㄹ5 ㅁ4 ㅂ4 ㅅ2 ㅇ1 ㅈ3 ㅊ4 ㅋ3 ㅌ4 ㅍ4 ㅎ3,
+ * ㅏ2 … ㅡ1 ㅣ1)에서 파생한다: 쌍자음은 기본의 2배, 겹받침은 구성 자모
+ * 획수의 합. (예: ㄲ=4, ㄳ=ㄱ+ㅅ=4, ㄺ=ㄹ+ㄱ=7) 이렇게 해야 '가'가
+ * 단어 모드(ㄱ2+ㅏ2=4)와 내 단어/상급 모드에서 동일한 4획으로 일치한다.
+ * 과거에는 ㄱ=1 등 다른 셈법을 써서 모드별 완성 기준이 어긋났다.
  */
 const TRACE_JAMO_STROKES = {
-  /* 초성 (U+1100~U+1112) */
-  'ᄀ': 1, 'ᄁ': 2, 'ᄂ': 1, 'ᄃ': 2, 'ᄄ': 4,
-  'ᄅ': 3, 'ᄆ': 3, 'ᄇ': 4, 'ᄈ': 8, 'ᄉ': 2,
-  'ᄊ': 4, 'ᄋ': 1, 'ᄌ': 2, 'ᄍ': 4, 'ᄎ': 3,
-  'ᄏ': 3, 'ᄐ': 3, 'ᄑ': 4, 'ᄒ': 3,
-  /* 중성 (U+1161~U+1175) */
+  /* 초성 (U+1100~U+1112) — CHARS 기준, 쌍자음=2배 */
+  'ᄀ': 2, 'ᄁ': 4, 'ᄂ': 2, 'ᄃ': 3, 'ᄄ': 6,
+  'ᄅ': 5, 'ᄆ': 4, 'ᄇ': 4, 'ᄈ': 8, 'ᄉ': 2,
+  'ᄊ': 4, 'ᄋ': 1, 'ᄌ': 3, 'ᄍ': 6, 'ᄎ': 4,
+  'ᄏ': 3, 'ᄐ': 4, 'ᄑ': 4, 'ᄒ': 3,
+  /* 중성 (U+1161~U+1175) — CHARS 기준, 복합모음=구성 합 */
   'ᅡ': 2, 'ᅢ': 3, 'ᅣ': 3, 'ᅤ': 4, 'ᅥ': 2,
   'ᅦ': 3, 'ᅧ': 3, 'ᅨ': 4, 'ᅩ': 2, 'ᅪ': 4,
   'ᅫ': 5, 'ᅬ': 3, 'ᅭ': 3, 'ᅮ': 2, 'ᅯ': 4,
   'ᅰ': 5, 'ᅱ': 3, 'ᅲ': 3, 'ᅳ': 1, 'ᅴ': 2, 'ᅵ': 1,
-  /* 종성 (U+11A8~U+11C2) */
-  'ᆨ': 1, 'ᆩ': 2, 'ᆪ': 3, 'ᆫ': 1, 'ᆬ': 3,
-  'ᆭ': 4, 'ᆮ': 2, 'ᆯ': 3, 'ᆰ': 4, 'ᆱ': 6,
-  'ᆲ': 7, 'ᆳ': 5, 'ᆴ': 6, 'ᆵ': 7, 'ᆶ': 6,
-  'ᆷ': 3, 'ᆸ': 4, 'ᆹ': 6, 'ᆺ': 2, 'ᆻ': 4,
-  'ᆼ': 1, 'ᆽ': 2, 'ᆾ': 3, 'ᆿ': 3, 'ᇀ': 3,
+  /* 종성 (U+11A8~U+11C2) — CHARS 기준, 겹받침=구성 자모 합 */
+  'ᆨ': 2, 'ᆩ': 4, 'ᆪ': 4, 'ᆫ': 2, 'ᆬ': 5,
+  'ᆭ': 5, 'ᆮ': 3, 'ᆯ': 5, 'ᆰ': 7, 'ᆱ': 9,
+  'ᆲ': 9, 'ᆳ': 7, 'ᆴ': 9, 'ᆵ': 9, 'ᆶ': 8,
+  'ᆷ': 4, 'ᆸ': 4, 'ᆹ': 6, 'ᆺ': 2, 'ᆻ': 4,
+  'ᆼ': 1, 'ᆽ': 3, 'ᆾ': 4, 'ᆿ': 3, 'ᇀ': 4,
   'ᇁ': 4, 'ᇂ': 3
 };
 

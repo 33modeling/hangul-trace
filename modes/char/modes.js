@@ -71,7 +71,6 @@ class CharMode {
         this.updateUI(this.currentIdx);
       }
     });
-    window.currentCharMode = this;
   }
 
   _reflowWhenReady() {

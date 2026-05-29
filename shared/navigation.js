@@ -56,11 +56,18 @@ class Navigation {
     dotsEl.innerHTML = '';
     
     this.items.forEach((item, idx) => {
-      const dot = document.createElement('div');
-      dot.className = 'dot' + 
-        (idx === this.currentIdx ? ' active' : '') + 
-        (this.doneSet.has(idx) ? ' done' : '');
-      dot.title = item.name || item.ch;
+      const done = this.doneSet.has(idx);
+      // <button> 으로 만들어 키보드 포커스/스크린리더 접근 가능하게 한다
+      // (이전엔 클릭만 되는 <div> 라 키보드/AT 로 글자 이동이 불가능했음).
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'dot' +
+        (idx === this.currentIdx ? ' active' : '') +
+        (done ? ' done' : '');
+      const label = item.name || item.ch || String(idx + 1);
+      dot.title = label;
+      dot.setAttribute('aria-label', `${idx + 1}번 ${label}${done ? ' (완료)' : ''}`);
+      if (idx === this.currentIdx) dot.setAttribute('aria-current', 'true');
       dot.addEventListener(
         'click',
         (ev) => {

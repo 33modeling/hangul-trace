@@ -80,7 +80,6 @@ class NumberMode {
         this.updateUI(this.currentIdx);
       }
     });
-    window.currentNumberMode = this;
   }
 
   _reflowWhenReady() {

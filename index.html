@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#7c3aed">
   <meta name="description" content="손가락으로 한글·숫자·영어를 따라 써요.">
   <title>채윤 한글 v0.0.35</title>
@@ -129,7 +129,7 @@
         <button type="button" id="prev-btn" data-action="prev" aria-label="이전"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg></button>
         <div>
           <div id="char-label">ㄱ · 기역</div>
-          <div id="char-sub">자음/모음 1 / 24</div>
+          <div id="char-sub">자모 1 / 24</div>
         </div>
         <button type="button" id="next-btn" data-action="next" aria-label="다음"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg></button>
       </div>
@@ -190,7 +190,7 @@
         <button type="button" id="adv-prev-btn" data-action="prev" aria-label="이전"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg></button>
         <div>
           <div id="adv-label">깎</div>
-          <div id="adv-sub">상급 1 / 50</div>
+          <div id="adv-sub">상급 1 / 133</div>
         </div>
         <button type="button" id="adv-next-btn" data-action="next" aria-label="다음"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg></button>
       </div>
@@ -266,7 +266,7 @@
           <button type="button" class="myword-kind-btn" data-kind="en" aria-pressed="false">영단어</button>
         </div>
         <div class="myword-add-form">
-          <input type="text" id="myword-add-input" class="myword-add-input" maxlength="20" inputmode="text" autocomplete="off" placeholder="단어 입력 (1~20글자, 한글)" />
+          <input type="text" id="myword-add-input" class="myword-add-input" maxlength="20" inputmode="text" enterkeyhint="done" autocomplete="off" placeholder="단어 입력 (1~20글자, 한글)" />
           <button type="button" id="myword-add-submit" class="tool-btn"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span><span>추가</span></button>
         </div>
         <p id="myword-add-msg" class="myword-add-msg" aria-live="polite"></p>
@@ -311,14 +311,14 @@
     <!-- 영어 모드 -->
     <div id="english-mode" class="mode-ui">
       <div class="alpha-type-toggle">
-        <button class="alpha-type-btn active" data-type="upper">대문자</button>
-        <button class="alpha-type-btn" data-type="lower">소문자</button>
+        <button type="button" class="alpha-type-btn active" data-type="upper" aria-pressed="true">대문자</button>
+        <button type="button" class="alpha-type-btn" data-type="lower" aria-pressed="false">소문자</button>
       </div>
       
       <div id="eng-nav" class="trace-mode-nav">
         <button type="button" id="eng-prev-btn" data-action="prev" aria-label="이전"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg></button>
         <div>
-          <div id="eng-label">A · 에이</div>
+          <div id="eng-label">A</div>
           <div id="eng-sub">알파벳 1 / 52</div>
         </div>
         <button type="button" id="eng-next-btn" data-action="next" aria-label="다음"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg></button>

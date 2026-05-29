@@ -50,7 +50,7 @@ if command -v node >/dev/null 2>&1; then
     shared/utils.js \
     shared/myWords.js \
     shared/sound.js \
-    shared/sw.js \
+    sw.js \
     index.js \
     modes/char/modes.js \
     modes/word/modes.js \

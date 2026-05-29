@@ -129,7 +129,6 @@ class EnglishMode {
         this.updateUI(this.currentIdx);
       }
     });
-    window.currentEnglishMode = this;
   }
 
   _reflowWhenReady() {
@@ -176,12 +175,19 @@ class EnglishMode {
   }
 
   setupTypeToggle() {
+    const syncPressed = () => {
+      this.typeButtons.forEach((b) => {
+        const on = b.dataset.type === this.alphaType;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    };
+    syncPressed();
     this.typeButtons.forEach(btn => {
       btn.onclick = () => {
-        this.typeButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
         this.alphaType = btn.dataset.type;
+        syncPressed();
+
         this.currentIdx = 0;
         this.strokeCount = 0;
         this.navigation = this._buildNavigation();

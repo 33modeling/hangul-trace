@@ -836,6 +836,27 @@ to {
   transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
   position: relative;
   border: 0;
+  /* <button> 으로 렌더되므로 기본 버튼 스타일 제거 — 12px 원 유지 */
+  padding: 0;
+  margin: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* 점 자체는 12px 로 작게 두되, 손가락 탭 영역을 세로로만 넉넉히 넓혀
+   작은 점을 정확히 누르지 못하는 문제를 완화한다. 가로로 넓히면 점이
+   많은 모드(자모 24·영문 52)에서 줄이 넘쳐 레이아웃이 틀어지므로 세로만. */
+.dot::before
+{
+  content: '';
+  position: absolute;
+  inset: -12px 0;
+}
+
+.dot:focus-visible
+{
+  outline: 2px solid var(--trace-accent, #7c3aed);
+  outline-offset: 3px;
 }
 
 .dot.active
@@ -1186,8 +1207,10 @@ button.myword-add-mini.tool-btn.myword-add-del
   #num-prev-btn, #num-next-btn,
   #eng-prev-btn, #eng-next-btn,
   #adv-prev-btn, #adv-next-btn {
-    width: 44px;
-    height: 44px;
+    /* 45px — WCAG 최소 44px 를 서브픽셀 스냅(고DPR에서 간헐적 43.999…)
+       후에도 항상 만족하도록 1px 여유. */
+    width: 45px;
+    height: 45px;
   }
 
   #char-label, #word-label, #num-label, #eng-label,

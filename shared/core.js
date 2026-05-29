@@ -128,15 +128,26 @@ class DrawingCanvas {
     }
     this.isLandscape = (typeof window !== 'undefined') ? window.innerWidth > window.innerHeight : false;
 
-    this.canvas.width = w;
-    this.canvas.height = h;
-    // CSS 크기도 버퍼와 동일한 px로 설정 — 100%로 하면 버퍼/표시 크기 불일치로 렌더링 깨짐
+    // HiDPI 대응: 버퍼는 device pixel 단위로 키우고 CSS 표시 크기(w/h px)는 유지.
+    // 모든 그리기와 좌표 변환(getPos)이 버퍼 픽셀 기준이라, 버퍼만 키워도
+    // 가이드 글자·획순 오버레이·필기 잉크가 레티나/모바일에서 선명해진다.
+    const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : 1;
+    const bw = Math.max(1, Math.round(w * dpr));
+    const bh = Math.max(1, Math.round(h * dpr));
+
+    const base = Math.min(bw, bh);
+    this.fontSize = base * 0.72;
+    this.lineWidth = Math.max(8, base * 0.03);
+    // CSS 크기는 버퍼/표시 비율 일치를 위해 항상 갱신
     this.canvas.style.width = w + 'px';
     this.canvas.style.height = h + 'px';
 
-    const base = Math.min(w, h);
-    this.fontSize = base * 0.72;
-    this.lineWidth = Math.max(8, base * 0.03);
+    // 버퍼 크기가 그대로면 재할당을 건너뛴다. canvas.width 재할당은 백킹스토어를
+    // 비우므로, 모바일 주소창 접힘/펼침처럼 너비가 안 변하는 resize 가 떠도
+    // 진행 중인 필기가 지워지지 않는다 (세로 모드 캔버스는 너비 기준이라 동일).
+    if (this.canvas.width === bw && this.canvas.height === bh) return;
+    this.canvas.width = bw;
+    this.canvas.height = bh;
   }
 
   clear() {
@@ -759,12 +770,17 @@ function playStrokeOrderStrip(container, guideLayer, ch, onComplete) {
     }
     renderStrokeOrderStrip(container, ch, step);
 
-    // 활성 카드를 가시 영역으로 스크롤
+    // 활성 카드를 strip 안에서 가로로만 스크롤 — scrollIntoView(block:'nearest')
+    // 는 바깥 .mode-ui 세로 스크롤까지 끌어당겨 그리는 중 화면이 튀므로,
+    // 컨테이너 scrollLeft 만 직접 조정한다(세로 위치는 건드리지 않음).
     const active = container.querySelector('.stroke-step.active');
-    if (active && typeof active.scrollIntoView === 'function') {
+    if (active && typeof container.scrollTo === 'function') {
+      const target = active.offsetLeft - (container.clientWidth - active.clientWidth) / 2;
       try {
-        active.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-      } catch (_) { /* older browsers */ }
+        container.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+      } catch (_) {
+        container.scrollLeft = Math.max(0, target);
+      }
     }
 
     step++;
@@ -818,9 +834,11 @@ function getFontSize(wrapperWidth, isLandscape) {
   return isLandscape ? wrapperWidth * 0.7 : wrapperWidth * 0.75;
 }
 
-/** index.html 과 동일 — viewport-fit 유지(safe-area), 핀치 줌만 잠금 */
+/** index.html 과 동일 — viewport-fit 로 safe-area 유지. 핀치 줌은 허용한다
+ * (캔버스/래퍼는 touch-action:none 으로 그리기 중 줌·스크롤을 막으므로,
+ * 전역 줌 잠금은 불필요하고 저시력 사용자 접근성만 해친다 — WCAG 1.4.4). */
 const TRACE_VIEWPORT_CONTENT =
-  'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+  'width=device-width, initial-scale=1.0, viewport-fit=cover';
 
 // 공통 스크롤/스케일 방지 (body overflow 잠금은 제외: 모바일에서 모드 패널 스크롤·레이아웃 깨짐 방지)
 function initScrollPrevention() {
@@ -858,19 +876,20 @@ function initCommon() {
     document.querySelectorAll('canvas').forEach((canvas) => {
       let el = canvas.parentElement;
       while (el && !el.canvasObj) el = el.parentElement;
-      if (el && el.canvasObj && !seen.has(el)) {
-        seen.add(el);
-        el.canvasObj.resize();
-      }
+      if (!el || !el.canvasObj || seen.has(el)) return;
+      // 화면에 보이는(활성 모드) 래퍼만 리사이즈 — display:none 인 비활성 모드의
+      // 캔버스(한 번 열렸던 모든 모드)까지 매 resize 마다 다시 그리던 낭비 제거.
+      const r = el.getBoundingClientRect();
+      if (r.width < 1 || r.height < 1) return;
+      seen.add(el);
+      el.canvasObj.resize();
     });
   }
 
+  // orientationchange 는 index.js 가 synthetic 'resize' 로 한 번만 처리한다
+  // (과거엔 여기서도 별도 처리해 회전 시 전체 재그리기가 두 번 돌았음).
   window.addEventListener('resize', () => {
     resizeVisibleCanvases();
-  });
-
-  window.addEventListener('orientationchange', () => {
-    setTimeout(resizeVisibleCanvases, 200);
   });
 }
 

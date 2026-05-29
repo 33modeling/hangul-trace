@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 패치 버전 올리고 VERSION 파일과 index.html <title>을 동기화
+# 패치 버전 올리고 VERSION 파일, index.html <title>, sw.js CACHE 를 동기화
 # (메인 <h1>은 버전 표기를 빼서 더 이상 갱신하지 않음)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -30,5 +30,20 @@ t2, n = re.subn(
 if n != 1:
     raise SystemExit(f"index.html: expected one <title>, replaced {n}")
 index_html.write_text(t2, encoding="utf-8")
+
+# Service Worker 캐시 버전을 VERSION 과 동기화 — 안 올리면 returning 사용자가
+# 옛 빌드에 고정되므로 배포 시 반드시 함께 갱신한다.
+sw = root / "sw.js"
+s = sw.read_text(encoding="utf-8")
+s2, sn = re.subn(
+    r"const CACHE = 'tracing-v[^']*';",
+    f"const CACHE = 'tracing-v{new}';",
+    s,
+    count=1,
+)
+if sn != 1:
+    raise SystemExit(f"sw.js: expected one CACHE line, replaced {sn}")
+sw.write_text(s2, encoding="utf-8")
+
 print(new)
 PY

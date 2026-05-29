@@ -107,8 +107,14 @@ class DrawingCanvas {
     this.startPoint = { x: 0, y: 0 };
   }
 
-  resize() {
+  /**
+   * @param {{ preserveInk?: boolean }} [opts] preserveInk=true 면 크기가 바뀔 때
+   *   기존 그림을 새 버퍼에 비율 유지로 재배율해 보존한다(리사이즈 동기화용).
+   *   기본(false)은 버퍼 재할당으로 캔버스가 비워진다(네비게이션용).
+   */
+  resize(opts) {
     if (!this.canvas || !this.wrapper) return;
+    const preserveInk = !!(opts && opts.preserveInk);
     const r = this.wrapper.getBoundingClientRect();
     let w = Math.max(1, Math.floor(r.width)) || Math.max(1, this.wrapper.clientWidth);
     let h = Math.max(1, Math.floor(r.height)) || Math.max(1, this.wrapper.clientHeight);
@@ -146,8 +152,37 @@ class DrawingCanvas {
     // 비우므로, 모바일 주소창 접힘/펼침처럼 너비가 안 변하는 resize 가 떠도
     // 진행 중인 필기가 지워지지 않는다 (세로 모드 캔버스는 너비 기준이라 동일).
     if (this.canvas.width === bw && this.canvas.height === bh) return;
+
+    // 크기가 실제로 바뀌는 경우(회전·가로 주소창 등): preserveInk 면 기존
+    // 그림을 오프스크린에 떠둔 뒤 새 버퍼에 비율 유지로 다시 그려 보존한다.
+    // 캔버스는 항상 정사각(aspect-ratio 1/1)이라 균일 스케일이라 형태가 유지됨.
+    let snapshot = null;
+    if (preserveInk && this.canvas.width > 0 && this.canvas.height > 0) {
+      try {
+        const tmp = document.createElement('canvas');
+        tmp.width = this.canvas.width;
+        tmp.height = this.canvas.height;
+        tmp.getContext('2d').drawImage(this.canvas, 0, 0);
+        snapshot = tmp;
+      } catch (_e) {
+        snapshot = null;
+      }
+    }
+
     this.canvas.width = bw;
     this.canvas.height = bh;
+
+    if (snapshot) {
+      try {
+        this.ctx.save();
+        this.ctx.globalAlpha = 1;
+        this.ctx.globalCompositeOperation = 'source-over';
+        this.ctx.drawImage(snapshot, 0, 0, snapshot.width, snapshot.height, 0, 0, bw, bh);
+        this.ctx.restore();
+      } catch (_e) {
+        /* 재배율 실패 시 빈 캔버스로 둔다(데이터 유실보다 안전) */
+      }
+    }
   }
 
   clear() {

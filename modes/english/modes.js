@@ -146,13 +146,13 @@ class EnglishMode {
   }
 
   _syncCanvases() {
+    // 리사이즈 동기화 전용 — 그리던 잉크를 비율 유지로 보존.
     const list = this.getCurrentList();
     const alpha = list[this.currentIdx];
     this.guideLayer.resize();
     this.guideLayer.clear();
     this.guideLayer.drawGuide(alpha.ch);
-    this.canvas.resize();
-    this.canvas.clear();
+    this.canvas.resize({ preserveInk: true });
   }
   
   getCurrentList() {

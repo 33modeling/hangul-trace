@@ -88,12 +88,13 @@ class CharMode {
   }
 
   _syncCanvases() {
+    // 리사이즈 동기화 전용 — 사용자가 그리던 잉크를 비율 유지로 보존(회전·
+    // 주소창 변화로 캔버스 크기가 바뀌어도 필기가 지워지지 않게).
     const char = CHAR_ITEMS[this.currentIdx];
     this.guideLayer.resize();
     this.guideLayer.clear();
     this.guideLayer.drawGuide(char.ch);
-    this.canvas.resize();
-    this.canvas.clear();
+    this.canvas.resize({ preserveInk: true });
   }
   
   updateUI(idx) {

@@ -129,7 +129,7 @@ class AdvancedMode {
     if (this.wrapper) {
       this.wrapper.canvasObj = {
         resize() {
-          self._syncCanvases();
+          self._syncCanvases(true);
         }
       };
     }
@@ -148,7 +148,7 @@ class AdvancedMode {
           self._wrapRoRaf = 0;
           const r = self.wrapper.getBoundingClientRect();
           if (r.width >= 8 && r.height >= 8) {
-            self._syncCanvases();
+            self._syncCanvases(true);
           }
         });
       });
@@ -211,11 +211,16 @@ class AdvancedMode {
     requestAnimationFrame(go);
   }
 
-  _syncCanvases() {
+  _syncCanvases(preserveInk = false) {
     if (!this.guideLayer || !this.canvas) return;
     this.guideLayer.resize();
-    this.canvas.resize();
-    this.canvas.clear();
+    // 리사이즈 경로(preserveInk)면 그리던 잉크를 비율 유지로 보존, 그 외는 비움.
+    if (preserveInk) {
+      this.canvas.resize({ preserveInk: true });
+    } else {
+      this.canvas.resize();
+      this.canvas.clear();
+    }
 
     const visible = this._visibleSyllables();
     if (visible.length === 0) {

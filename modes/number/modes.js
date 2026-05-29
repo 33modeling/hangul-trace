@@ -97,12 +97,12 @@ class NumberMode {
   }
 
   _syncCanvases() {
+    // 리사이즈 동기화 전용 — 그리던 잉크를 비율 유지로 보존.
     const num = NUMBERS[this.currentIdx];
     this.guideLayer.resize();
     this.guideLayer.clear();
     this.guideLayer.drawGuide(num.ch);
-    this.canvas.resize();
-    this.canvas.clear();
+    this.canvas.resize({ preserveInk: true });
   }
   
   updateUI(idx) {

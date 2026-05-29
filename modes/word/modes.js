@@ -59,7 +59,7 @@ class WordMode {
     if (this.wrapper) {
       this.wrapper.canvasObj = {
         resize() {
-          self._syncWordCanvases();
+          self._syncWordCanvases(true);
         }
       };
     }
@@ -74,7 +74,7 @@ class WordMode {
           self._wrapRoRaf = 0;
           const r = self.wrapper.getBoundingClientRect();
           if (r.width >= 8 && r.height >= 8) {
-            self._syncWordCanvases();
+            self._syncWordCanvases(true);
           }
         });
       });
@@ -107,14 +107,20 @@ class WordMode {
     requestAnimationFrame(go);
   }
 
-  _syncWordCanvases() {
+  _syncWordCanvases(preserveInk = false) {
     const w = WORDS[this.currentIdx];
     if (!this.guideLayer || !this.canvas) return;
     this.guideLayer.resize();
     this.guideLayer.clear();
     this.guideLayer.drawGuide(w.syllable, TRACE_WORD_GUIDE_MAIN);
-    this.canvas.resize();
-    this.canvas.clear();
+    // 리사이즈 경로(preserveInk)면 그리던 잉크를 비율 유지로 보존, 그 외(네비
+    // 게이션·초기 동기화)는 새 글자를 위해 캔버스를 비운다.
+    if (preserveInk) {
+      this.canvas.resize({ preserveInk: true });
+    } else {
+      this.canvas.resize();
+      this.canvas.clear();
+    }
   }
 
   updateUI() {

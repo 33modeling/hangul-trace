@@ -209,6 +209,10 @@ class WordMode {
     if (this._strokeTracker && typeof this._strokeTracker.cancel === 'function') {
       try { this._strokeTracker.cancel(); } catch (_) { /* tracker may not have cancel */ }
     }
+    // 완성 라벨 초기화도 여기서 — myword/advanced 의 _resetDrawingState 와
+    // 위치를 통일(과거엔 word 만 goTo 에서 따로 지워 드리프트 위험이 있었음).
+    const wc = document.getElementById('word-complete');
+    if (wc) wc.textContent = '';
   }
 
   /** 자유 이동 — 어디로든 인덱스 점프, UI/캔버스 깔끔하게 리셋. */
@@ -216,8 +220,6 @@ class WordMode {
     if (typeof idx !== 'number' || isNaN(idx)) return;
     this._resetDrawingState();
     this.currentIdx = ((idx % WORDS.length) + WORDS.length) % WORDS.length;
-    const wc = document.getElementById('word-complete');
-    if (wc) wc.textContent = '';
     this.updateUI();
   }
 

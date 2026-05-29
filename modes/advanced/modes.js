@@ -175,7 +175,9 @@ class AdvancedMode {
         return;
       }
       self._lastLandscape = L;
-      self._syncCanvases();
+      // 일반 resize 의 캔버스 재동기화는 initCommon 의 전역 resize 리스너
+      // (resizeVisibleCanvases → canvasObj.resize)가 담당 — 여기서 또 부르면
+      // 같은 캔버스를 매 resize 마다 두 번 그리므로 호출하지 않는다.
     };
     if (typeof window.__traceAdvResizeHandler === 'function') {
       window.removeEventListener('resize', window.__traceAdvResizeHandler);

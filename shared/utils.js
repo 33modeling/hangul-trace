@@ -1,20 +1,5 @@
 // 유틸리티 함수
 const Utils = {
-  // 랜덤 숫자 생성
-  randomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-  },
-  
-  // 배열 셔플
-  shuffle(array) {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  },
-  
   // 로컬 스토리지 저장 — 성공 시 true, 실패(용량 초과/사파리 사생활모드/저장 비활성) 시 false
   saveLocal(key, data) {
     try {
@@ -25,7 +10,7 @@ const Utils = {
       return false;
     }
   },
-  
+
   // 로컬 스토리지 조회
   loadLocal(key, defaultValue = null) {
     try {
@@ -36,45 +21,10 @@ const Utils = {
       return defaultValue;
     }
   },
-  
-  // 문자열 포맷팅
-  formatStrokes(strokes) {
-    return strokes === 1 ? `${strokes}획` : `${strokes}획`;
-  },
-  
-  // 한글 자음 체크
-  isConsonant(char) {
-    return /[ㄱ-ㅎ]/.test(char);
-  },
-  
-  // 한글 모음 체크
-  isVowel(char) {
-    return /[ㅏ-ㅣ]/.test(char);
-  },
-  
-  // 숫자 체크
-  isNumber(char) {
-    return /[0-9]/.test(char);
-  },
-  
-  // 영어 알파벳 체크
-  isEnglish(char) {
-    return /[a-zA-Z]/.test(char);
-  },
-  
-  // 디바이스 타입 체크
-  isMobile() {
-    return /Mobi|Android|iPhone|iPad|iPod/.test(navigator.userAgent);
-  },
-  
-  // orientation 체크
+
+  // orientation 체크 (myword/advanced 가로·세로 분기에서 사용)
   isLandscape() {
     return window.innerWidth > window.innerHeight;
-  },
-  
-  // 딜레이 함수
-  delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
   }
 };
 

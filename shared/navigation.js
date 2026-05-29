@@ -1,60 +1,41 @@
 // 공통 네비게이션
 class Navigation {
+  // updateFeedback·modeName 은 위치 인자 호환을 위해 시그니처에 남겨두지만
+  // 현재 Navigation 내부에서는 쓰지 않는다(획 카운트·라벨은 각 모드가 직접 관리).
   constructor(items, updateUI, updateFeedback, modeName, uiIds = {}) {
     this.items = items;
     this.currentIdx = 0;
     this.total = items.length;
     this.updateUI = updateUI;
-    this.updateFeedback = updateFeedback;
     this.doneSet = new Set();
-    this.modeName = modeName;
-    this.strokeCount = 0;
     this.dotsId = uiIds.dotsId || 'dots';
-    this.strokeHintId = uiIds.strokeHintId || 'stroke-hint';
     if (this.total > 0) this.renderDots();
   }
-  
+
   prev() {
     this.goTo((this.currentIdx - 1 + this.total) % this.total);
   }
-  
+
   next() {
     this.goTo((this.currentIdx + 1) % this.total);
   }
-  
+
   goTo(idx) {
     this.currentIdx = idx;
-    this.strokeCount = 0;
     this.updateUI(idx);
     this.renderDots();
   }
-  
-  addStroke() {
-    this.strokeCount++;
-    this.updateFeedback(this.strokeCount);
-    
-    const char = this.items[this.currentIdx];
-    if (this.strokeCount >= char.strokes && !this.doneSet.has(this.currentIdx)) {
-      this.doneSet.add(this.currentIdx);
-      this.renderDots();
-    }
-  }
-  
-  clear() {
-    this.strokeCount = 0;
-    this.updateFeedback(this.strokeCount);
-  }
-  
+
   getIsDone() {
     return this.doneSet.has(this.currentIdx);
   }
-  
+
   renderDots() {
     const dotsEl = document.getElementById(this.dotsId);
     if (!dotsEl) return;
-    
+
     dotsEl.innerHTML = '';
-    
+
     this.items.forEach((item, idx) => {
       const done = this.doneSet.has(idx);
       // <button> 으로 만들어 키보드 포커스/스크린리더 접근 가능하게 한다
@@ -78,33 +59,8 @@ class Navigation {
       );
       dotsEl.appendChild(dot);
     });
-    
-    // 히ंट 레이블 업데이트
-    const hintEl = document.getElementById(this.strokeHintId);
-    if (hintEl) {
-      const currentChar = this.items[this.currentIdx];
-      hintEl.innerHTML = `
-        <span class="hint-pill">${currentChar.strokes}획</span>
-        <span class="hint-pill">위에서 아래</span>
-        <span class="hint-pill">왼쪽에서 오른쪽</span>
-      `;
-    }
-  }
-  
-  updateLabel(charLabel, subLabel) {
-    if (charLabel) {
-      const currentChar = this.items[this.currentIdx];
-      if (currentChar) {
-        charLabel.textContent = `${currentChar.ch} · ${currentChar.name}`;
-        if (subLabel) subLabel.textContent = `${this.modeName} ${this.currentIdx + 1} / ${this.total}`;
-      }
-    }
-  }
-  
-  getIndex() {
-    return {
-      current: this.currentIdx,
-      total: this.total
-    };
+
+    // 획수 힌트(#stroke-hint)는 각 모드의 updateUI 가 단독으로 그린다 —
+    // 과거엔 여기서도 같은 pill 을 써서 이동마다 이중 렌더링됐다(제거).
   }
 }

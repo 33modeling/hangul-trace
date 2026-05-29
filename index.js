@@ -264,7 +264,7 @@ if (
 ) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('shared/sw.js', { scope: './' })
+      .register('sw.js', { scope: './' })
       .catch((err) => {
         console.warn('tracing: SW register failed', err);
       });

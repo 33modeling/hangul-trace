@@ -9,7 +9,7 @@ const CHARS = [
   { ch: 'ㅇ', name: '이응', strokes: 1 },
   { ch: 'ㅈ', name: '지읒', strokes: 3 },
   { ch: 'ㅊ', name: '치읓', strokes: 4 },
-  { ch: 'ㅋ', name: '키의', strokes: 3 },
+  { ch: 'ㅋ', name: '키읔', strokes: 3 },
   { ch: 'ㅌ', name: '티읕', strokes: 4 },
   { ch: 'ㅍ', name: '피읖', strokes: 4 },
   { ch: 'ㅎ', name: '히읗', strokes: 3 },

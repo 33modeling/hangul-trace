@@ -1,5 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+const { gotoApp } = require('./helpers');
 
 /**
  * 터치/클릭 안정성 테스트
@@ -20,7 +21,7 @@ test.describe('터치 이벤트 안정성', () => {
 
   test('자음/모음 모드: 캔버스 터치로 그리기가 정상 작동', async ({ page }) => {
     const errors = collectClientErrors(page);
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    await gotoApp(page);
 
     await page.locator('button.mode-card[data-mode="char"]').click();
     await expect(page.locator('#char-mode')).toHaveClass(/active/);
@@ -46,7 +47,7 @@ test.describe('터치 이벤트 안정성', () => {
 
   test('지우기 버튼이 캔버스를 초기화', async ({ page }) => {
     const errors = collectClientErrors(page);
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    await gotoApp(page);
 
     await page.locator('button.mode-card[data-mode="char"]').click();
     await expect(page.locator('#char-mode')).toHaveClass(/active/);
@@ -74,7 +75,7 @@ test.describe('터치 이벤트 안정성', () => {
 
   test('획순 보기 버튼이 정상 작동', async ({ page }) => {
     const errors = collectClientErrors(page);
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    await gotoApp(page);
 
     await page.locator('button.mode-card[data-mode="char"]').click();
     await expect(page.locator('#char-mode')).toHaveClass(/active/);
@@ -90,7 +91,7 @@ test.describe('터치 이벤트 안정성', () => {
 
   test('숫자 모드: 이전/다음 네비게이션이 정상', async ({ page }) => {
     const errors = collectClientErrors(page);
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    await gotoApp(page);
 
     await page.locator('button.mode-card[data-mode="number"]').click();
     await expect(page.locator('#number-mode')).toHaveClass(/active/);
@@ -113,7 +114,7 @@ test.describe('터치 이벤트 안정성', () => {
 
   test('영어 모드: 대소문자 토글 후 캔버스가 정상', async ({ page }) => {
     const errors = collectClientErrors(page);
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    await gotoApp(page);
 
     await page.locator('button.mode-card[data-mode="english"]').click();
     await expect(page.locator('#english-mode')).toHaveClass(/active/);
@@ -146,7 +147,7 @@ test.describe('내 단어 모드 터치', () => {
 
   test('단어 추가 → 내 단어 모드에서 연습 가능', async ({ page }) => {
     const errors = collectClientErrors(page);
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    await gotoApp(page);
 
     // 단어 추가
     await page.locator('button.mode-card[data-mode="myword-add"]').click();
@@ -173,7 +174,7 @@ test.describe('내 단어 모드 터치', () => {
 
   test('단어 삭제가 정상 작동', async ({ page }) => {
     const errors = collectClientErrors(page);
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    await gotoApp(page);
 
     // 단어 추가
     await page.locator('button.mode-card[data-mode="myword-add"]').click();

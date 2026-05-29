@@ -1,5 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+const { gotoApp } = require('./helpers');
 
 /**
  * 모바일 UI 테스트 — 폰, 태블릿 세로/가로 모드
@@ -28,7 +29,7 @@ for (const vp of MOBILE_VIEWPORTS) {
 
     test('메인 메뉴가 화면 안에 다 보임', async ({ page }) => {
       const errors = collectClientErrors(page);
-      await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+      await gotoApp(page);
 
       const menu = page.locator('#main-menu');
       await expect(menu).toBeVisible();
@@ -47,7 +48,7 @@ for (const vp of MOBILE_VIEWPORTS) {
 
     test('자음/모음 모드: 캔버스가 화면을 넘지 않음', async ({ page }) => {
       const errors = collectClientErrors(page);
-      await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+      await gotoApp(page);
 
       await page.locator('button.mode-card[data-mode="char"]').click();
       await expect(page.locator('#char-mode')).toHaveClass(/active/);
@@ -73,7 +74,7 @@ for (const vp of MOBILE_VIEWPORTS) {
 
     test('단어 모드: 캔버스가 화면을 넘지 않음', async ({ page }) => {
       const errors = collectClientErrors(page);
-      await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+      await gotoApp(page);
 
       await page.locator('button.mode-card[data-mode="word"]').click();
       await expect(page.locator('#word-mode')).toHaveClass(/active/);
@@ -89,7 +90,7 @@ for (const vp of MOBILE_VIEWPORTS) {
 
     test('숫자 모드: 캔버스가 화면을 넘지 않음', async ({ page }) => {
       const errors = collectClientErrors(page);
-      await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+      await gotoApp(page);
 
       await page.locator('button.mode-card[data-mode="number"]').click();
       await expect(page.locator('#number-mode')).toHaveClass(/active/);
@@ -105,7 +106,7 @@ for (const vp of MOBILE_VIEWPORTS) {
 
     test('영어 모드: 캔버스가 화면을 넘지 않음', async ({ page }) => {
       const errors = collectClientErrors(page);
-      await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+      await gotoApp(page);
 
       await page.locator('button.mode-card[data-mode="english"]').click();
       await expect(page.locator('#english-mode')).toHaveClass(/active/);
@@ -120,7 +121,7 @@ for (const vp of MOBILE_VIEWPORTS) {
     });
 
     test('모든 버튼이 최소 44px 터치 타겟', async ({ page }) => {
-      await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+      await gotoApp(page);
 
       await page.locator('button.mode-card[data-mode="char"]').click();
       await expect(page.locator('#char-mode')).toHaveClass(/active/);
@@ -150,7 +151,7 @@ for (const vp of MOBILE_VIEWPORTS) {
 
     test('메뉴로 버튼이 모든 모드에서 작동', async ({ page }) => {
       const errors = collectClientErrors(page);
-      await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+      await gotoApp(page);
 
       const modeBackBtnMap = {
         char: 'back-btn',
@@ -185,7 +186,7 @@ for (const vp of LANDSCAPE_VIEWPORTS) {
 
     test('자음/모음 모드: 캔버스가 화면 안에 있음', async ({ page }) => {
       const errors = collectClientErrors(page);
-      await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+      await gotoApp(page);
 
       await page.locator('button.mode-card[data-mode="char"]').click();
       await expect(page.locator('#char-mode')).toHaveClass(/active/);
@@ -201,7 +202,7 @@ for (const vp of LANDSCAPE_VIEWPORTS) {
 
     test('영어 모드 대소문자 토글이 정상 작동', async ({ page }) => {
       const errors = collectClientErrors(page);
-      await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+      await gotoApp(page);
 
       await page.locator('button.mode-card[data-mode="english"]').click();
       await expect(page.locator('#english-mode')).toHaveClass(/active/);

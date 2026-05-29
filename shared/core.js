@@ -400,6 +400,7 @@ function attachCanvasPointerDrawing(canvas, h) {
     if (!canvas.contains(e.target)) return;
     e.preventDefault();
     touchTrackId = e.touches[0].identifier;
+    if (typeof TraceSound !== 'undefined') TraceSound.stroke();
     h.onDown(e);
     window.addEventListener('touchmove', onTouchWinMove, CANVAS_OPTS);
     window.addEventListener('touchend', onTouchWinEnd, CANVAS_OPTS);

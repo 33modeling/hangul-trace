@@ -1,5 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+const { gotoApp } = require('./helpers');
 
 /**
  * @param {import('@playwright/test').Page} page
@@ -16,7 +17,7 @@ function collectClientErrors(page) {
 test.describe('index.html', () => {
   test('main menu and char mode: no JS errors, guide canvas has size', async ({ page }) => {
     const errors = collectClientErrors(page);
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    await gotoApp(page);
     await expect(page.locator('#main-menu')).toBeVisible();
     await expect(page.locator('#char-mode')).not.toHaveClass(/active/);
 
@@ -56,7 +57,7 @@ test.describe('index.html', () => {
   });
 
   test('char mode: 메뉴로 returns to main menu', async ({ page }) => {
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    await gotoApp(page);
     await page.locator('button.mode-card[data-mode="char"]').click();
     await expect(page.locator('#char-mode')).toHaveClass(/active/);
     await page.locator('#back-btn').click();
@@ -66,7 +67,7 @@ test.describe('index.html', () => {
 
   test('char mode: prev/next advances ㄱ → ㄴ and wraps to ㄱ', async ({ page }) => {
     const errors = collectClientErrors(page);
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    await gotoApp(page);
     await page.locator('button.mode-card[data-mode="char"]').click();
     await expect(page.locator('#char-label')).toContainText('ㄱ');
     await page.locator('#next-btn').click();
@@ -80,7 +81,7 @@ test.describe('index.html', () => {
 
   test('number and english modes: canvas sized', async ({ page }) => {
     const errors = collectClientErrors(page);
-    await page.goto('/index.html');
+    await gotoApp(page);
 
     await page.locator('button.mode-card[data-mode="number"]').click();
     await expect(page.locator('#number-mode')).toHaveClass(/active/);
@@ -98,7 +99,7 @@ test.describe('index.html', () => {
   test('myword-add: register word then myword mode shows first syllable (portrait)', async ({ page }) => {
     const errors = collectClientErrors(page);
     await page.setViewportSize({ width: 400, height: 720 });
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    await gotoApp(page);
 
     await page.locator('button.mode-card[data-mode="myword-add"]').click();
     await expect(page.locator('#myword-add-mode')).toHaveClass(/active/);

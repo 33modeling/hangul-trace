@@ -1,5 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+const { gotoApp } = require('./helpers');
 
 /**
  * 반응형 레이아웃 테스트
@@ -19,7 +20,7 @@ test.describe('화면 회전 대응', () => {
   test('세로 → 가로 회전 시 캔버스가 리사이즈됨', async ({ page }) => {
     const errors = collectClientErrors(page);
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    await gotoApp(page);
 
     await page.locator('button.mode-card[data-mode="char"]').click();
     await expect(page.locator('#char-mode')).toHaveClass(/active/);
@@ -45,7 +46,7 @@ test.describe('화면 회전 대응', () => {
   test('가로 → 세로 회전 시 캔버스가 리사이즈됨', async ({ page }) => {
     const errors = collectClientErrors(page);
     await page.setViewportSize({ width: 844, height: 390 });
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    await gotoApp(page);
 
     await page.locator('button.mode-card[data-mode="number"]').click();
     await expect(page.locator('#number-mode')).toHaveClass(/active/);
@@ -68,7 +69,7 @@ test.describe('캔버스 최대 높이 제한', () => {
     const vp = { width: 390, height: 844 };
     await page.setViewportSize(vp);
     const errors = collectClientErrors(page);
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    await gotoApp(page);
 
     const modes = [
       { card: 'char', canvas: '#guide-canvas', backBtn: 'back-btn' },
@@ -98,7 +99,7 @@ test.describe('가로 모드 레이아웃', () => {
   test('태블릿 가로에서 모든 UI 요소가 보임', async ({ page }) => {
     await page.setViewportSize({ width: 1024, height: 768 });
     const errors = collectClientErrors(page);
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    await gotoApp(page);
 
     await page.locator('button.mode-card[data-mode="char"]').click();
     await expect(page.locator('#char-mode')).toHaveClass(/active/);
@@ -118,7 +119,7 @@ test.describe('스크롤 동작', () => {
   test('모바일에서 모드 UI가 스크롤 가능', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     const errors = collectClientErrors(page);
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    await gotoApp(page);
 
     await page.locator('button.mode-card[data-mode="char"]').click();
     await expect(page.locator('#char-mode')).toHaveClass(/active/);

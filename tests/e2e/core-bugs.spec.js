@@ -6,13 +6,12 @@
  * - 화살표 네비게이션
  */
 const { test, expect } = require('@playwright/test');
+const { gotoApp } = require('./helpers');
 
 test.describe('핵심 버그 회귀', () => {
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    // 메인 메뉴 대기
-    await page.waitForSelector('#main-menu');
+    await gotoApp(page, '/');
   });
 
   test('자모 모드: 캔버스 버퍼 크기와 CSS 표시 크기가 일치해야 함', async ({ page }) => {

@@ -70,6 +70,9 @@ class NumberMode {
       this.modeName,
       { dotsId: 'num-dots', strokeHintId: 'num-stroke-hint' }
     );
+    // 완료 진도 복원 (#5)
+    traceLoadDoneInto(this.navigation.doneSet, 'tracing.done.number.v1', NUMBERS.length);
+    this.navigation.renderDots();
     window.numberMode = this;
 
     this.setupEvents();
@@ -205,6 +208,7 @@ class NumberMode {
       if (this.strokeCount >= num.strokes && !this.navigation.getIsDone()) {
         this.navigation.doneSet.add(this.currentIdx);
         this.navigation.renderDots();
+        traceSaveDone('tracing.done.number.v1', this.navigation.doneSet); // (#5)
         if (typeof TraceSound !== 'undefined') TraceSound.complete();
       }
     };

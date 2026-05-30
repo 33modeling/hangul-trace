@@ -41,6 +41,16 @@ else
   exit 1
 fi
 
+# VERSION ↔ sw.js CACHE 동기화 검사 — pre-push 가 sw.js 를 빠뜨리면(과거 버그)
+# 배포된 SW 가 옛 캐시 키에 고정되므로 불일치를 여기서 조기 탐지한다.
+VER="$(tr -d '[:space:]' < VERSION)"
+CACHE_VER="$(sed -n "s/.*const CACHE = 'tracing-v\([^']*\)'.*/\1/p" sw.js | head -n1)"
+if [[ "$VER" != "$CACHE_VER" ]]; then
+  echo "FAIL: VERSION($VER) ≠ sw.js CACHE(tracing-v${CACHE_VER})"
+  exit 1
+fi
+echo "OK: VERSION·sw.js CACHE 일치 ($VER)"
+
 if command -v node >/dev/null 2>&1; then
   for f in \
     shared/common.js \

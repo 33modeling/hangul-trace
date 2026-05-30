@@ -1876,3 +1876,53 @@ canvas
   touch-action: none;
   -webkit-touch-action: none;
 }
+
+/* ==========================================================================
+   접근성: 키보드 포커스 가시화 (#15)
+   전역 -webkit-tap-highlight-color:transparent 와 브라우저별 기본 outline
+   편차로 키보드/AT 사용자가 포커스 위치를 놓치는 문제를 막는다. 기존
+   .mode-card / .dot 의 :focus-visible 와 동일한 톤으로 통일.
+   ========================================================================== */
+.tool-btn:focus-visible,
+.alpha-type-btn:focus-visible,
+.sound-toggle-btn:focus-visible,
+.stroke-step:focus-visible,
+.myword-kind-btn:focus-visible
+{
+  outline: 2.5px solid var(--trace-accent, #7c3aed);
+  outline-offset: 3px;
+}
+
+/* 배경이 진한 변형은 outline 대비를 위해 밝은 색으로 */
+.tool-btn.primary:focus-visible,
+.tool-btn.danger:focus-visible,
+.tool-btn.success:focus-visible
+{
+  outline-color: #f9a8d4;
+}
+
+/* ==========================================================================
+   접근성: 모션 민감 사용자 대응 (#16)
+   무한 반복 애니메이션은 정지, 단발 진입/전환 애니메이션은 opacity 만 남겨
+   위치 이동·스케일을 제거한다(전정장애 사용자 보호, WCAG 2.3.3).
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce)
+{
+  .intro-touch,
+  .myword-empty-icon
+  {
+    animation: none;
+  }
+
+  @keyframes fadeIn        { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideIn       { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes introFadeIn   { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes introFadeOut  { from { opacity: 1; } to { opacity: 0; } }
+  @keyframes traceCharTick { from { opacity: 0.35; } to { opacity: 1; } }
+  @keyframes traceDonePulse { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+
+  *, *::before, *::after
+  {
+    transition-duration: 0.01ms !important;
+  }
+}

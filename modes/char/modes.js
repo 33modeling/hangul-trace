@@ -61,6 +61,9 @@ class CharMode {
       this.modeName,
       { dotsId: 'mode-dots' }
     );
+    // 완료 진도 복원 (#5) — 새로고침에도 완료 점 유지
+    traceLoadDoneInto(this.navigation.doneSet, 'tracing.done.char.v1', CHAR_ITEMS.length);
+    this.navigation.renderDots();
     window.charMode = this;
 
     this.setupEvents();
@@ -209,6 +212,7 @@ class CharMode {
       if (this.strokeCount >= char.strokes && !this.navigation.getIsDone()) {
         this.navigation.doneSet.add(this.currentIdx);
         this.navigation.renderDots();
+        traceSaveDone('tracing.done.char.v1', this.navigation.doneSet); // (#5)
         if (typeof TraceSound !== 'undefined') TraceSound.complete();
       }
     };

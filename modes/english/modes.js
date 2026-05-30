@@ -116,6 +116,9 @@ class EnglishMode {
     
     // 대/소문자별 진도를 따로 보존 — 토글해도 doneSet이 유지됨
     this.doneSetsByType = { upper: new Set(), lower: new Set() };
+    // 완료 진도 복원 (#5) — 대/소문자 각각 별도 키
+    traceLoadDoneInto(this.doneSetsByType.upper, 'tracing.done.english.upper.v1', UPPERCASE.length);
+    traceLoadDoneInto(this.doneSetsByType.lower, 'tracing.done.english.lower.v1', LOWERCASE.length);
 
     this.setupTypeToggle();
     this.navigation = this._buildNavigation();
@@ -300,6 +303,11 @@ class EnglishMode {
       if (this.strokeCount >= alpha.strokes && !this.navigation.getIsDone()) {
         this.navigation.doneSet.add(this.currentIdx);
         this.navigation.renderDots();
+        // 현재 유형(대/소문자)의 진도를 저장 (#5)
+        traceSaveDone(
+          this.alphaType === 'upper' ? 'tracing.done.english.upper.v1' : 'tracing.done.english.lower.v1',
+          this.navigation.doneSet
+        );
         if (typeof TraceSound !== 'undefined') TraceSound.complete();
       }
     };

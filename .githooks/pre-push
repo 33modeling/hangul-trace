@@ -9,10 +9,10 @@ case "$last" in
 esac
 if [[ ! -f scripts/bump-version.sh ]]; then exit 0; fi
 bash scripts/bump-version.sh
-if git diff --quiet -- index.html VERSION 2>/dev/null; then
+if git diff --quiet -- index.html VERSION sw.js 2>/dev/null; then
   exit 0
 fi
-git add index.html VERSION
+git add index.html VERSION sw.js
 git commit -m "chore: bump version $(tr -d '\n' < VERSION)"
 echo "버전이 올라갔습니다. 같은 브랜치에서 git push 를 한 번 더 실행하세요." >&2
 exit 1

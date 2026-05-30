@@ -28,6 +28,29 @@ const Utils = {
   }
 };
 
+/**
+ * 모드별 완료 진도(인덱스 Set) 복원 (#5).
+ * 새로고침/재방문에도 자모·숫자·영어 완료 점이 유지되도록 localStorage 에서 읽어
+ * doneSet 에 채운다. 저장된 인덱스 중 현재 항목 수(count) 범위를 벗어난 값은 버린다
+ * (데이터가 줄어든 경우 방어).
+ */
+function traceLoadDoneInto(doneSet, key, count) {
+  if (!doneSet || !key) return doneSet;
+  const arr = Utils.loadLocal(key, []);
+  if (Array.isArray(arr)) {
+    arr.forEach((i) => {
+      if (Number.isInteger(i) && i >= 0 && i < count) doneSet.add(i);
+    });
+  }
+  return doneSet;
+}
+
+/** 완료 진도(인덱스 Set)를 localStorage 에 저장 (#5). */
+function traceSaveDone(key, doneSet) {
+  if (!key || !doneSet) return;
+  Utils.saveLocal(key, Array.from(doneSet));
+}
+
 /** 고정 DOM에 클릭 한 번 연결 (버블 단계, passive: false) */
 function bindButtonClick(el, handler) {
   if (!el || typeof handler !== 'function') return;

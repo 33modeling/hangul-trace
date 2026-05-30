@@ -1,6 +1,12 @@
 /* 마지막으로 모드에 진입시킨 메뉴 카드 — 메뉴 복귀 시 포커스를 되돌린다. */
 let _traceReturnFocusEl = null;
 
+/* 일부 화면(myword-add)은 back/메뉴 버튼에 자체 핸들러를 붙이고, 동시에 index.js
+ * 캡처-단계 위임도 같은 버튼을 처리한다 → 한 번의 클릭에 showMainMenu() 가 두 번
+ * 호출된다. history.back() 을 두 번 실행하면 메뉴를 지나쳐 페이지를 이탈하므로,
+ * pop 이 진행 중인 동안은 추가 back 을 무시한다. popstate 수신 시 해제(#1-UX). */
+let _traceBackPending = false;
+
 /**
  * 모드 이탈/전환 시 누수 정리.
  * 과거엔 각 모드가 "같은 모드 재진입" 때만 자기 ResizeObserver/resize 핸들러를
@@ -33,7 +39,21 @@ function traceTeardownActiveMode() {
   });
 }
 
-function showMainMenu() {
+function showMainMenu(opts) {
+  // 기기/브라우저 뒤로가기 통합(#1-UX): 모드 화면에 있으면 history.back() 으로
+  // 빠져나가 popstate 가 메뉴를 렌더하게 한다. 이렇게 하면 인앱 back 버튼과
+  // 하드웨어/제스처 back 이 동일한 경로(menu base 항목 1개)로 수렴한다.
+  const fromHistory = !!(opts && opts.fromHistory);
+  if (!fromHistory) {
+    if (_traceBackPending) return; // 같은 클릭의 중복 호출 — pop 은 한 번만
+    try {
+      if (history.state && history.state.traceView === 'mode') {
+        _traceBackPending = true;
+        history.back();
+        return;
+      }
+    } catch (_e) { _traceBackPending = false; /* History 미지원 — 아래에서 직접 렌더 */ }
+  }
   // 진행 중인 stroke order strip 애니메이션 모두 취소 — 메뉴로 나간 뒤에도
   // 타이머가 살아있어 stale DOM을 건드리거나 display:none 요소에 scrollIntoView
   // 호출해 콘솔 경고를 띄우는 문제 방지.
@@ -138,7 +158,8 @@ function traceClickElement(e) {
   return null;
 }
 
-function showSingleMode(modeName) {
+function showSingleMode(modeName, opts) {
+  const fromHistory = !!(opts && opts.fromHistory);
   const panel = document.getElementById(`${modeName}-mode`);
   if (!panel) {
     console.warn('tracing: unknown mode', modeName);
@@ -155,6 +176,21 @@ function showSingleMode(modeName) {
   if (mainMenu) mainMenu.style.display = 'none';
   document.querySelectorAll('.mode-ui').forEach((el) => el.classList.remove('active'));
   panel.classList.add('active');
+
+  // History 동기화(#1-UX) — 메뉴→모드는 항목 1개 push, 모드→모드(예: myword→
+  // myword-add)는 replace 로 깊이를 1로 유지한다. 어느 화면에서든 back 은 메뉴로
+  // 돌아가는 이 앱의 평면 네비게이션과 일치한다. popstate 발(fromHistory) 호출은
+  // 재-push 하지 않는다.
+  if (!fromHistory) {
+    try {
+      const st = { traceView: 'mode', mode: modeName };
+      if (history.state && history.state.traceView === 'mode') {
+        history.replaceState(st, '');
+      } else {
+        history.pushState(st, '');
+      }
+    } catch (_e) { /* History 미지원(file:// 등) — DOM 전환만으로 충분 */ }
+  }
 
   const ModeClass = {
     char: CharMode,
@@ -194,7 +230,8 @@ function showSingleMode(modeName) {
   } else {
     const script = document.createElement('script');
     script.src = `modes/${modeName}/modes.js`;
-    script.onload = () => showSingleMode(modeName);
+    // 재호출 시엔 이미 위에서 history 항목을 넣었으므로 중복 push 방지.
+    script.onload = () => showSingleMode(modeName, { fromHistory: true });
     document.head.appendChild(script);
   }
 }
@@ -266,6 +303,20 @@ function initAppShell() {
 
   initSecretEgg();
   initIntroScreen();
+
+  // History 베이스(메뉴) 항목을 심고 popstate 를 구독한다(#1-UX). 모드 화면에서
+  // 기기 하드웨어/제스처 뒤로가기를 눌러도 앱이 종료되는 대신 메뉴로 복귀한다.
+  try { history.replaceState({ traceView: 'menu' }, ''); } catch (_e) { /* ignore */ }
+  window.addEventListener('popstate', (e) => {
+    _traceBackPending = false;
+    const st = e.state;
+    if (st && st.traceView === 'mode' && st.mode) {
+      showSingleMode(st.mode, { fromHistory: true });
+    } else {
+      showMainMenu({ fromHistory: true });
+    }
+  });
+
   showMainMenu();
 }
 

@@ -32,14 +32,15 @@ test.describe('핵심 버그 회귀', () => {
         bufferH: canvas.height,
         cssW: Math.round(rect.width),
         cssH: Math.round(rect.height),
+        dpr: window.devicePixelRatio || 1,
         styleW: canvas.style.width,
         styleH: canvas.style.height
       };
     });
 
-    // 버퍼 크기와 CSS 표시 크기가 일치해야 함 (±2px 허용 — 반올림)
-    expect(Math.abs(sizes.bufferW - sizes.cssW)).toBeLessThan(3);
-    expect(Math.abs(sizes.bufferH - sizes.cssH)).toBeLessThan(3);
+    // HiDPI: 버퍼 = CSS 표시 크기 × devicePixelRatio (DPR=1이면 동일).
+    expect(Math.abs(sizes.bufferW - sizes.cssW * sizes.dpr)).toBeLessThan(sizes.dpr * 2 + 2);
+    expect(Math.abs(sizes.bufferH - sizes.cssH * sizes.dpr)).toBeLessThan(sizes.dpr * 2 + 2);
 
     // style.width/height가 px 단위여야 함 (100%면 버그)
     expect(sizes.styleW).toMatch(/\d+px/);
@@ -253,14 +254,16 @@ test.describe('핵심 버그 회귀', () => {
           bufferH: canvas.height,
           cssW: Math.round(rect.width),
           cssH: Math.round(rect.height),
+          dpr: window.devicePixelRatio || 1,
           styleW: canvas.style.width,
           styleH: canvas.style.height
         };
       }, mode.draw);
 
       expect(sizes).not.toBeNull();
-      expect(Math.abs(sizes.bufferW - sizes.cssW)).toBeLessThan(3);
-      expect(Math.abs(sizes.bufferH - sizes.cssH)).toBeLessThan(3);
+      // HiDPI: 버퍼 = CSS × devicePixelRatio
+      expect(Math.abs(sizes.bufferW - sizes.cssW * sizes.dpr)).toBeLessThan(sizes.dpr * 2 + 2);
+      expect(Math.abs(sizes.bufferH - sizes.cssH * sizes.dpr)).toBeLessThan(sizes.dpr * 2 + 2);
       expect(sizes.styleW).toMatch(/\d+px/);
       expect(sizes.styleH).toMatch(/\d+px/);
 

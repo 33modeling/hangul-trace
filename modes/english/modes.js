@@ -164,16 +164,16 @@ class EnglishMode {
   
   /** Navigation 생성 + 현재 alphaType에 해당하는 doneSet 주입 */
   _buildNavigation() {
+    // 유형별 진도 Set 을 생성자에 주입(#4) — 생성 후 doneSet 참조를 직접 교체하던
+    // 캡슐화 위반을 제거. 생성자가 주입된 Set 기준으로 점을 렌더한다.
     const nav = new Navigation(
       this.getCurrentList(),
       this.updateUI.bind(this),
       this.updateFeedback.bind(this),
       this.modeName,
-      { dotsId: 'eng-dots', strokeHintId: 'eng-stroke-hint' }
+      { dotsId: 'eng-dots', strokeHintId: 'eng-stroke-hint' },
+      this.doneSetsByType[this.alphaType]
     );
-    // Navigation 내부 doneSet 참조를 유형별 set으로 교체 → 진도 유지
-    nav.doneSet = this.doneSetsByType[this.alphaType];
-    nav.renderDots();
     return nav;
   }
 
@@ -201,6 +201,11 @@ class EnglishMode {
   
   updateUI(idx) {
     this.currentIdx = idx;
+    // hint fallback 타이머 취소(#8)
+    if (window.__traceHintFallbackTimer) {
+      clearTimeout(window.__traceHintFallbackTimer);
+      window.__traceHintFallbackTimer = null;
+    }
     const _strip = document.getElementById('eng-stroke-strip');
     if (_strip) {
       cancelStrokeOrderStrip(_strip);
@@ -208,9 +213,9 @@ class EnglishMode {
     }
     const list = this.getCurrentList();
     const alpha = list[idx];
-    
-    this.charLabel.textContent = alpha.ch;
-    this.charSub.textContent = `알파벳 ${idx + 1} / ${list.length}`;
+
+    if (this.charLabel) this.charLabel.textContent = alpha.ch; // (#9)
+    if (this.charSub) this.charSub.textContent = `알파벳 ${idx + 1} / ${list.length}`;
     
     this.guideLayer.resize();
     this.guideLayer.clear();
@@ -221,17 +226,18 @@ class EnglishMode {
     this.strokeCount = 0;
     this.updateFeedback(0);
     
-    this.hintHint.innerHTML = `
+    if (this.hintHint) this.hintHint.innerHTML = `
       <span class="hint-pill">${alpha.strokes}획</span>
       <span class="hint-pill">위에서 아래</span>
       <span class="hint-pill">왼쪽에서 오른쪽</span>
     `;
   }
-  
+
   updateFeedback(strokeCount) {
     const list = this.getCurrentList();
     const alpha = list[this.currentIdx];
     const feedbackEl = document.getElementById('eng-feedback');
+    if (!feedbackEl) return; // (#9)
     feedbackEl.style.color = '';
     feedbackEl.innerHTML = traceRenderProgress(strokeCount, alpha.strokes, {
       doneText: '잘 했어요! 🎉 다음은 ▶'
@@ -254,7 +260,9 @@ class EnglishMode {
         if (strip) strip.innerHTML = '';
         this.guideLayer.clear();
         this.guideLayer.drawGuide(ch, '#be3974');
-        setTimeout(() => {
+        if (window.__traceHintFallbackTimer) clearTimeout(window.__traceHintFallbackTimer);
+        window.__traceHintFallbackTimer = setTimeout(() => { // (#8)
+          window.__traceHintFallbackTimer = null;
           this.guideLayer.resize();
           this.guideLayer.drawGuide(ch);
         }, 1000);
@@ -301,8 +309,7 @@ class EnglishMode {
       const list = this.getCurrentList();
       const alpha = list[this.currentIdx];
       if (this.strokeCount >= alpha.strokes && !this.navigation.getIsDone()) {
-        this.navigation.doneSet.add(this.currentIdx);
-        this.navigation.renderDots();
+        this.navigation.markDone(this.currentIdx); // (#4)
         // 현재 유형(대/소문자)의 진도를 저장 (#5)
         traceSaveDone(
           this.alphaType === 'upper' ? 'tracing.done.english.upper.v1' : 'tracing.done.english.lower.v1',

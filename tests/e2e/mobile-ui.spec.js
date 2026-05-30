@@ -60,14 +60,16 @@ for (const vp of MOBILE_VIEWPORTS) {
         expect(wrapBox.y + wrapBox.height).toBeLessThanOrEqual(vp.height + 50);
       }
 
-      // 가이드/드로 캔버스 크기 확인
+      // 가이드 캔버스 버퍼가 0이 아닌지(버퍼는 DPR 배율이라 크기 자체만 확인)
       const gw = await page.locator('#guide-canvas').evaluate((c) => c.width);
       const gh = await page.locator('#guide-canvas').evaluate((c) => c.height);
       expect(gw).toBeGreaterThan(40);
       expect(gh).toBeGreaterThan(40);
 
-      // 캔버스 높이가 viewport 55% 이하인지
-      expect(gh).toBeLessThanOrEqual(Math.floor(vp.height * 0.55) + 10);
+      // 캔버스 "표시" 높이가 viewport 55% 이하인지 — 버퍼(DPR 배율) 대신 CSS px 로 검사
+      const guideBox = await page.locator('#guide-canvas').boundingBox();
+      expect(guideBox).not.toBeNull();
+      expect(guideBox.height).toBeLessThanOrEqual(Math.floor(vp.height * 0.55) + 10);
 
       expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
     });

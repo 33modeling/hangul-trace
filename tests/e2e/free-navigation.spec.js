@@ -45,7 +45,6 @@ test.describe('자유 이동 — stroke 완성 안 해도 이동 가능', () => 
     await page.click('[data-mode="word"]');
     await page.waitForSelector('#word-mode.active');
     await page.click('#word-next-btn');
-    await page.waitForTimeout(100);
     const fb = await page.locator('#word-feedback').textContent();
     // 게이팅 메시지("X획 더 그려야 다음으로 갈 수 있어요!")가 없어야 함
     expect(fb).not.toMatch(/획 더 그려야 다음으로/);
@@ -75,7 +74,6 @@ test.describe('자유 이동 — stroke 완성 안 해도 이동 가능', () => 
     await page.click('[data-mode="advanced"]');
     await page.waitForSelector('#advanced-mode.active');
     await page.click('#adv-next-btn');
-    await page.waitForTimeout(100);
     const fb = await page.locator('#adv-feedback').textContent();
     expect(fb).not.toMatch(/획 더 그려야 다음으로/);
   });
@@ -86,10 +84,10 @@ test.describe('자유 이동 — stroke 완성 안 해도 이동 가능', () => 
     await page.waitForSelector('#myword-add-mode.active');
     await page.fill('#myword-add-input', '강아지');
     await page.click('#myword-add-submit');
-    await page.waitForTimeout(200);
+    await expect(page.locator('.myword-add-row')).toHaveCount(1);
     await page.fill('#myword-add-input', '토끼');
     await page.click('#myword-add-submit');
-    await page.waitForTimeout(200);
+    await expect(page.locator('.myword-add-row')).toHaveCount(2);
 
     // myword 모드 진입
     await page.click('#myword-add-menu-btn');
@@ -145,10 +143,11 @@ test.describe('mid-stroke 이동 — 잔여 상태가 다음 화면 첫 획에 s
 
     // navigation 클릭 — 상태 리셋되어야 함
     await page.click('#word-next-btn');
-    await page.waitForTimeout(80);
 
-    // 다음 화면에서 internal state 확인 (window.wordMode.isDrawing === false 여야)
-    const isDrawing = await page.evaluate(() => window.wordMode && window.wordMode.isDrawing);
+    // 고정 지연 대신 상태 리셋을 직접 대기(#17). window.wordMode 부재 시 타임아웃으로
+    // 명시적으로 실패하므로 전역 노출도 함께 검증된다(#18).
+    await page.waitForFunction(() => window.wordMode && window.wordMode.isDrawing === false);
+    const isDrawing = await page.evaluate(() => window.wordMode.isDrawing);
     expect(isDrawing).toBe(false);
 
     // mouseup으로 정리 (혹시 모를 잔여 이벤트)
@@ -165,9 +164,10 @@ test.describe('mid-stroke 이동 — 잔여 상태가 다음 화면 첫 획에 s
     await page.mouse.move(draw.x + 60, draw.y + 60);
 
     await page.click('#adv-next-btn');
-    await page.waitForTimeout(80);
 
-    const isDrawing = await page.evaluate(() => window.advancedMode && window.advancedMode.isDrawing);
+    // 고정 지연 대신 상태 리셋을 직접 대기(#17·#18).
+    await page.waitForFunction(() => window.advancedMode && window.advancedMode.isDrawing === false);
+    const isDrawing = await page.evaluate(() => window.advancedMode.isDrawing);
     expect(isDrawing).toBe(false);
 
     await page.mouse.up();

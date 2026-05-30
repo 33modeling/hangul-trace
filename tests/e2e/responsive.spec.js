@@ -82,9 +82,11 @@ test.describe('캔버스 최대 높이 제한', () => {
       await page.locator(`button.mode-card[data-mode="${mode.card}"]`).click();
       await page.waitForTimeout(200);
 
-      const h = await page.locator(mode.canvas).evaluate((c) => c.height);
+      // 버퍼(canvas.height)는 DPR 배율이라 레이아웃 검사는 CSS 표시 높이로 한다
+      const box = await page.locator(mode.canvas).boundingBox();
+      const h = box ? box.height : 0;
       const maxH = Math.floor(vp.height * 0.55);
-      expect(h, `${mode.card} canvas height ${h} should be <= ${maxH}`).toBeLessThanOrEqual(maxH + 10);
+      expect(h, `${mode.card} canvas display height ${h} should be <= ${maxH}`).toBeLessThanOrEqual(maxH + 10);
 
       // 메뉴로 돌아가기
       await page.locator(`#${mode.backBtn}`).click();

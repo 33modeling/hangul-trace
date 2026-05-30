@@ -540,7 +540,8 @@ function _strokeIconSvg(s) {
  */
 function renderStrokeOrderStrip(container, ch, activeStep) {
   if (!container) return;
-  const data = STROKE_ORDER[ch];
+  // strokeOrder.js 로드 실패/순서 변경 시 ReferenceError 대신 안전하게 빈 처리(#2).
+  const data = (typeof STROKE_ORDER !== 'undefined') ? STROKE_ORDER[ch] : undefined;
   if (!data || !data.steps || data.steps.length === 0) {
     container.innerHTML = '';
     return;
@@ -607,7 +608,7 @@ function renderStrokeOrderStrip(container, ch, activeStep) {
  * @param {function} onComplete 완료 콜백
  */
 function playStrokeOrderStrip(container, guideLayer, ch, onComplete) {
-  const data = STROKE_ORDER[ch];
+  const data = (typeof STROKE_ORDER !== 'undefined') ? STROKE_ORDER[ch] : undefined; // (#2)
 
   // 이전 플레이 진행 중이면 취소
   if (container && container.__strokePlayTimer) {

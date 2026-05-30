@@ -91,8 +91,28 @@ class MyWordAddMode {
         }
         return;
       }
-      this.words.push(res.word);
-      const saved = traceSaveMyWords(this.words);
+      // 저장 직전 최신 스토리지로 재로드(#6) — 다른 탭이 그새 추가/삭제했을 수 있어
+      // in-memory 스냅샷에 push 하면 상대 탭의 변경을 덮어쓴다. 재로드 후 한도·중복을
+      // 다시 확인한 다음 저장한다.
+      const latest = traceLoadMyWords();
+      if (latest.length >= TRACE_MY_WORDS_MAX_COUNT) {
+        if (msg) {
+          msg.textContent = `단어는 최대 ${TRACE_MY_WORDS_MAX_COUNT}개까지만 등록할 수 있어요. 기존 단어를 지운 뒤 다시 시도해 주세요.`;
+          msg.style.color = '#c44';
+        }
+        this.renderList();
+        return;
+      }
+      if (latest.includes(res.word)) {
+        if (msg) {
+          msg.textContent = '이미 목록에 있는 단어예요.';
+          msg.style.color = '#a60';
+        }
+        this.renderList();
+        return;
+      }
+      latest.push(res.word);
+      const saved = traceSaveMyWords(latest);
       // 저장이 실패하면(용량 초과·사파리 사생활모드 등) 단어가 새로고침 후
       // 사라지므로, 성공으로 안내하지 않고 실패를 알린다. renderList()가
       // 스토리지 기준으로 메모리 목록을 되돌린다.
@@ -218,16 +238,22 @@ class MyWordAddMode {
       li.setAttribute('data-index', String(i));
       const isFirst = i === 0;
       const isLast = i === this.words.length - 1;
-      li.innerHTML = `
-        <span class="myword-add-word">${w}</span>
-        <span class="myword-add-actions">
-          <button type="button" class="tool-btn myword-add-mini" data-action="top" aria-label="맨 위로" title="맨 위로" ${isFirst ? 'disabled' : ''}>↟</button>
-          <button type="button" class="tool-btn myword-add-mini" data-action="up" aria-label="한 칸 위로" title="한 칸 위로" ${isFirst ? 'disabled' : ''}>↑</button>
-          <button type="button" class="tool-btn myword-add-mini" data-action="down" aria-label="한 칸 아래로" title="한 칸 아래로" ${isLast ? 'disabled' : ''}>↓</button>
-          <button type="button" class="tool-btn myword-add-mini" data-action="bottom" aria-label="맨 아래로" title="맨 아래로" ${isLast ? 'disabled' : ''}>↡</button>
-          <button type="button" class="tool-btn myword-add-mini myword-add-del" data-action="del" aria-label="삭제" title="삭제">✕</button>
-        </span>
+      // 단어 문자열은 textContent 로 분리 삽입(#7) — innerHTML 보간을 피해 XSS 벡터 제거.
+      // 액션 버튼 영역은 사용자 데이터가 없는 정적 마크업이라 innerHTML 로 둔다.
+      const wordSpan = document.createElement('span');
+      wordSpan.className = 'myword-add-word';
+      wordSpan.textContent = w;
+      const actions = document.createElement('span');
+      actions.className = 'myword-add-actions';
+      actions.innerHTML = `
+        <button type="button" class="tool-btn myword-add-mini" data-action="top" aria-label="맨 위로" title="맨 위로" ${isFirst ? 'disabled' : ''}>↟</button>
+        <button type="button" class="tool-btn myword-add-mini" data-action="up" aria-label="한 칸 위로" title="한 칸 위로" ${isFirst ? 'disabled' : ''}>↑</button>
+        <button type="button" class="tool-btn myword-add-mini" data-action="down" aria-label="한 칸 아래로" title="한 칸 아래로" ${isLast ? 'disabled' : ''}>↓</button>
+        <button type="button" class="tool-btn myword-add-mini" data-action="bottom" aria-label="맨 아래로" title="맨 아래로" ${isLast ? 'disabled' : ''}>↡</button>
+        <button type="button" class="tool-btn myword-add-mini myword-add-del" data-action="del" aria-label="삭제" title="삭제">✕</button>
       `;
+      li.appendChild(wordSpan);
+      li.appendChild(actions);
       listEl.appendChild(li);
     });
   }

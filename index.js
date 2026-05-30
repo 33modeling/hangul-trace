@@ -16,6 +16,11 @@ let _traceBackPending = false;
  * 리스너 잔존 — 등의 누수가 있었다. 여기서 한 곳에 모아 정리한다.
  */
 function traceTeardownActiveMode() {
+  // 모드 이탈 시 hint fallback 타이머 취소(#8) — 숨겨진/파괴된 캔버스에 stale 그리기 방지
+  if (window.__traceHintFallbackTimer) {
+    clearTimeout(window.__traceHintFallbackTimer);
+    window.__traceHintFallbackTimer = null;
+  }
   ['__traceCharRO', '__traceWordRO', '__traceNumberRO', '__traceEnglishRO', '__traceMyWordRO', '__traceAdvRO'].forEach((k) => {
     const ro = window[k];
     if (ro && typeof ro.disconnect === 'function') {

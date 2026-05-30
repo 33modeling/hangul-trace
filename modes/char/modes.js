@@ -102,6 +102,11 @@ class CharMode {
   
   updateUI(idx) {
     this.currentIdx = idx;
+    // 글자 이동 시 hint fallback 타이머 취소(#8) — 이전 글자로 가이드를 덮어쓰지 않게
+    if (window.__traceHintFallbackTimer) {
+      clearTimeout(window.__traceHintFallbackTimer);
+      window.__traceHintFallbackTimer = null;
+    }
     // 새 글자 진입 시 이전 글자의 stroke strip 잔재 제거
     const _strip = document.getElementById('stroke-strip');
     if (_strip) {
@@ -160,11 +165,15 @@ class CharMode {
         // 캔버스는 글자만 깔끔하게 유지.
         playStrokeOrderStrip(strip, this.guideLayer, ch);
       } else {
-        // STROKE_ORDER 데이터 없는 글자: 글자 자체를 잠깐 강조하는 fallback
+        // STROKE_ORDER 데이터 없는 글자: 글자 자체를 잠깐 강조하는 fallback.
+        // 타이머 핸들을 공용 window 슬롯에 저장해 글자 이동/모드 이탈 시 취소할 수
+        // 있게 한다(#8) — 안 하면 1초 뒤 stale ch 로 가이드를 덮어쓰는 깜빡임 발생.
         if (strip) strip.innerHTML = '';
         this.guideLayer.clear();
         this.guideLayer.drawGuide(ch, '#be3974');
-        setTimeout(() => {
+        if (window.__traceHintFallbackTimer) clearTimeout(window.__traceHintFallbackTimer);
+        window.__traceHintFallbackTimer = setTimeout(() => {
+          window.__traceHintFallbackTimer = null;
           this.guideLayer.resize();
           this.guideLayer.drawGuide(ch);
         }, 1000);
@@ -210,8 +219,7 @@ class CharMode {
 
       const char = CHAR_ITEMS[this.currentIdx];
       if (this.strokeCount >= char.strokes && !this.navigation.getIsDone()) {
-        this.navigation.doneSet.add(this.currentIdx);
-        this.navigation.renderDots();
+        this.navigation.markDone(this.currentIdx); // (#4)
         traceSaveDone('tracing.done.char.v1', this.navigation.doneSet); // (#5)
         if (typeof TraceSound !== 'undefined') TraceSound.complete();
       }

@@ -26,5 +26,9 @@ module.exports = defineConfig({
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'firefox',  use: { ...devices['Desktop Firefox'] } },
     { name: 'webkit',   use: { ...devices['Desktop Safari'] } },
+    // 실제 모바일 환경(DPR 2~3x · hasTouch · 모바일 UA) 커버리지(#19) — Desktop
+    // 프로젝트만으론 DPR=1·터치 핸들러 경로가 검증되지 않았다.
+    { name: 'mobile-chrome', use: { ...devices['Pixel 5'] } },
+    { name: 'mobile-safari', use: { ...devices['iPhone 14'] } },
   ],
 });

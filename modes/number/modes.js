@@ -110,15 +110,20 @@ class NumberMode {
   
   updateUI(idx) {
     this.currentIdx = idx;
+    // hint fallback 타이머 취소(#8)
+    if (window.__traceHintFallbackTimer) {
+      clearTimeout(window.__traceHintFallbackTimer);
+      window.__traceHintFallbackTimer = null;
+    }
     const _strip = document.getElementById('num-stroke-strip');
     if (_strip) {
       cancelStrokeOrderStrip(_strip);
       _strip.innerHTML = '';
     }
     const num = NUMBERS[idx];
-    
-    this.charLabel.textContent = `${num.ch} · ${num.name}`;
-    this.charSub.textContent = `숫자 ${idx + 1} / ${NUMBERS.length}`;
+
+    if (this.charLabel) this.charLabel.textContent = `${num.ch} · ${num.name}`; // (#9)
+    if (this.charSub) this.charSub.textContent = `숫자 ${idx + 1} / ${NUMBERS.length}`;
     
     this.guideLayer.resize();
     this.guideLayer.clear();
@@ -129,16 +134,17 @@ class NumberMode {
     this.strokeCount = 0;
     this.updateFeedback(0);
     
-    this.hintHint.innerHTML = `
+    if (this.hintHint) this.hintHint.innerHTML = `
       <span class="hint-pill">${num.strokes}획</span>
       <span class="hint-pill">위에서 아래</span>
       <span class="hint-pill">왼쪽에서 오른쪽</span>
     `;
   }
-  
+
   updateFeedback(strokeCount) {
     const num = NUMBERS[this.currentIdx];
     const feedbackEl = document.getElementById('num-feedback');
+    if (!feedbackEl) return; // (#9)
     feedbackEl.style.color = '';
     feedbackEl.innerHTML = traceRenderProgress(strokeCount, num.strokes, {
       doneText: '잘 했어요! 🎉 다음은 ▶'
@@ -160,7 +166,9 @@ class NumberMode {
         if (strip) strip.innerHTML = '';
         this.guideLayer.clear();
         this.guideLayer.drawGuide(ch, '#be3974');
-        setTimeout(() => {
+        if (window.__traceHintFallbackTimer) clearTimeout(window.__traceHintFallbackTimer);
+        window.__traceHintFallbackTimer = setTimeout(() => { // (#8)
+          window.__traceHintFallbackTimer = null;
           this.guideLayer.resize();
           this.guideLayer.drawGuide(ch);
         }, 1000);
@@ -206,8 +214,7 @@ class NumberMode {
 
       const num = NUMBERS[this.currentIdx];
       if (this.strokeCount >= num.strokes && !this.navigation.getIsDone()) {
-        this.navigation.doneSet.add(this.currentIdx);
-        this.navigation.renderDots();
+        this.navigation.markDone(this.currentIdx); // (#4)
         traceSaveDone('tracing.done.number.v1', this.navigation.doneSet); // (#5)
         if (typeof TraceSound !== 'undefined') TraceSound.complete();
       }

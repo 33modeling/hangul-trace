@@ -676,6 +676,192 @@ function cancelStrokeOrderStrip(container) {
   }
 }
 
+/* ==========================================================================
+   획순 애니메이션 — 글자 위에 실제 획을 1획씩 순서대로 그려 보여 준다(교육용).
+   완성 판별과는 무관(성공 기준은 면적 커버리지). STROKE_PATHS 데이터가 있는
+   글자(자모·숫자)만 동작하고, 없으면 false 를 반환해 호출부가 strip 으로 폴백한다.
+   ========================================================================== */
+
+const _traceActiveStrokeAnims = new Set();
+
+function _soDrawArrow(ctx, from, to, size, color) {
+  const ang = Math.atan2(to[1] - from[1], to[0] - from[0]);
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(to[0], to[1]);
+  ctx.lineTo(to[0] - size * Math.cos(ang - 0.5), to[1] - size * Math.sin(ang - 0.5));
+  ctx.lineTo(to[0] - size * Math.cos(ang + 0.5), to[1] - size * Math.sin(ang + 0.5));
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function _soDrawNumber(ctx, pos, n, r, color) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(pos[0], pos[1], r, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `bold ${Math.round(r * 1.25)}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(String(n), pos[0], pos[1]);
+  ctx.restore();
+}
+
+/**
+ * 획순 애니메이션 재생.
+ * @param {DrawingCanvas} guideLayer 가이드 캔버스(여기에 그린다)
+ * @param {string} ch 글자
+ * @param {{ onStep?: (i:number)=>void, onComplete?: ()=>void, perStrokeMs?: number }} [opts]
+ * @returns {boolean} 경로 데이터가 있어 재생을 시작했으면 true
+ */
+function playStrokeOrderAnim(guideLayer, ch, opts) {
+  opts = opts || {};
+  const paths = (typeof STROKE_PATHS !== 'undefined') ? STROKE_PATHS[ch] : null;
+  if (!guideLayer || !guideLayer.canvas || !guideLayer.ctx || !paths || !paths.length) return false;
+  const bw = guideLayer.canvas.width;
+  const bh = guideLayer.canvas.height;
+  if (bw < 2 || bh < 2) return false;
+
+  cancelStrokeOrderAnim(guideLayer);
+
+  const ctx = guideLayer.ctx;
+  const STROKE_COLOR = '#7c3aed';
+  const FAINT = 'rgba(124, 58, 237, 0.14)';
+  const TIP_COLOR = '#be3974';
+  const NUM_COLOR = '#be3974';
+  const lineW = Math.max(6, Math.min(bw, bh) * 0.05);
+  const numR = Math.max(9, Math.min(bw, bh) * 0.05);
+  const arrow = Math.max(9, Math.min(bw, bh) * 0.06);
+  const PER = (typeof opts.perStrokeMs === 'number') ? opts.perStrokeMs : 620;
+  const GAP = 160;
+  const totalPer = PER + GAP;
+
+  // 화면 좌표 + 누적 길이 사전 계산
+  const strokes = paths.map((pts) => {
+    const P = pts.map((p) => [p[0] * bw, p[1] * bh]);
+    const seg = [];
+    let len = 0;
+    for (let i = 1; i < P.length; i++) {
+      const l = Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
+      seg.push(l); len += l;
+    }
+    return { P, seg, len };
+  });
+
+  function pointAt(s, t) {
+    if (s.len === 0) return s.P[0];
+    let d = t * s.len;
+    let i = 0;
+    while (i < s.seg.length && d > s.seg[i]) { d -= s.seg[i]; i++; }
+    if (i >= s.seg.length) return s.P[s.P.length - 1];
+    const a = s.P[i], b = s.P[i + 1];
+    const f = s.seg[i] ? d / s.seg[i] : 0;
+    return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+  }
+
+  function drawStrokePartial(s, t) {
+    ctx.save();
+    ctx.strokeStyle = STROKE_COLOR;
+    ctx.lineWidth = lineW;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(s.P[0][0], s.P[0][1]);
+    let d = t * s.len;
+    let k = 0;
+    while (k < s.seg.length && d > s.seg[k]) { ctx.lineTo(s.P[k + 1][0], s.P[k + 1][1]); d -= s.seg[k]; k++; }
+    const tip = pointAt(s, t);
+    ctx.lineTo(tip[0], tip[1]);
+    ctx.stroke();
+    ctx.restore();
+    return tip;
+  }
+
+  const token = { canceled: false, raf: 0, guideLayer: guideLayer };
+  guideLayer.__soAnim = token;
+  _traceActiveStrokeAnims.add(token);
+  const start = (typeof performance !== 'undefined' && performance.now) ? performance.now() : 0;
+
+  function finish() {
+    _traceActiveStrokeAnims.delete(token);
+    if (guideLayer.__soAnim === token) guideLayer.__soAnim = null;
+    // 끝: 깨끗한 가이드 글자로 복귀(아이가 따라 쓸 수 있게)
+    try { ctx.clearRect(0, 0, bw, bh); guideLayer.drawGuide(ch); } catch (_e) { /* ignore */ }
+    if (opts.onStep) opts.onStep(0);
+    if (opts.onComplete) opts.onComplete();
+  }
+
+  function frame(now) {
+    if (token.canceled) return;
+    const elapsed = now - start;
+    const cur = Math.floor(elapsed / totalPer);
+    if (cur >= strokes.length) { finish(); return; }
+    const within = elapsed - cur * totalPer;
+    const t = Math.max(0, Math.min(1, within / PER));
+
+    ctx.clearRect(0, 0, bw, bh);
+    // 배경: 모든 획을 흐리게(정렬 일관성) + 글자 윤곽 느낌
+    ctx.save();
+    ctx.strokeStyle = FAINT;
+    ctx.lineWidth = lineW;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (const s of strokes) {
+      ctx.beginPath();
+      ctx.moveTo(s.P[0][0], s.P[0][1]);
+      for (let i = 1; i < s.P.length; i++) ctx.lineTo(s.P[i][0], s.P[i][1]);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    if (opts.onStep) opts.onStep(cur + 1);
+
+    for (let i = 0; i < strokes.length; i++) {
+      const s = strokes[i];
+      const st = i < cur ? 1 : (i === cur ? t : 0);
+      if (st <= 0) continue;
+      const tip = drawStrokePartial(s, st);
+      _soDrawNumber(ctx, s.P[0], i + 1, numR, NUM_COLOR);
+      if (i === cur && st < 1) {
+        const prev = pointAt(s, Math.max(0, st - 0.05));
+        _soDrawArrow(ctx, prev, tip, arrow, TIP_COLOR);
+      }
+    }
+
+    token.raf = requestAnimationFrame(frame);
+  }
+
+  if (typeof requestAnimationFrame === 'function') {
+    token.raf = requestAnimationFrame(frame);
+  } else {
+    finish();
+  }
+  return true;
+}
+
+function cancelStrokeOrderAnim(guideLayer) {
+  if (!guideLayer || !guideLayer.__soAnim) return;
+  const token = guideLayer.__soAnim;
+  token.canceled = true;
+  if (token.raf && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(token.raf);
+  _traceActiveStrokeAnims.delete(token);
+  guideLayer.__soAnim = null;
+}
+
+/** 진행 중인 모든 획순 애니메이션 취소(모드 이탈/정리용). */
+function cancelAllStrokeOrderAnims() {
+  _traceActiveStrokeAnims.forEach((token) => {
+    token.canceled = true;
+    if (token.raf && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(token.raf);
+    if (token.guideLayer && token.guideLayer.__soAnim === token) token.guideLayer.__soAnim = null;
+  });
+  _traceActiveStrokeAnims.clear();
+}
+
 
 // setupDrawingEvents 제거됨 — 모든 모드는 attachCanvasPointerDrawing 사용
 // (중복 이벤트 리스너로 인해 모바일에서 터치가 두 번 처리되는 버그 수정)
@@ -849,7 +1035,9 @@ const TRACE_COV_RECALL_MIN = 0.85;   // 글자의 85% 이상을 덮어야(거의
 // 오판정됐다(부분 작성 → 정답 버그). 측정 기반으로 50~60% 부분 작성은 미완성,
 // ~85% 이상 덮어야 완성되도록 좁혔다. 아이의 굵은 펜이 시뮬레이션보다 recall 을
 // 더 올려 주므로 실제 완전 따라쓰기는 무리 없이 완성된다.
-const TRACE_COV_PRECISION_MIN = 0.40; // 필기의 40% 이상이 글자 위에 있어야(낙서 차단)
+const TRACE_COV_PRECISION_MIN = 0.55; // 필기의 55% 이상이 글자 위에 있어야(막 긋기·상자
+// 채우기 차단). 실제 따라쓰기는 ~0.96+, 낙서(상자채우기·대각선난사·지그재그)는 ≤0.45
+// 라 측정 기반으로 0.55 에서 깨끗이 분리된다(낙서 실패, 정상 쓰기 통과).
 const TRACE_COV_INK_ALPHA = 40;      // 필기 픽셀로 칠 alpha 하한
 const TRACE_COV_MASK_ALPHA = 80;     // 글자 픽셀로 칠 alpha 하한
 

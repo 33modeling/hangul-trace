@@ -93,6 +93,9 @@ class CharMode {
   _syncCanvases() {
     // 리사이즈 동기화 전용 — 사용자가 그리던 잉크를 비율 유지로 보존(회전·
     // 주소창 변화로 캔버스 크기가 바뀌어도 필기가 지워지지 않게).
+    // 리사이즈로 가이드 버퍼가 재할당되기 전에, 진행 중인 획순 애니메이션을
+    // 취소한다(취소 안 하면 stale 좌표로 잘못 그림).
+    if (typeof cancelStrokeOrderAnim === 'function') cancelStrokeOrderAnim(this.guideLayer);
     const char = CHAR_ITEMS[this.currentIdx];
     this.guideLayer.resize();
     this.guideLayer.clear();
@@ -113,6 +116,7 @@ class CharMode {
       cancelStrokeOrderStrip(_strip);
       _strip.innerHTML = '';
     }
+    if (typeof cancelStrokeOrderAnim === 'function') cancelStrokeOrderAnim(this.guideLayer);
     const char = CHAR_ITEMS[idx];
     
     if (this.charLabel) {
@@ -170,9 +174,13 @@ class CharMode {
     rebindButtonClickById('hint-btn', () => {
       const ch = CHAR_ITEMS[this.currentIdx].ch;
       const strip = document.getElementById('stroke-strip');
+      // 글자 위에 실제 획을 1획씩 그려 보여 준다(자모는 모두 경로 데이터 있음). 카드도 동기.
+      const played = (typeof playStrokeOrderAnim === 'function') && playStrokeOrderAnim(this.guideLayer, ch, {
+        onStep: (n) => { if (strip && typeof renderStrokeOrderStrip === 'function') renderStrokeOrderStrip(strip, ch, n); }
+      });
+      if (played) return;
       if (STROKE_ORDER[ch]) {
-        // 새 디자인: 캔버스 아래 카드 strip + 카드 순차 하이라이트.
-        // 캔버스는 글자만 깔끔하게 유지.
+        // 폴백: 캔버스 아래 카드 strip + 카드 순차 하이라이트.
         playStrokeOrderStrip(strip, this.guideLayer, ch);
       } else {
         // STROKE_ORDER 데이터 없는 글자: 글자 자체를 잠깐 강조하는 fallback.
@@ -198,9 +206,14 @@ class CharMode {
 
     const onPointerDown = (e) => {
       e.preventDefault();
-      // 그리기 시작 시 진행 중인 획순 재생을 멈춰 가이드 하이라이트와 겹치는 깜빡임 방지.
+      // 그리기 시작 시 진행 중인 획순 재생(카드·애니메이션)을 멈춰 가이드 깜빡임 방지.
       const _strip = document.getElementById('stroke-strip');
       if (_strip && typeof cancelStrokeOrderStrip === 'function') cancelStrokeOrderStrip(_strip);
+      if (this.guideLayer && this.guideLayer.__soAnim) {
+        cancelStrokeOrderAnim(this.guideLayer);
+        this.guideLayer.clear();
+        this.guideLayer.drawGuide(CHAR_ITEMS[this.currentIdx].ch);
+      }
       this.isDrawing = true;
       const pos = this.canvas.getPos(e);
       this.startPoint = pos;

@@ -98,6 +98,8 @@ class StrokeOrderMode {
 
   _syncCanvases(preserveInk = false) {
     if (!this.guideLayer || !this.canvas) return;
+    // 가이드 버퍼 재할당 전에 진행 중인 획순 애니메이션 취소(stale 좌표 방지).
+    if (typeof cancelStrokeOrderAnim === 'function') cancelStrokeOrderAnim(this.guideLayer);
     const it = this._current();
     this.guideLayer.resize();
     this.guideLayer.clear();
@@ -112,9 +114,10 @@ class StrokeOrderMode {
 
   updateUI() {
     this._resetDrawingState();
-    // 글자 이동 시 진행 중이던 획순 재생 취소.
+    // 글자 이동 시 진행 중이던 획순 재생(카드·애니메이션) 취소.
     const strip = document.getElementById('so-strip');
     if (strip && typeof cancelStrokeOrderStrip === 'function') cancelStrokeOrderStrip(strip);
+    if (typeof cancelStrokeOrderAnim === 'function') cancelStrokeOrderAnim(this.guideLayer);
 
     const it = this._current();
     const labelEl = document.getElementById('so-label');
@@ -155,10 +158,17 @@ class StrokeOrderMode {
   _play() {
     const it = this._current();
     const strip = document.getElementById('so-strip');
-    if (!strip || typeof playStrokeOrderStrip !== 'function') return;
     // 시연 전 캔버스를 깨끗이 — 시연 중에는 가이드 글자만 보이게.
     this.canvas.clear();
-    playStrokeOrderStrip(strip, this.guideLayer, it.ch);
+    // 글자 위 1획씩 실제 획 애니메이션(자모·숫자 모두 경로 데이터 있음). 카드도 동기 강조.
+    const played = (typeof playStrokeOrderAnim === 'function') && playStrokeOrderAnim(this.guideLayer, it.ch, {
+      onStep: (n) => {
+        if (strip && typeof renderStrokeOrderStrip === 'function') renderStrokeOrderStrip(strip, it.ch, n);
+      }
+    });
+    if (!played && strip && typeof playStrokeOrderStrip === 'function') {
+      playStrokeOrderStrip(strip, this.guideLayer, it.ch);
+    }
   }
 
   setupEvents() {
@@ -177,11 +187,16 @@ class StrokeOrderMode {
 
     const onPointerDown = (e) => {
       e.preventDefault();
-      // 그리기 시작하면 진행 중인 획순 재생을 멈춰 카드 강조가 어수선하지 않게.
+      // 그리기 시작하면 진행 중인 획순 재생을 멈추고 가이드를 깨끗한 글자로 되돌린다.
       const strip = document.getElementById('so-strip');
       if (strip && typeof cancelStrokeOrderStrip === 'function') {
         cancelStrokeOrderStrip(strip);
         if (typeof renderStrokeOrderStrip === 'function') renderStrokeOrderStrip(strip, this._current().ch, 0);
+      }
+      if (this.guideLayer && this.guideLayer.__soAnim) {
+        cancelStrokeOrderAnim(this.guideLayer);
+        this.guideLayer.clear();
+        this.guideLayer.drawGuide(this._current().ch);
       }
       this.isDrawing = true;
       const pos = this.canvas.getPos(e);

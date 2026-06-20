@@ -25,6 +25,10 @@ function traceTeardownActiveMode() {
   if (window.quizMode && typeof window.quizMode.clearTimer === 'function') {
     try { window.quizMode.clearTimer(); } catch (_e) { /* ignore */ }
   }
+  // 진행 중인 획순 애니메이션(rAF) 모두 취소 — 숨은 캔버스에 stale 그리기 방지.
+  if (typeof cancelAllStrokeOrderAnims === 'function') {
+    try { cancelAllStrokeOrderAnims(); } catch (_e) { /* ignore */ }
+  }
   ['__traceCharRO', '__traceWordRO', '__traceNumberRO', '__traceEnglishRO', '__traceMyWordRO', '__traceAdvRO', '__traceWordcardRO', '__tracePhonicsRO', '__traceBatchimRO', '__traceDictationRO', '__traceStrokeOrderRO'].forEach((k) => {
     const ro = window[k];
     if (ro && typeof ro.disconnect === 'function') {

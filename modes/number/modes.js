@@ -101,6 +101,8 @@ class NumberMode {
 
   _syncCanvases() {
     // 리사이즈 동기화 전용 — 그리던 잉크를 비율 유지로 보존.
+    // 가이드 버퍼 재할당 전에 진행 중인 획순 애니메이션 취소(stale 좌표 방지).
+    if (typeof cancelStrokeOrderAnim === 'function') cancelStrokeOrderAnim(this.guideLayer);
     const num = NUMBERS[this.currentIdx];
     this.guideLayer.resize();
     this.guideLayer.clear();
@@ -120,6 +122,7 @@ class NumberMode {
       cancelStrokeOrderStrip(_strip);
       _strip.innerHTML = '';
     }
+    if (typeof cancelStrokeOrderAnim === 'function') cancelStrokeOrderAnim(this.guideLayer);
     const num = NUMBERS[idx];
 
     if (this.charLabel) this.charLabel.textContent = `${num.ch} · ${num.name}`; // (#9)
@@ -167,6 +170,10 @@ class NumberMode {
     rebindButtonClickById('num-hint-btn', () => {
       const ch = NUMBERS[this.currentIdx].ch;
       const strip = document.getElementById('num-stroke-strip');
+      const played = (typeof playStrokeOrderAnim === 'function') && playStrokeOrderAnim(this.guideLayer, ch, {
+        onStep: (n) => { if (strip && typeof renderStrokeOrderStrip === 'function') renderStrokeOrderStrip(strip, ch, n); }
+      });
+      if (played) return;
       if (STROKE_ORDER[ch]) {
         playStrokeOrderStrip(strip, this.guideLayer, ch);
       } else {
@@ -192,6 +199,11 @@ class NumberMode {
       e.preventDefault();
       const _strip = document.getElementById('num-stroke-strip');
       if (_strip && typeof cancelStrokeOrderStrip === 'function') cancelStrokeOrderStrip(_strip);
+      if (this.guideLayer && this.guideLayer.__soAnim) {
+        cancelStrokeOrderAnim(this.guideLayer);
+        this.guideLayer.clear();
+        this.guideLayer.drawGuide(NUMBERS[this.currentIdx].ch);
+      }
       this.isDrawing = true;
       const pos = this.canvas.getPos(e);
       this.startPoint = pos;

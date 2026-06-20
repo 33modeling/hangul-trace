@@ -205,8 +205,27 @@ test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리
     );
     expect(dw, 'so-draw-canvas width').toBeGreaterThan(80);
 
-    // 재생 버튼 클릭 시 오류 없이 동작(첫 카드 강조)
+    // 경로 데이터 존재 + STROKE_ORDER 와 획수 일치(헤더·카드·애니메이션 동기)
+    const pathCheck = await page.evaluate(() => {
+      if (typeof STROKE_PATHS === 'undefined' || typeof STROKE_ORDER === 'undefined') return { ok: false, mismatches: ['no data'] };
+      const mismatches = [];
+      let count = 0;
+      for (const ch in STROKE_PATHS) {
+        count++;
+        const so = STROKE_ORDER[ch];
+        if (so && so.steps && so.steps.length !== STROKE_PATHS[ch].length) {
+          mismatches.push(`${ch}: paths ${STROKE_PATHS[ch].length} vs order ${so.steps.length}`);
+        }
+      }
+      return { ok: count === 34, count, mismatches };
+    });
+    expect(pathCheck.count, '경로 데이터 글자 수(자모24+숫자10)').toBe(34);
+    expect(pathCheck.mismatches, '획수 불일치 글자').toEqual([]);
+
+    // 재생 클릭 시 글자 위 획순 애니메이션이 시작되고 오류가 없어야 함
     await page.locator('#so-play-btn').click();
+    const animStarted = await page.evaluate(() => !!(window.strokeOrderMode && window.strokeOrderMode.guideLayer && window.strokeOrderMode.guideLayer.__soAnim));
+    expect(animStarted, '획순 애니메이션 시작').toBe(true);
     await page.waitForTimeout(300);
 
     // 다음 글자(ㄴ)로 이동, 라벨 변경
@@ -323,6 +342,44 @@ test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리
     expect(res.halfDone, '절반만 그렸는데 완성된 글자 수').toBe(0);
     // 전체를 그린 경우 모두 완성되어야 함
     expect(res.fullDone, '전체를 그렸는데 완성된 글자 수').toBe(res.n);
+
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
+  test('낙서 차단: 막 긋기·상자 채우기는 미완성, 실제 따라쓰기는 완성', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    await gotoApp(page);
+
+    const res = await page.evaluate(() => {
+      const W = 320, H = 320;
+      function base() { const c = document.createElement('canvas'); c.width = W; c.height = H; return c; }
+      function fontGlyph(ch) {
+        const c = base(); const ctx = c.getContext('2d');
+        ctx.fillStyle = '#000'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.font = (Math.min(W, H) * 0.72) + 'px "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif';
+        ctx.fillText(ch, W / 2, H / 2 + Math.min(W, H) * 0.035);
+        return c;
+      }
+      function boxFill() { const c = base(); const ctx = c.getContext('2d'); ctx.fillStyle = '#000'; ctx.fillRect(W * 0.22, H * 0.22, W * 0.56, H * 0.56); return c; }
+      function zigzag() {
+        const c = base(); const ctx = c.getContext('2d');
+        ctx.strokeStyle = '#000'; ctx.lineWidth = W * 0.03; ctx.lineCap = 'round'; ctx.beginPath();
+        let x = 0.2 * W; ctx.moveTo(x, 0.25 * H);
+        for (let i = 0; i < 8; i++) { x += 0.075 * W; ctx.lineTo(x, (i % 2 ? 0.25 : 0.78) * H); }
+        ctx.stroke(); return c;
+      }
+      const glyphs = ['ㅁ', 'ㅎ', 'ㅂ', '8'];
+      let scribbleDone = 0, realDone = 0;
+      for (const g of glyphs) {
+        if (traceEvaluateTracing(boxFill(), g, { row: false }).done) scribbleDone++;
+        if (traceEvaluateTracing(zigzag(), g, { row: false }).done) scribbleDone++;
+        if (traceEvaluateTracing(fontGlyph(g), g, { row: false }).done) realDone++;
+      }
+      return { scribbleDone, realDone, n: glyphs.length };
+    });
+
+    expect(res.scribbleDone, '낙서인데 완성된 횟수').toBe(0);
+    expect(res.realDone, '실제 글자인데 완성된 글자 수').toBe(res.n);
 
     expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
   });

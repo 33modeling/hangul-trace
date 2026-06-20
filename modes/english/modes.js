@@ -284,6 +284,8 @@ class EnglishMode {
 
     const onPointerDown = (e) => {
       e.preventDefault();
+      const _strip = document.getElementById('eng-stroke-strip');
+      if (_strip && typeof cancelStrokeOrderStrip === 'function') cancelStrokeOrderStrip(_strip);
       this.isDrawing = true;
       const pos = this.canvas.getPos(e);
       this.startPoint = pos;

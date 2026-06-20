@@ -198,6 +198,9 @@ class CharMode {
 
     const onPointerDown = (e) => {
       e.preventDefault();
+      // 그리기 시작 시 진행 중인 획순 재생을 멈춰 가이드 하이라이트와 겹치는 깜빡임 방지.
+      const _strip = document.getElementById('stroke-strip');
+      if (_strip && typeof cancelStrokeOrderStrip === 'function') cancelStrokeOrderStrip(_strip);
       this.isDrawing = true;
       const pos = this.canvas.getPos(e);
       this.startPoint = pos;

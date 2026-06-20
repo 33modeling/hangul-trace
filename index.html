@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#7c3aed">
   <meta name="description" content="손가락으로 한글·숫자·영어를 따라 써요.">
-  <title>채윤 한글 v0.0.41</title>
+  <title>채윤 한글 v0.0.42</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <!-- Pretendard: 한글+영문 통일감 있는 모던 산세리프. system fallback chain은 styles.css에서. -->
@@ -83,6 +83,12 @@
           <span class="mode-icon" aria-hidden="true">🧱</span>
           <span class="mode-title">받침</span>
           <span class="mode-subtitle">자음+모음+받침</span>
+        </button>
+
+        <button type="button" class="mode-card" data-mode="strokeorder">
+          <span class="mode-icon" aria-hidden="true">✍️</span>
+          <span class="mode-title">획순 익히기</span>
+          <span class="mode-subtitle">쓰는 순서 따라</span>
         </button>
 
         <button type="button" class="mode-card" data-mode="word">
@@ -550,6 +556,36 @@
       <div id="dt-feedback"></div>
     </div>
 
+    <!-- 획순 익히기 모드 -->
+    <div id="strokeorder-mode" class="mode-ui">
+      <div id="so-nav" class="trace-mode-nav">
+        <button type="button" id="so-prev-btn" data-action="prev" aria-label="이전"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg></button>
+        <div>
+          <div id="so-label">ㄱ · 기역</div>
+          <div id="so-sub">획순 1 / 34 · 2획</div>
+        </div>
+        <button type="button" id="so-next-btn" data-action="next" aria-label="다음"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg></button>
+      </div>
+
+      <div id="so-complete"></div>
+
+      <div id="so-canvas-wrap" class="canvas-wrap">
+        <canvas id="so-guide-canvas"></canvas>
+        <canvas id="so-draw-canvas"></canvas>
+      </div>
+
+      <div id="so-strip" class="stroke-strip" aria-live="polite"></div>
+
+      <div id="so-toolbar" class="mode-toolbar">
+        <button type="button" id="so-play-btn" class="tool-btn info"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4" fill="currentColor" stroke="none"/></svg></span><span>획순 재생</span></button>
+        <button id="so-clear-btn" class="tool-btn" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13l-7.07 7.07a2 2 0 0 1-2.83 0l-3.17-3.17a2 2 0 0 1 0-2.83L12 7l6 6Z"/><path d="M14 5l4 4"/><path d="M9 21h12"/></svg></span><span>지우기</span></button>
+        <button type="button" id="so-speak-btn" class="tool-btn info"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg></span><span>듣기</span></button>
+        <button type="button" id="so-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
+      </div>
+
+      <div id="so-feedback"></div>
+    </div>
+
     <!-- 나의 기록(진척) — 스티커 도감 + 부모 대시보드 -->
     <div id="progress-mode" class="mode-ui">
       <div class="progress-titlebar">
@@ -593,6 +629,7 @@
   <script src="modes/phonics/modes.js"></script>
   <script src="modes/batchim/modes.js"></script>
   <script src="modes/dictation/modes.js"></script>
+  <script src="modes/strokeorder/modes.js"></script>
   <script src="modes/progress/modes.js"></script>
   <script src="index.js"></script>
 </body>

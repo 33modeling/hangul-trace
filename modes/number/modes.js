@@ -190,6 +190,8 @@ class NumberMode {
 
     const onPointerDown = (e) => {
       e.preventDefault();
+      const _strip = document.getElementById('num-stroke-strip');
+      if (_strip && typeof cancelStrokeOrderStrip === 'function') cancelStrokeOrderStrip(_strip);
       this.isDrawing = true;
       const pos = this.canvas.getPos(e);
       this.startPoint = pos;

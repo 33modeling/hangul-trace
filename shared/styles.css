@@ -1115,7 +1115,8 @@ button.myword-add-mini.tool-btn.myword-add-del
 #wc-canvas-wrap,
 #ph-canvas-wrap,
 #bt-canvas-wrap,
-#dt-canvas-wrap
+#dt-canvas-wrap,
+#so-canvas-wrap
 {
   position: relative;
   width: 100%;
@@ -1163,7 +1164,9 @@ button.myword-add-mini.tool-btn.myword-add-del
 #bt-guide-canvas,
 #bt-draw-canvas,
 #dt-guide-canvas,
-#dt-draw-canvas
+#dt-draw-canvas,
+#so-guide-canvas,
+#so-draw-canvas
 {
   position: absolute;
   top: 0;
@@ -1184,7 +1187,8 @@ button.myword-add-mini.tool-btn.myword-add-del
 #wc-guide-canvas,
 #ph-guide-canvas,
 #bt-guide-canvas,
-#dt-guide-canvas
+#dt-guide-canvas,
+#so-guide-canvas
 {
   z-index: 1;
   pointer-events: none;
@@ -1199,7 +1203,8 @@ button.myword-add-mini.tool-btn.myword-add-del
 #wc-draw-canvas,
 #ph-draw-canvas,
 #bt-draw-canvas,
-#dt-draw-canvas
+#dt-draw-canvas,
+#so-draw-canvas
 {
   z-index: 2;
   pointer-events: auto;
@@ -1214,7 +1219,8 @@ button.myword-add-mini.tool-btn.myword-add-del
   #wc-canvas-wrap,
   #ph-canvas-wrap,
   #bt-canvas-wrap,
-  #dt-canvas-wrap {
+  #dt-canvas-wrap,
+  #so-canvas-wrap {
     width: min(100%, 92vw, 65dvh, 65svh);
     max-width: 100%;
     max-height: min(92vw, 65dvh, 65svh);
@@ -1445,7 +1451,8 @@ button.myword-add-mini.tool-btn.myword-add-del
 #wc-complete,
 #ph-complete,
 #bt-complete,
-#dt-complete
+#dt-complete,
+#so-complete
 {
   text-align: center;
   margin-bottom: 8px;
@@ -1461,11 +1468,24 @@ button.myword-add-mini.tool-btn.myword-add-del
 #wc-complete:empty,
 #ph-complete:empty,
 #bt-complete:empty,
-#dt-complete:empty
+#dt-complete:empty,
+#so-complete:empty
 {
   min-height: 0;
   margin-bottom: 0;
-}/* 반응형 — 가로 모드: 메인 2열,
+}
+
+/* 획순 익히기 모드 라벨 */
+.mode-card[data-mode="strokeorder"] { --m-border: #8fae6e; --m-bg: #e6efd6; --m-glow: rgba(143, 174, 110, 0.20); }
+#so-label
+{
+  font-size: 26px;
+  font-weight: 700;
+  color: #2d1b4e;
+  text-align: center;
+  font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+#so-sub { font-size: 14px; color: #6e5a8a; margin-top: 6px; text-align: center; }/* 반응형 — 가로 모드: 메인 2열,
 연습 화면은 정보+캔버스 2열 그리드 (JS 리사이즈와 맞춤) */@media (orientation: landscape)
 {
   body { padding: 0; }
@@ -1542,7 +1562,8 @@ button.myword-add-mini.tool-btn.myword-add-del
   #wc-canvas-wrap,
   #ph-canvas-wrap,
   #bt-canvas-wrap,
-  #dt-canvas-wrap {
+  #dt-canvas-wrap,
+  #so-canvas-wrap {
     max-width: min(72dvh, 52vw);
     max-height: min(72dvh, 52vw);
     margin: 0 auto;

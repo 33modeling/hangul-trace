@@ -188,6 +188,36 @@ test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리
     expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
   });
 
+  test('획순 익히기: 획순 카드·재생·캔버스·네비게이션', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    await gotoApp(page);
+
+    await page.locator('button.mode-card[data-mode="strokeorder"]').click();
+    await expect(page.locator('#strokeorder-mode')).toHaveClass(/active/);
+
+    // 첫 글자 'ㄱ'은 2획 → 획순 카드 2개가 정적으로 표시됨
+    await expect(page.locator('#so-label')).toContainText('ㄱ');
+    await expect(page.locator('#so-strip .stroke-step')).toHaveCount(2);
+
+    // 캔버스 크기
+    const dw = await page.locator('#so-draw-canvas').evaluate(
+      (c) => /** @type {HTMLCanvasElement} */ (c).width
+    );
+    expect(dw, 'so-draw-canvas width').toBeGreaterThan(80);
+
+    // 재생 버튼 클릭 시 오류 없이 동작(첫 카드 강조)
+    await page.locator('#so-play-btn').click();
+    await page.waitForTimeout(300);
+
+    // 다음 글자(ㄴ)로 이동, 라벨 변경
+    await page.locator('#so-next-btn').click();
+    await expect(page.locator('#so-label')).toContainText('ㄴ');
+
+    await page.locator('#so-back-btn').click();
+    await expect(page.locator('#main-menu')).toBeVisible();
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
   test('나의 기록: 스티커 도감·모드별 통계·헤더가 렌더된다', async ({ page }) => {
     const errors = collectClientErrors(page);
     await gotoApp(page);

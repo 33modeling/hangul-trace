@@ -295,6 +295,38 @@ test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리
     expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
   });
 
+  test('완성 판정: 글자를 절반만 그리면 미완성, 거의 다 그리면 완성', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    await gotoApp(page);
+
+    const res = await page.evaluate(() => {
+      function glyphCanvas(ch, fracW) {
+        const W = 320, H = 320;
+        const c = document.createElement('canvas'); c.width = W; c.height = H;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#000'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.font = (Math.min(W, H) * 0.72) + 'px "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif';
+        ctx.fillText(ch, W / 2, H / 2 + Math.min(W, H) * 0.035);
+        if (fracW < 1) ctx.clearRect(W * fracW, 0, W, H); // 오른쪽 일부 미작성
+        return c;
+      }
+      const glyphs = ['ㅁ', 'ㅂ', 'ㄹ', 'ㅅ', 'A', '8'];
+      let halfDone = 0, fullDone = 0;
+      for (const g of glyphs) {
+        if (traceEvaluateTracing(glyphCanvas(g, 0.5), g, { row: false }).done) halfDone++;
+        if (traceEvaluateTracing(glyphCanvas(g, 1.0), g, { row: false }).done) fullDone++;
+      }
+      return { halfDone, fullDone, n: glyphs.length };
+    });
+
+    // 절반만 그린 경우 어떤 글자도 완성되면 안 됨(부분 작성 → 정답 버그 회귀 방지)
+    expect(res.halfDone, '절반만 그렸는데 완성된 글자 수').toBe(0);
+    // 전체를 그린 경우 모두 완성되어야 함
+    expect(res.fullDone, '전체를 그렸는데 완성된 글자 수').toBe(res.n);
+
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
   test('커버리지 엔진: 가이드 글자를 그대로 덮으면 완성(done) 판정', async ({ page }) => {
     const errors = collectClientErrors(page);
     await gotoApp(page);

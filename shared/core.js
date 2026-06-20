@@ -843,8 +843,12 @@ function traceRenderProgress(count, target, opts) {
    ========================================================================== */
 
 const TRACE_COV_SAMPLE = 112;       // 비교용 저해상도(긴 변 px) — 정확도/성능 균형
-const TRACE_COV_RADIUS_RATIO = 0.05; // 오차 허용 팽창 반경 = 표본 긴 변의 5%
-const TRACE_COV_RECALL_MIN = 0.58;   // 글자의 58% 이상을 덮어야
+const TRACE_COV_RADIUS_RATIO = 0.022; // 오차 허용 팽창 반경 = 표본 긴 변의 2.2%
+const TRACE_COV_RECALL_MIN = 0.85;   // 글자의 85% 이상을 덮어야(거의 다 써야 완성).
+// 예전 0.58/5% 는 글자를 절반만 따라 써도 dilation 이 빈 곳을 메워 '완성'으로
+// 오판정됐다(부분 작성 → 정답 버그). 측정 기반으로 50~60% 부분 작성은 미완성,
+// ~85% 이상 덮어야 완성되도록 좁혔다. 아이의 굵은 펜이 시뮬레이션보다 recall 을
+// 더 올려 주므로 실제 완전 따라쓰기는 무리 없이 완성된다.
 const TRACE_COV_PRECISION_MIN = 0.40; // 필기의 40% 이상이 글자 위에 있어야(낙서 차단)
 const TRACE_COV_INK_ALPHA = 40;      // 필기 픽셀로 칠 alpha 하한
 const TRACE_COV_MASK_ALPHA = 80;     // 글자 픽셀로 칠 alpha 하한

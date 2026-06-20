@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#7c3aed">
   <meta name="description" content="손가락으로 한글·숫자·영어를 따라 써요.">
-  <title>채윤 한글 v0.0.38</title>
+  <title>채윤 한글 v0.0.39</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <!-- Pretendard: 한글+영문 통일감 있는 모던 산세리프. system fallback chain은 styles.css에서. -->
@@ -66,6 +66,12 @@
           <span class="mode-icon" aria-hidden="true">🅰️</span>
           <span class="mode-title">자음/모음 모드</span>
           <span class="mode-subtitle">24 자</span>
+        </button>
+
+        <button type="button" class="mode-card" data-mode="phonics">
+          <span class="mode-icon" aria-hidden="true">🧩</span>
+          <span class="mode-title">첫걸음</span>
+          <span class="mode-subtitle">자음+모음=글자</span>
         </button>
 
         <button type="button" class="mode-card" data-mode="word">
@@ -410,6 +416,42 @@
         <button type="button" id="quiz-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
       </div>
     </div>
+
+    <!-- 첫걸음(파닉스) 모드 -->
+    <div id="phonics-mode" class="mode-ui">
+      <div id="ph-nav" class="trace-mode-nav">
+        <button type="button" id="ph-prev-btn" data-action="prev" aria-label="이전"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg></button>
+        <div>
+          <div id="ph-label">가</div>
+          <div id="ph-sub">첫걸음 1 / 140</div>
+        </div>
+        <button type="button" id="ph-next-btn" data-action="next" aria-label="다음"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg></button>
+      </div>
+
+      <div id="phonics-combo" class="phonics-combo" aria-label="자음 더하기 모음은 글자">
+        <span class="phonics-tile"><b id="ph-cons-ch">ㄱ</b><small id="ph-cons-name">기역</small></span>
+        <span class="phonics-op" aria-hidden="true">+</span>
+        <span class="phonics-tile"><b id="ph-vow-ch">ㅏ</b><small id="ph-vow-name">아</small></span>
+        <span class="phonics-op" aria-hidden="true">=</span>
+        <span class="phonics-tile result"><b id="ph-syl-ch">가</b></span>
+      </div>
+
+      <div id="ph-example" class="hint-pill phonics-example" hidden></div>
+
+      <div id="ph-complete"></div>
+
+      <div id="ph-canvas-wrap" class="canvas-wrap">
+        <canvas id="ph-guide-canvas"></canvas>
+        <canvas id="ph-draw-canvas"></canvas>
+      </div>
+
+      <div id="ph-toolbar" class="mode-toolbar">
+        <button id="ph-clear-btn" class="tool-btn" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13l-7.07 7.07a2 2 0 0 1-2.83 0l-3.17-3.17a2 2 0 0 1 0-2.83L12 7l6 6Z"/><path d="M14 5l4 4"/><path d="M9 21h12"/></svg></span><span>지우기</span></button>
+        <button type="button" id="ph-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
+      </div>
+
+      <div id="ph-feedback"></div>
+    </div>
   </div>
 
   <script src="shared/common.js"></script>
@@ -429,6 +471,7 @@
   <script src="modes/myword-add/modes.js"></script>
   <script src="modes/wordcard/modes.js"></script>
   <script src="modes/quiz/modes.js"></script>
+  <script src="modes/phonics/modes.js"></script>
   <script src="index.js"></script>
 </body>
 </html>

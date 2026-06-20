@@ -25,7 +25,7 @@ function traceTeardownActiveMode() {
   if (window.quizMode && typeof window.quizMode.clearTimer === 'function') {
     try { window.quizMode.clearTimer(); } catch (_e) { /* ignore */ }
   }
-  ['__traceCharRO', '__traceWordRO', '__traceNumberRO', '__traceEnglishRO', '__traceMyWordRO', '__traceAdvRO', '__traceWordcardRO'].forEach((k) => {
+  ['__traceCharRO', '__traceWordRO', '__traceNumberRO', '__traceEnglishRO', '__traceMyWordRO', '__traceAdvRO', '__traceWordcardRO', '__tracePhonicsRO'].forEach((k) => {
     const ro = window[k];
     if (ro && typeof ro.disconnect === 'function') {
       try { ro.disconnect(); } catch (_e) { /* ignore */ }
@@ -40,7 +40,7 @@ function traceTeardownActiveMode() {
     window[k] = null;
   });
   // 그리던 도중 이탈 시 window 에 남는 pointer/touch stroke 리스너 정리(#28).
-  ['draw-canvas', 'word-draw-canvas', 'num-draw-canvas', 'eng-draw-canvas', 'myword-draw-canvas', 'adv-draw-canvas', 'wc-draw-canvas'].forEach((id) => {
+  ['draw-canvas', 'word-draw-canvas', 'num-draw-canvas', 'eng-draw-canvas', 'myword-draw-canvas', 'adv-draw-canvas', 'wc-draw-canvas', 'ph-draw-canvas'].forEach((id) => {
     const c = document.getElementById(id);
     if (c && typeof c.__traceDrawUnbind === 'function') {
       try { c.__traceDrawUnbind(); } catch (_e) { /* ignore */ }
@@ -121,6 +121,10 @@ function showWordCardMode() {
 
 function showQuizMode() {
   showSingleMode('quiz');
+}
+
+function showPhonicsMode() {
+  showSingleMode('phonics');
 }
 
 /* === 이스터에그: byline '통통이' 15클릭 → 비밀 모드 ===
@@ -218,7 +222,8 @@ function showSingleMode(modeName, opts) {
     'myword-add': MyWordAddMode,
     advanced: typeof AdvancedMode !== 'undefined' ? AdvancedMode : undefined,
     wordcard: typeof WordCardMode !== 'undefined' ? WordCardMode : undefined,
-    quiz: typeof QuizMode !== 'undefined' ? QuizMode : undefined
+    quiz: typeof QuizMode !== 'undefined' ? QuizMode : undefined,
+    phonics: typeof PhonicsMode !== 'undefined' ? PhonicsMode : undefined
   }[modeName];
 
   function startMode() {
@@ -232,6 +237,7 @@ function showSingleMode(modeName, opts) {
       else if (modeName === 'advanced') window.advancedMode = new ModeClass();
       else if (modeName === 'wordcard') window.wordCardMode = new ModeClass();
       else if (modeName === 'quiz') window.quizMode = new ModeClass();
+      else if (modeName === 'phonics') window.phonicsMode = new ModeClass();
     } catch (err) {
       console.error('tracing: mode init failed', modeName, err);
     }
@@ -267,7 +273,7 @@ function initAppShell() {
       const el = traceClickElement(e);
       if (!el) return;
       const back = el.closest(
-        '#back-btn, #word-back-btn, #num-back-btn, #eng-back-btn, #myword-back-btn, #myword-add-back-btn, #myword-add-menu-btn, #adv-back-btn, #wc-back-btn, #quiz-back-btn, #secret-back-btn'
+        '#back-btn, #word-back-btn, #num-back-btn, #eng-back-btn, #myword-back-btn, #myword-add-back-btn, #myword-add-menu-btn, #adv-back-btn, #wc-back-btn, #quiz-back-btn, #ph-back-btn, #secret-back-btn'
       );
       if (back && app.contains(back)) {
         e.preventDefault();
@@ -308,6 +314,10 @@ function initAppShell() {
         } else if (id === 'wc-prev-btn' || id === 'wc-next-btn') {
           if (window.wordCardMode && typeof window.wordCardMode[action] === 'function') {
             window.wordCardMode[action]();
+          }
+        } else if (id === 'ph-prev-btn' || id === 'ph-next-btn') {
+          if (window.phonicsMode && typeof window.phonicsMode[action] === 'function') {
+            window.phonicsMode[action]();
           }
         }
         return;
@@ -419,4 +429,5 @@ if (typeof window !== 'undefined') {
   window.showAdvancedMode = showAdvancedMode;
   window.showWordCardMode = showWordCardMode;
   window.showQuizMode = showQuizMode;
+  window.showPhonicsMode = showPhonicsMode;
 }

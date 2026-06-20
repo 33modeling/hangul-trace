@@ -82,6 +82,39 @@ test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리
     expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
   });
 
+  test('첫걸음 파닉스: 조합(자음+모음=글자) 표시, 캔버스, 네비게이션', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    await gotoApp(page);
+
+    await page.locator('button.mode-card[data-mode="phonics"]').click();
+    await expect(page.locator('#phonics-mode')).toHaveClass(/active/);
+
+    // 조합 타일이 채워짐 (자음·모음·결과 글자)
+    await expect(page.locator('#ph-cons-ch')).not.toBeEmpty();
+    await expect(page.locator('#ph-vow-ch')).not.toBeEmpty();
+    const syl1 = (await page.locator('#ph-syl-ch').textContent()) || '';
+    expect(syl1.length).toBeGreaterThan(0);
+    // 라벨 = 결과 음절
+    await expect(page.locator('#ph-label')).toHaveText(syl1);
+
+    // 따라쓰기 캔버스 크기
+    const dw = await page.locator('#ph-draw-canvas').evaluate(
+      (c) => /** @type {HTMLCanvasElement} */ (c).width
+    );
+    expect(dw, 'ph-draw-canvas width').toBeGreaterThan(80);
+
+    // 다음 → 결과 음절 변경
+    await page.locator('#ph-next-btn').click();
+    const syl2 = (await page.locator('#ph-syl-ch').textContent()) || '';
+    expect(syl2).not.toEqual(syl1);
+
+    // 메뉴 복귀
+    await page.locator('#ph-back-btn').click();
+    await expect(page.locator('#main-menu')).toBeVisible();
+
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
   test('커버리지 엔진: 가이드 글자를 그대로 덮으면 완성(done) 판정', async ({ page }) => {
     const errors = collectClientErrors(page);
     await gotoApp(page);

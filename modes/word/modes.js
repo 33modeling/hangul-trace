@@ -128,6 +128,7 @@ class WordMode {
     this._syncWordCanvases();
     this.strokeCount = 0;
     this.updateFeedback();
+    if (typeof TraceTTS !== 'undefined') TraceTTS.speakAuto(w.syllable);
   }
 
   /** 초성 예시 단어(파닉스) 칩 — "ㄱ 은 가방🎒 의 ㄱ" 으로 소리·읽기 연결. */
@@ -203,6 +204,7 @@ class WordMode {
         const w = WORDS[this.currentIdx];
         document.getElementById('word-complete').textContent = `${w.syllable} ✓`;
         if (typeof TraceSound !== 'undefined') TraceSound.complete();
+        if (typeof TraceRewards !== 'undefined') TraceRewards.award(10);
       }
     };
 

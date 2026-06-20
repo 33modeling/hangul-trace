@@ -115,6 +115,79 @@ test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리
     expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
   });
 
+  test('받침: 조합(자음+모음+받침=글자) 표시, 캔버스, 네비게이션', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    await gotoApp(page);
+
+    await page.locator('button.mode-card[data-mode="batchim"]').click();
+    await expect(page.locator('#batchim-mode')).toHaveClass(/active/);
+
+    await expect(page.locator('#bt-cons-ch')).not.toBeEmpty();
+    await expect(page.locator('#bt-vow-ch')).not.toBeEmpty();
+    await expect(page.locator('#bt-jong-ch')).not.toBeEmpty();
+    const syl1 = (await page.locator('#bt-syl-ch').textContent()) || '';
+    expect(syl1.length).toBeGreaterThan(0);
+    await expect(page.locator('#bt-label')).toHaveText(syl1);
+
+    const dw = await page.locator('#bt-draw-canvas').evaluate(
+      (c) => /** @type {HTMLCanvasElement} */ (c).width
+    );
+    expect(dw, 'bt-draw-canvas width').toBeGreaterThan(80);
+
+    await page.locator('#bt-next-btn').click();
+    const syl2 = (await page.locator('#bt-syl-ch').textContent()) || '';
+    expect(syl2).not.toEqual(syl1);
+
+    await page.locator('#bt-back-btn').click();
+    await expect(page.locator('#main-menu')).toBeVisible();
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
+  test('그림 받아쓰기: 그림·뜻 표시, 정답 숨김→정답 보기, 네비게이션', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    await gotoApp(page);
+
+    await page.locator('button.mode-card[data-mode="dictation"]').click();
+    await expect(page.locator('#dictation-mode')).toHaveClass(/active/);
+
+    // 그림·뜻 보이고, 정답은 숨겨져 있어야 함
+    await expect(page.locator('#dt-emoji')).not.toBeEmpty();
+    await expect(page.locator('#dt-meaning')).not.toBeEmpty();
+    await expect(page.locator('#dt-answer')).toBeHidden();
+
+    // 정답 보기 → 정답 노출
+    await page.locator('#dt-reveal-btn').click();
+    await expect(page.locator('#dt-answer')).toBeVisible();
+    await expect(page.locator('#dt-answer')).toContainText('정답');
+
+    // 다음 문제 → 정답 다시 숨김
+    await page.locator('#dt-next-btn').click();
+    await expect(page.locator('#dt-answer')).toBeHidden();
+
+    await page.locator('#dt-back-btn').click();
+    await expect(page.locator('#main-menu')).toBeVisible();
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
+  test('보상: award 시 점수·레벨 배지가 갱신된다', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    await gotoApp(page);
+
+    const res = await page.evaluate(() => {
+      const a = TraceRewards.award(50);
+      const b = TraceRewards.award(50);
+      const g = TraceRewards.get();
+      const badge = document.getElementById('menu-reward-badge');
+      return { score: g.score, level: g.level, badgeText: badge ? badge.textContent : '' };
+    });
+    expect(res.score).toBe(100);
+    expect(res.level).toBeGreaterThanOrEqual(2); // 50점에서 Lv.2
+    expect(res.badgeText).toContain('Lv.');
+    expect(res.badgeText).toContain('점');
+
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
   test('커버리지 엔진: 가이드 글자를 그대로 덮으면 완성(done) 판정', async ({ page }) => {
     const errors = collectClientErrors(page);
     await gotoApp(page);

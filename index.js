@@ -25,7 +25,7 @@ function traceTeardownActiveMode() {
   if (window.quizMode && typeof window.quizMode.clearTimer === 'function') {
     try { window.quizMode.clearTimer(); } catch (_e) { /* ignore */ }
   }
-  ['__traceCharRO', '__traceWordRO', '__traceNumberRO', '__traceEnglishRO', '__traceMyWordRO', '__traceAdvRO', '__traceWordcardRO', '__tracePhonicsRO'].forEach((k) => {
+  ['__traceCharRO', '__traceWordRO', '__traceNumberRO', '__traceEnglishRO', '__traceMyWordRO', '__traceAdvRO', '__traceWordcardRO', '__tracePhonicsRO', '__traceBatchimRO', '__traceDictationRO'].forEach((k) => {
     const ro = window[k];
     if (ro && typeof ro.disconnect === 'function') {
       try { ro.disconnect(); } catch (_e) { /* ignore */ }
@@ -40,7 +40,7 @@ function traceTeardownActiveMode() {
     window[k] = null;
   });
   // 그리던 도중 이탈 시 window 에 남는 pointer/touch stroke 리스너 정리(#28).
-  ['draw-canvas', 'word-draw-canvas', 'num-draw-canvas', 'eng-draw-canvas', 'myword-draw-canvas', 'adv-draw-canvas', 'wc-draw-canvas', 'ph-draw-canvas'].forEach((id) => {
+  ['draw-canvas', 'word-draw-canvas', 'num-draw-canvas', 'eng-draw-canvas', 'myword-draw-canvas', 'adv-draw-canvas', 'wc-draw-canvas', 'ph-draw-canvas', 'bt-draw-canvas', 'dt-draw-canvas'].forEach((id) => {
     const c = document.getElementById(id);
     if (c && typeof c.__traceDrawUnbind === 'function') {
       try { c.__traceDrawUnbind(); } catch (_e) { /* ignore */ }
@@ -79,6 +79,8 @@ function showMainMenu(opts) {
   document.querySelectorAll('.mode-ui').forEach((el) => el.classList.remove('active'));
   const menu = document.getElementById('main-menu');
   if (menu) menu.style.display = 'flex';
+  // 메뉴로 돌아올 때 보상 배지(레벨·별·연속일·점수) 갱신.
+  if (typeof TraceRewards !== 'undefined') TraceRewards.updateBadge();
 
   // 포커스 복귀 — 모드를 연 카드로 되돌려 키보드/스크린리더 위치 유지(#20).
   if (_traceReturnFocusEl && document.contains(_traceReturnFocusEl)) {
@@ -125,6 +127,14 @@ function showQuizMode() {
 
 function showPhonicsMode() {
   showSingleMode('phonics');
+}
+
+function showBatchimMode() {
+  showSingleMode('batchim');
+}
+
+function showDictationMode() {
+  showSingleMode('dictation');
 }
 
 /* === 이스터에그: byline '통통이' 15클릭 → 비밀 모드 ===
@@ -223,7 +233,9 @@ function showSingleMode(modeName, opts) {
     advanced: typeof AdvancedMode !== 'undefined' ? AdvancedMode : undefined,
     wordcard: typeof WordCardMode !== 'undefined' ? WordCardMode : undefined,
     quiz: typeof QuizMode !== 'undefined' ? QuizMode : undefined,
-    phonics: typeof PhonicsMode !== 'undefined' ? PhonicsMode : undefined
+    phonics: typeof PhonicsMode !== 'undefined' ? PhonicsMode : undefined,
+    batchim: typeof BatchimMode !== 'undefined' ? BatchimMode : undefined,
+    dictation: typeof DictationMode !== 'undefined' ? DictationMode : undefined
   }[modeName];
 
   function startMode() {
@@ -238,6 +250,8 @@ function showSingleMode(modeName, opts) {
       else if (modeName === 'wordcard') window.wordCardMode = new ModeClass();
       else if (modeName === 'quiz') window.quizMode = new ModeClass();
       else if (modeName === 'phonics') window.phonicsMode = new ModeClass();
+      else if (modeName === 'batchim') window.batchimMode = new ModeClass();
+      else if (modeName === 'dictation') window.dictationMode = new ModeClass();
     } catch (err) {
       console.error('tracing: mode init failed', modeName, err);
     }
@@ -273,7 +287,7 @@ function initAppShell() {
       const el = traceClickElement(e);
       if (!el) return;
       const back = el.closest(
-        '#back-btn, #word-back-btn, #num-back-btn, #eng-back-btn, #myword-back-btn, #myword-add-back-btn, #myword-add-menu-btn, #adv-back-btn, #wc-back-btn, #quiz-back-btn, #ph-back-btn, #secret-back-btn'
+        '#back-btn, #word-back-btn, #num-back-btn, #eng-back-btn, #myword-back-btn, #myword-add-back-btn, #myword-add-menu-btn, #adv-back-btn, #wc-back-btn, #quiz-back-btn, #ph-back-btn, #bt-back-btn, #dt-back-btn, #secret-back-btn'
       );
       if (back && app.contains(back)) {
         e.preventDefault();
@@ -318,6 +332,14 @@ function initAppShell() {
         } else if (id === 'ph-prev-btn' || id === 'ph-next-btn') {
           if (window.phonicsMode && typeof window.phonicsMode[action] === 'function') {
             window.phonicsMode[action]();
+          }
+        } else if (id === 'bt-prev-btn' || id === 'bt-next-btn') {
+          if (window.batchimMode && typeof window.batchimMode[action] === 'function') {
+            window.batchimMode[action]();
+          }
+        } else if (id === 'dt-prev-btn' || id === 'dt-next-btn') {
+          if (window.dictationMode && typeof window.dictationMode[action] === 'function') {
+            window.dictationMode[action]();
           }
         }
         return;
@@ -430,4 +452,6 @@ if (typeof window !== 'undefined') {
   window.showWordCardMode = showWordCardMode;
   window.showQuizMode = showQuizMode;
   window.showPhonicsMode = showPhonicsMode;
+  window.showBatchimMode = showBatchimMode;
+  window.showDictationMode = showDictationMode;
 }

@@ -220,6 +220,7 @@ class NumberMode {
         this.navigation.markDone(this.currentIdx); // (#4)
         traceSaveDone('tracing.done.number.v1', this.navigation.doneSet); // (#5)
         if (typeof TraceSound !== 'undefined') TraceSound.complete();
+        if (typeof TraceRewards !== 'undefined') TraceRewards.award(10);
       }
     };
     

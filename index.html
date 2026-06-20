@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#7c3aed">
   <meta name="description" content="손가락으로 한글·숫자·영어를 따라 써요.">
-  <title>채윤 한글 v0.0.39</title>
+  <title>채윤 한글 v0.0.40</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <!-- Pretendard: 한글+영문 통일감 있는 모던 산세리프. system fallback chain은 styles.css에서. -->
@@ -52,12 +52,17 @@
         <p>손가락으로 글자를 써보세요!</p>
       </div>
 
+      <div id="menu-reward-badge" class="menu-reward-badge" aria-live="polite"></div>
+
       <div id="menu-sound-toggles" class="menu-sound-toggles">
         <button type="button" id="bgm-toggle" class="sound-toggle-btn" aria-pressed="false">
           <span class="sound-icon" aria-hidden="true">🎼</span><span class="sound-label">배경음</span>
         </button>
         <button type="button" id="sfx-toggle" class="sound-toggle-btn" aria-pressed="true">
           <span class="sound-icon" aria-hidden="true">🔔</span><span class="sound-label">효과음</span>
+        </button>
+        <button type="button" id="tts-toggle" class="sound-toggle-btn off" aria-pressed="false">
+          <span class="sound-icon" aria-hidden="true">🔊</span><span class="sound-label">발음</span>
         </button>
       </div>
       
@@ -72,6 +77,12 @@
           <span class="mode-icon" aria-hidden="true">🧩</span>
           <span class="mode-title">첫걸음</span>
           <span class="mode-subtitle">자음+모음=글자</span>
+        </button>
+
+        <button type="button" class="mode-card" data-mode="batchim">
+          <span class="mode-icon" aria-hidden="true">🧱</span>
+          <span class="mode-title">받침</span>
+          <span class="mode-subtitle">자음+모음+받침</span>
         </button>
 
         <button type="button" class="mode-card" data-mode="word">
@@ -120,6 +131,12 @@
           <span class="mode-icon" aria-hidden="true">❓</span>
           <span class="mode-title">단어 퀴즈</span>
           <span class="mode-subtitle">뜻↔단어 맞히기</span>
+        </button>
+
+        <button type="button" class="mode-card" data-mode="dictation">
+          <span class="mode-icon" aria-hidden="true">🖼️</span>
+          <span class="mode-title">그림 받아쓰기</span>
+          <span class="mode-subtitle">그림 보고 단어 쓰기</span>
         </button>
       </div>
 
@@ -389,6 +406,7 @@
 
       <div id="wc-toolbar" class="mode-toolbar">
         <button id="wc-clear-btn" class="tool-btn" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13l-7.07 7.07a2 2 0 0 1-2.83 0l-3.17-3.17a2 2 0 0 1 0-2.83L12 7l6 6Z"/><path d="M14 5l4 4"/><path d="M9 21h12"/></svg></span><span>지우기</span></button>
+        <button type="button" id="wc-speak-btn" class="tool-btn info"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></span><span>듣기</span></button>
         <button type="button" id="wc-known-btn" class="tool-btn" aria-pressed="false"><span class="btn-icon" aria-hidden="true">★</span><span class="wc-known-label">아는 단어</span></button>
         <button type="button" id="wc-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
       </div>
@@ -447,10 +465,83 @@
 
       <div id="ph-toolbar" class="mode-toolbar">
         <button id="ph-clear-btn" class="tool-btn" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13l-7.07 7.07a2 2 0 0 1-2.83 0l-3.17-3.17a2 2 0 0 1 0-2.83L12 7l6 6Z"/><path d="M14 5l4 4"/><path d="M9 21h12"/></svg></span><span>지우기</span></button>
+        <button type="button" id="ph-speak-btn" class="tool-btn info"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></span><span>듣기</span></button>
         <button type="button" id="ph-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
       </div>
 
       <div id="ph-feedback"></div>
+    </div>
+
+    <!-- 받침(종성) 모드 -->
+    <div id="batchim-mode" class="mode-ui">
+      <div id="bt-nav" class="trace-mode-nav">
+        <button type="button" id="bt-prev-btn" data-action="prev" aria-label="이전"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg></button>
+        <div>
+          <div id="bt-label">강</div>
+          <div id="bt-sub">받침 1 / 40</div>
+        </div>
+        <button type="button" id="bt-next-btn" data-action="next" aria-label="다음"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg></button>
+      </div>
+
+      <div id="batchim-combo" class="phonics-combo" aria-label="자음 더하기 모음 더하기 받침은 글자">
+        <span class="phonics-tile"><b id="bt-cons-ch">ㄱ</b><small id="bt-cons-name">기역</small></span>
+        <span class="phonics-op" aria-hidden="true">+</span>
+        <span class="phonics-tile"><b id="bt-vow-ch">ㅏ</b><small id="bt-vow-name">아</small></span>
+        <span class="phonics-op" aria-hidden="true">+</span>
+        <span class="phonics-tile"><b id="bt-jong-ch">ㅇ</b><small id="bt-jong-name">이응</small></span>
+        <span class="phonics-op" aria-hidden="true">=</span>
+        <span class="phonics-tile result"><b id="bt-syl-ch">강</b></span>
+      </div>
+
+      <div id="bt-example" class="hint-pill phonics-example" hidden></div>
+
+      <div id="bt-complete"></div>
+
+      <div id="bt-canvas-wrap" class="canvas-wrap">
+        <canvas id="bt-guide-canvas"></canvas>
+        <canvas id="bt-draw-canvas"></canvas>
+      </div>
+
+      <div id="bt-toolbar" class="mode-toolbar">
+        <button id="bt-clear-btn" class="tool-btn" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13l-7.07 7.07a2 2 0 0 1-2.83 0l-3.17-3.17a2 2 0 0 1 0-2.83L12 7l6 6Z"/><path d="M14 5l4 4"/><path d="M9 21h12"/></svg></span><span>지우기</span></button>
+        <button type="button" id="bt-speak-btn" class="tool-btn info"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></span><span>듣기</span></button>
+        <button type="button" id="bt-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
+      </div>
+
+      <div id="bt-feedback"></div>
+    </div>
+
+    <!-- 그림 받아쓰기 모드 -->
+    <div id="dictation-mode" class="mode-ui">
+      <div id="dt-nav" class="trace-mode-nav">
+        <button type="button" id="dt-prev-btn" data-action="prev" aria-label="이전"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg></button>
+        <div>
+          <div id="dt-label">그림 보고 쓰기</div>
+          <div id="dt-sub">받아쓰기 1 / 56</div>
+        </div>
+        <button type="button" id="dt-next-btn" data-action="next" aria-label="다음"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg></button>
+      </div>
+
+      <div id="dt-card" class="wc-card">
+        <span id="dt-emoji" class="wc-emoji" aria-hidden="true">🍎</span>
+        <span id="dt-meaning" class="wc-meaning">빨갛고 동그란 과일</span>
+        <span id="dt-answer" class="dt-answer" hidden></span>
+      </div>
+
+      <div id="dt-complete"></div>
+
+      <div id="dt-canvas-wrap" class="canvas-wrap">
+        <canvas id="dt-guide-canvas"></canvas>
+        <canvas id="dt-draw-canvas"></canvas>
+      </div>
+
+      <div id="dt-toolbar" class="mode-toolbar">
+        <button id="dt-clear-btn" class="tool-btn" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13l-7.07 7.07a2 2 0 0 1-2.83 0l-3.17-3.17a2 2 0 0 1 0-2.83L12 7l6 6Z"/><path d="M14 5l4 4"/><path d="M9 21h12"/></svg></span><span>지우기</span></button>
+        <button type="button" id="dt-reveal-btn" class="tool-btn info"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span><span>정답 보기</span></button>
+        <button type="button" id="dt-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
+      </div>
+
+      <div id="dt-feedback"></div>
     </div>
   </div>
 
@@ -461,6 +552,8 @@
   <script src="shared/utils.js"></script>
   <script src="shared/myWords.js"></script>
   <script src="shared/vocab.js"></script>
+  <script src="shared/rewards.js"></script>
+  <script src="shared/tts.js"></script>
   <script src="shared/sound.js"></script>
   <script src="modes/char/modes.js"></script>
   <script src="modes/word/modes.js"></script>
@@ -472,6 +565,8 @@
   <script src="modes/wordcard/modes.js"></script>
   <script src="modes/quiz/modes.js"></script>
   <script src="modes/phonics/modes.js"></script>
+  <script src="modes/batchim/modes.js"></script>
+  <script src="modes/dictation/modes.js"></script>
   <script src="index.js"></script>
 </body>
 </html>

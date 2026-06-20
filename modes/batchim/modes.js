@@ -1,39 +1,54 @@
 /*
- * 첫걸음(파닉스) 모드 — 처음 한글을 익히는 용도.
+ * 받침(종성) 모드 — 읽기 입문의 다음 단계.
  *
- * 소중한글식 "조합 원리": 자음 + 모음 = 글자 를 시각적으로 보여 준다.
- *   [ ㄱ · 기역 ] + [ ㅏ · 아 ] = [ 가 ]
- * 자음에는 예시 단어(파닉스)를 곁들여 소리·읽기를 연결하고("ㄱ 은 가방의 ㄱ"),
- * 만들어진 글자를 캔버스에 따라 쓴다(커버리지로 완성 판정). 음원 없이 텍스트.
- *
- * 데이터: 기본 자음 14 × 기본 모음 10 = 140 조합(자음 우선 순서: 가 갸 거 겨 …).
+ * 파닉스(자음+모음=가) 다음은 받침: 자음 + 모음 + 받침 = 글자(가+ㅇ=강).
+ *   [ㄱ·기역] + [ㅏ·아] + [ㅇ·이응] = [강]
+ * 일상에서 자주 쓰는 받침 음절을 모아, 분해해서 3타일로 보여 주고 따라 쓴다
+ * (커버리지로 완성 판정). 기본 자음 초성 + 기본 받침(ㄱㄴㄹㅁㅂㅅㅇ) 위주.
  */
-const TRACE_PH_PEN = '#be3974';
-const TRACE_PH_GUIDE = 'rgba(167, 139, 250, 0.55)';
+const TRACE_BT_PEN = '#be3974';
+const TRACE_BT_GUIDE = 'rgba(167, 139, 250, 0.55)';
 
-/** 초성+중성 → 음절(표준 U+AC00). 다른 모드와 독립되게 자체 정의. */
-function _tracePhonicsCompose(cho, jung) {
-  const CHO = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
-  const JUNG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
-  const ci = CHO.indexOf(cho);
-  const ji = JUNG.indexOf(jung);
-  if (ci < 0 || ji < 0) return String(cho) + String(jung);
-  return String.fromCodePoint(0xac00 + ci * 588 + ji * 28);
+/* 일상 받침 음절(아이 친화적, 기본 초성·기본 받침이라 자모 이름이 모두 있음). */
+const BATCHIM_SYLLABLES = [
+  '강', '공', '곰', '방', '종', '콩', '봉',
+  '산', '손', '눈', '문', '돈', '신',
+  '달', '말', '물', '발', '불', '별', '길', '칼',
+  '밤', '봄', '김', '감', '솜', '잠',
+  '밥', '입', '집', '컵',
+  '옷', '못', '빗',
+  '책', '약', '학', '국', '목', '박'
+];
+
+const _BT_CHO = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+const _BT_JUNG = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
+const _BT_JONG = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+
+function _traceJamoName(ch) {
+  const item = (typeof COMMON !== 'undefined') ? COMMON.CHARS.find((x) => x.ch === ch) : null;
+  return item ? item.name : '';
 }
 
-const PHONICS_ITEMS = (function () {
-  const cons = COMMON.CHARS.slice(0, 14);
-  const vows = COMMON.CHARS.slice(14, 24);
-  const out = [];
-  cons.forEach((c) => {
-    vows.forEach((v) => {
-      out.push({ cons: c, vow: v, syllable: _tracePhonicsCompose(c.ch, v.ch) });
-    });
-  });
-  return out;
-})();
+function _traceDecomposeSyllable(s) {
+  if (typeof s !== 'string' || s.length === 0) return null;
+  const code = s.charCodeAt(0) - 0xac00;
+  if (code < 0 || code >= 11172) return null;
+  return {
+    cho: _BT_CHO[Math.floor(code / 588)],
+    jung: _BT_JUNG[Math.floor((code % 588) / 28)],
+    jong: _BT_JONG[code % 28]
+  };
+}
 
-class PhonicsMode {
+const BATCHIM_ITEMS = BATCHIM_SYLLABLES
+  .map((s) => {
+    const d = _traceDecomposeSyllable(s);
+    if (!d || !d.jong) return null;
+    return { syllable: s, cho: d.cho, jung: d.jung, jong: d.jong };
+  })
+  .filter(Boolean);
+
+class BatchimMode {
   constructor() {
     this.currentIdx = 0;
     this.guideLayer = null;
@@ -48,13 +63,13 @@ class PhonicsMode {
   }
 
   _current() {
-    return PHONICS_ITEMS[this.currentIdx];
+    return BATCHIM_ITEMS[this.currentIdx];
   }
 
   init() {
-    this.guideLayer = new DrawingCanvas('ph-guide-canvas', 'ph-canvas-wrap');
-    this.canvas = new DrawingCanvas('ph-draw-canvas', 'ph-canvas-wrap');
-    this.wrapper = document.getElementById('ph-canvas-wrap');
+    this.guideLayer = new DrawingCanvas('bt-guide-canvas', 'bt-canvas-wrap');
+    this.canvas = new DrawingCanvas('bt-draw-canvas', 'bt-canvas-wrap');
+    this.wrapper = document.getElementById('bt-canvas-wrap');
     const self = this;
     if (this.wrapper) {
       this.wrapper.canvasObj = {
@@ -64,9 +79,9 @@ class PhonicsMode {
       };
     }
     if (typeof ResizeObserver !== 'undefined' && this.wrapper) {
-      if (window.__tracePhonicsRO && typeof window.__tracePhonicsRO.disconnect === 'function') {
-        try { window.__tracePhonicsRO.disconnect(); } catch (_e) { /* ignore */ }
-        window.__tracePhonicsRO = null;
+      if (window.__traceBatchimRO && typeof window.__traceBatchimRO.disconnect === 'function') {
+        try { window.__traceBatchimRO.disconnect(); } catch (_e) { /* ignore */ }
+        window.__traceBatchimRO = null;
       }
       this._wrapRo = new ResizeObserver(() => {
         if (self._wrapRoRaf) cancelAnimationFrame(self._wrapRoRaf);
@@ -79,7 +94,7 @@ class PhonicsMode {
         });
       });
       this._wrapRo.observe(this.wrapper);
-      window.__tracePhonicsRO = this._wrapRo;
+      window.__traceBatchimRO = this._wrapRo;
     }
 
     this.setupEvents();
@@ -90,7 +105,7 @@ class PhonicsMode {
         this._syncCanvases();
       }
     });
-    window.phonicsMode = this;
+    window.batchimMode = this;
   }
 
   _reflowWhenReady() {
@@ -112,7 +127,7 @@ class PhonicsMode {
     const it = this._current();
     this.guideLayer.resize();
     this.guideLayer.clear();
-    this.guideLayer.drawGuide(it.syllable, TRACE_PH_GUIDE);
+    this.guideLayer.drawGuide(it.syllable, TRACE_BT_GUIDE);
     if (preserveInk) {
       this.canvas.resize({ preserveInk: true });
     } else {
@@ -124,39 +139,38 @@ class PhonicsMode {
   updateUI() {
     this._resetDrawingState();
     const it = this._current();
-    const labelEl = document.getElementById('ph-label');
+    const labelEl = document.getElementById('bt-label');
     if (labelEl) labelEl.textContent = it.syllable;
-    const subEl = document.getElementById('ph-sub');
-    if (subEl) subEl.textContent = `첫걸음 ${this.currentIdx + 1} / ${PHONICS_ITEMS.length}`;
+    const subEl = document.getElementById('bt-sub');
+    if (subEl) subEl.textContent = `받침 ${this.currentIdx + 1} / ${BATCHIM_ITEMS.length}`;
     this._updateCombo(it);
     this._syncCanvases();
     this.updateFeedback();
     if (typeof TraceTTS !== 'undefined') TraceTTS.speakAuto(it.syllable);
   }
 
-  /** 조합 타일 + 자음 예시 단어 갱신. */
   _updateCombo(it) {
     const set = (id, text) => {
       const el = document.getElementById(id);
       if (el) el.textContent = text;
     };
-    set('ph-cons-ch', it.cons.ch);
-    set('ph-cons-name', it.cons.name);
-    set('ph-vow-ch', it.vow.ch);
-    set('ph-vow-name', it.vow.name);
-    set('ph-syl-ch', it.syllable);
+    set('bt-cons-ch', it.cho);
+    set('bt-cons-name', _traceJamoName(it.cho));
+    set('bt-vow-ch', it.jung);
+    set('bt-vow-name', _traceJamoName(it.jung));
+    set('bt-jong-ch', it.jong);
+    set('bt-jong-name', _traceJamoName(it.jong));
+    set('bt-syl-ch', it.syllable);
 
-    const exEl = document.getElementById('ph-example');
+    const exEl = document.getElementById('bt-example');
     if (exEl) {
-      const ex = (typeof traceConsonantExample === 'function')
-        ? traceConsonantExample(it.cons.ch)
-        : null;
-      if (ex) {
-        exEl.innerHTML = `${it.cons.ch} 은 <b>${ex.word}</b> ${ex.emoji} 의 ${it.cons.ch}`;
+      const m = (typeof traceWordMeaning === 'function') ? traceWordMeaning(it.syllable) : null;
+      if (m && m.meaning) {
+        exEl.textContent = `${it.syllable} — ${m.meaning}`;
         exEl.hidden = false;
       } else {
-        exEl.textContent = '';
-        exEl.hidden = true;
+        exEl.textContent = `받침은 글자 아래에 붙어요`;
+        exEl.hidden = false;
       }
     }
   }
@@ -165,9 +179,8 @@ class PhonicsMode {
     return { target: this._current().syllable, row: false };
   }
 
-  /** 완성 판정: 커버리지 기반(렌더만, 완성은 호출부에서). */
   updateFeedback() {
-    const feedbackEl = document.getElementById('ph-feedback');
+    const feedbackEl = document.getElementById('bt-feedback');
     if (!feedbackEl) return null;
     const { target, row } = this._currentTarget();
     const cov = traceEvaluateTracing(this.canvas.canvas, target, { row });
@@ -181,12 +194,12 @@ class PhonicsMode {
   setupEvents() {
     this._strokeTracker = makeStrokeTracker(this.canvas.canvas);
 
-    rebindButtonClickById('ph-clear-btn', () => {
+    rebindButtonClickById('bt-clear-btn', () => {
       this.canvas.clear();
       this.updateFeedback();
     });
 
-    rebindButtonClickById('ph-speak-btn', () => {
+    rebindButtonClickById('bt-speak-btn', () => {
       if (typeof TraceTTS !== 'undefined') TraceTTS.speak(this._current().syllable);
     });
 
@@ -197,7 +210,7 @@ class PhonicsMode {
       this.canvas.lastX = pos.x;
       this.canvas.lastY = pos.y;
       this._strokeTracker.begin(pos);
-      this.canvas.drawDot(pos.x, pos.y, TRACE_PH_PEN, 6);
+      this.canvas.drawDot(pos.x, pos.y, TRACE_BT_PEN, 6);
     };
 
     const onPointerMove = (e) => {
@@ -205,7 +218,7 @@ class PhonicsMode {
       e.preventDefault();
       const current = this.canvas.getPos(e);
       this._strokeTracker.move(current);
-      this.canvas.drawLine(this.canvas.lastX, this.canvas.lastY, current.x, current.y, TRACE_PH_PEN);
+      this.canvas.drawLine(this.canvas.lastX, this.canvas.lastY, current.x, current.y, TRACE_BT_PEN);
       this.canvas.lastX = current.x;
       this.canvas.lastY = current.y;
     };
@@ -219,14 +232,14 @@ class PhonicsMode {
       if (cov && cov.done && !this.doneSet.has(this.currentIdx)) {
         this.doneSet.add(this.currentIdx);
         const it = this._current();
-        const completeEl = document.getElementById('ph-complete');
+        const completeEl = document.getElementById('bt-complete');
         if (completeEl) completeEl.textContent = `${it.syllable} ✓`;
         if (typeof TraceSound !== 'undefined') TraceSound.complete();
         if (typeof TraceRewards !== 'undefined') TraceRewards.award(12);
       }
     };
 
-    const drawCanvas = document.getElementById('ph-draw-canvas');
+    const drawCanvas = document.getElementById('bt-draw-canvas');
     if (drawCanvas) {
       attachCanvasPointerDrawing(drawCanvas, {
         onDown: onPointerDown,
@@ -236,7 +249,6 @@ class PhonicsMode {
     }
   }
 
-  /** mid-stroke 이동 시 잔여 상태 정리. */
   _resetDrawingState() {
     this.isDrawing = false;
     if (this.canvas) {
@@ -246,14 +258,14 @@ class PhonicsMode {
     if (this._strokeTracker && typeof this._strokeTracker.cancel === 'function') {
       try { this._strokeTracker.cancel(); } catch (_) { /* ignore */ }
     }
-    const wc = document.getElementById('ph-complete');
+    const wc = document.getElementById('bt-complete');
     if (wc) wc.textContent = '';
   }
 
   goTo(idx) {
     if (typeof idx !== 'number' || isNaN(idx)) return;
     this._resetDrawingState();
-    const n = PHONICS_ITEMS.length;
+    const n = BATCHIM_ITEMS.length;
     this.currentIdx = ((idx % n) + n) % n;
     this.updateUI();
   }

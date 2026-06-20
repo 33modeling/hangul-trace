@@ -1,38 +1,30 @@
 /*
- * 단어 카드 모드 — 그림(이모지) + 단어 + 뜻 + 따라쓰기 + "아는 단어" 암기 토글.
+ * 그림 받아쓰기 모드 — 재인(고르기)을 넘어 재생(직접 쓰기) 학습.
  *
- * 소중한글식 단어 학습: 단어를 그림·뜻과 함께 보여 의미를 이해시키고, 한 행에
- * 통째로 가이드를 깔아 따라 쓰게 하며(커버리지로 완성 판정), 외운 단어는
- * "아는 단어"로 표시해 진도를 localStorage 에 남긴다.
+ * 그림(이모지)+뜻만 보여 주고 단어는 숨긴다. 아이가 단어를 떠올려 빈 칸에
+ * 직접 따라 쓰면 커버리지로 채점한다(가이드 글자 없이 시작 → 진짜 받아쓰기).
+ * 모르면 "정답 보기"로 가이드를 띄워 따라 쓴다.
+ *   - 정답 보기 없이 맞히면(외웠으면) 보너스 점수.
+ *   - 정답 보기 후 따라 써도 점수.
+ * 어휘셋(TRACE_VOCAB)과 커버리지 엔진을 재사용.
  */
-const TRACE_WC_PEN = '#be3974';
-const TRACE_WC_GUIDE = 'rgba(167, 139, 250, 0.55)';
-const TRACE_WC_KNOWN_KEY = 'tracing.wordcard.known.v1';
+const TRACE_DT_PEN = '#be3974';
+const TRACE_DT_GUIDE = 'rgba(167, 139, 250, 0.55)';
 
-class WordCardMode {
+class DictationMode {
   constructor() {
-    // 매 입장마다 카드 순서를 새로 섞어 새 느낌으로 학습(원본 불변).
     this.cards = (typeof TRACE_VOCAB !== 'undefined') ? traceShuffleArray(TRACE_VOCAB) : [];
     this.currentIdx = 0;
     this.guideLayer = null;
     this.canvas = null;
     this.wrapper = null;
     this.isDrawing = false;
-    this.tracedSet = new Set();          // 이번 세션에 따라쓰기 완성한 단어
-    this.knownSet = new Set(this._loadKnown()); // 아는 단어(영구 저장)
+    this.revealed = false;     // 정답(가이드)을 띄웠는가
+    this.solvedSet = new Set(); // 맞힌 단어
     this._wrapRo = null;
     this._wrapRoRaf = 0;
 
     this.init();
-  }
-
-  _loadKnown() {
-    const arr = (typeof Utils !== 'undefined') ? Utils.loadLocal(TRACE_WC_KNOWN_KEY, []) : [];
-    return Array.isArray(arr) ? arr.filter((w) => typeof w === 'string') : [];
-  }
-
-  _saveKnown() {
-    if (typeof Utils !== 'undefined') Utils.saveLocal(TRACE_WC_KNOWN_KEY, Array.from(this.knownSet));
   }
 
   _current() {
@@ -45,9 +37,9 @@ class WordCardMode {
   }
 
   init() {
-    this.guideLayer = new DrawingCanvas('wc-guide-canvas', 'wc-canvas-wrap');
-    this.canvas = new DrawingCanvas('wc-draw-canvas', 'wc-canvas-wrap');
-    this.wrapper = document.getElementById('wc-canvas-wrap');
+    this.guideLayer = new DrawingCanvas('dt-guide-canvas', 'dt-canvas-wrap');
+    this.canvas = new DrawingCanvas('dt-draw-canvas', 'dt-canvas-wrap');
+    this.wrapper = document.getElementById('dt-canvas-wrap');
     const self = this;
     if (this.wrapper) {
       this.wrapper.canvasObj = {
@@ -57,9 +49,9 @@ class WordCardMode {
       };
     }
     if (typeof ResizeObserver !== 'undefined' && this.wrapper) {
-      if (window.__traceWordcardRO && typeof window.__traceWordcardRO.disconnect === 'function') {
-        try { window.__traceWordcardRO.disconnect(); } catch (_e) { /* ignore */ }
-        window.__traceWordcardRO = null;
+      if (window.__traceDictationRO && typeof window.__traceDictationRO.disconnect === 'function') {
+        try { window.__traceDictationRO.disconnect(); } catch (_e) { /* ignore */ }
+        window.__traceDictationRO = null;
       }
       this._wrapRo = new ResizeObserver(() => {
         if (self._wrapRoRaf) cancelAnimationFrame(self._wrapRoRaf);
@@ -72,7 +64,7 @@ class WordCardMode {
         });
       });
       this._wrapRo.observe(this.wrapper);
-      window.__traceWordcardRO = this._wrapRo;
+      window.__traceDictationRO = this._wrapRo;
     }
 
     this.setupEvents();
@@ -83,7 +75,7 @@ class WordCardMode {
         this._syncCanvases();
       }
     });
-    window.wordCardMode = this;
+    window.dictationMode = this;
   }
 
   _reflowWhenReady() {
@@ -93,7 +85,7 @@ class WordCardMode {
         requestAnimationFrame(go);
         return;
       }
-      if (this.guideLayer.canvas.width < 2) {
+      if (this.canvas.canvas.width < 2) {
         this._syncCanvases();
       }
     };
@@ -104,8 +96,11 @@ class WordCardMode {
     if (!this.guideLayer || !this.canvas) return;
     this.guideLayer.resize();
     this.guideLayer.clear();
-    const syl = this._syllables();
-    if (syl.length) this.guideLayer.drawGuideRow(syl, TRACE_WC_GUIDE); // 단어 전체를 한 행에
+    // 정답을 띄운 경우에만 가이드 글자를 그린다(평소엔 빈 칸).
+    if (this.revealed) {
+      const syl = this._syllables();
+      if (syl.length) this.guideLayer.drawGuideRow(syl, TRACE_DT_GUIDE);
+    }
     if (preserveInk) {
       this.canvas.resize({ preserveInk: true });
     } else {
@@ -118,41 +113,22 @@ class WordCardMode {
     this._resetDrawingState();
     if (this.cards.length === 0) return;
     if (this.currentIdx >= this.cards.length) this.currentIdx = 0;
+    this.revealed = false;
     const c = this._current();
 
-    const labelEl = document.getElementById('wc-label');
-    if (labelEl) labelEl.textContent = c.word;
-    this._updateSub();
-    const emojiEl = document.getElementById('wc-emoji');
+    const emojiEl = document.getElementById('dt-emoji');
     if (emojiEl) emojiEl.textContent = c.emoji;
-    const meanEl = document.getElementById('wc-meaning');
+    const meanEl = document.getElementById('dt-meaning');
     if (meanEl) meanEl.textContent = c.meaning;
-    const catEl = document.getElementById('wc-cat');
-    if (catEl) catEl.textContent = c.category;
-    const completeEl = document.getElementById('wc-complete');
+    const ansEl = document.getElementById('dt-answer');
+    if (ansEl) { ansEl.textContent = ''; ansEl.hidden = true; }
+    const subEl = document.getElementById('dt-sub');
+    if (subEl) subEl.textContent = `받아쓰기 ${this.currentIdx + 1} / ${this.cards.length} · 맞힌 단어 ${this.solvedSet.size}`;
+    const completeEl = document.getElementById('dt-complete');
     if (completeEl) completeEl.textContent = '';
 
     this._syncCanvases();
-    this._syncKnownBtn();
     this.updateFeedback();
-    if (typeof TraceTTS !== 'undefined') TraceTTS.speakAuto(c.word);
-  }
-
-  _updateSub() {
-    const subEl = document.getElementById('wc-sub');
-    if (subEl) {
-      subEl.textContent = `단어카드 ${this.currentIdx + 1} / ${this.cards.length} · 아는 단어 ${this.knownSet.size}`;
-    }
-  }
-
-  _syncKnownBtn() {
-    const btn = document.getElementById('wc-known-btn');
-    if (!btn) return;
-    const known = this.knownSet.has(this._current().word);
-    btn.classList.toggle('active', known);
-    btn.setAttribute('aria-pressed', known ? 'true' : 'false');
-    const lbl = btn.querySelector('.wc-known-label');
-    if (lbl) lbl.textContent = known ? '아는 단어 ✓' : '아는 단어';
   }
 
   _currentTarget() {
@@ -160,29 +136,39 @@ class WordCardMode {
   }
 
   updateFeedback() {
-    const fb = document.getElementById('wc-feedback');
+    const fb = document.getElementById('dt-feedback');
     if (!fb) return null;
     const { target, row } = this._currentTarget();
     const cov = traceEvaluateTracing(this.canvas.canvas, target, { row });
     fb.style.color = '';
-    fb.innerHTML = traceRenderCoverage(cov.progress, cov.done, { doneText: '잘 썼어요! 🎉' });
+    fb.innerHTML = traceRenderCoverage(cov.progress, cov.done, {
+      doneText: this.revealed ? '잘 썼어요! 🎉' : '정답! 외웠어요! ⭐'
+    });
     return cov;
+  }
+
+  _reveal() {
+    if (this.revealed) return;
+    this.revealed = true;
+    const c = this._current();
+    const ansEl = document.getElementById('dt-answer');
+    if (ansEl) { ansEl.textContent = `정답: ${c.word}`; ansEl.hidden = false; }
+    // 가이드를 띄우되 그리던 잉크는 보존.
+    this._syncCanvases(true);
+    this.updateFeedback();
+    if (typeof TraceTTS !== 'undefined') TraceTTS.speak(c.word);
   }
 
   setupEvents() {
     this._strokeTracker = makeStrokeTracker(this.canvas.canvas);
 
-    rebindButtonClickById('wc-clear-btn', () => {
+    rebindButtonClickById('dt-clear-btn', () => {
       this.canvas.clear();
       this.updateFeedback();
     });
 
-    rebindButtonClickById('wc-known-btn', () => {
-      this._toggleKnown();
-    });
-
-    rebindButtonClickById('wc-speak-btn', () => {
-      if (typeof TraceTTS !== 'undefined') TraceTTS.speak(this._current().word);
+    rebindButtonClickById('dt-reveal-btn', () => {
+      this._reveal();
     });
 
     const onPointerDown = (e) => {
@@ -192,7 +178,7 @@ class WordCardMode {
       this.canvas.lastX = pos.x;
       this.canvas.lastY = pos.y;
       this._strokeTracker.begin(pos);
-      this.canvas.drawDot(pos.x, pos.y, TRACE_WC_PEN, 6);
+      this.canvas.drawDot(pos.x, pos.y, TRACE_DT_PEN, 6);
     };
 
     const onPointerMove = (e) => {
@@ -200,7 +186,7 @@ class WordCardMode {
       e.preventDefault();
       const current = this.canvas.getPos(e);
       this._strokeTracker.move(current);
-      this.canvas.drawLine(this.canvas.lastX, this.canvas.lastY, current.x, current.y, TRACE_WC_PEN);
+      this.canvas.drawLine(this.canvas.lastX, this.canvas.lastY, current.x, current.y, TRACE_DT_PEN);
       this.canvas.lastX = current.x;
       this.canvas.lastY = current.y;
     };
@@ -213,17 +199,23 @@ class WordCardMode {
       const cov = this.updateFeedback();
       if (cov && cov.done) {
         const w = this._current().word;
-        if (!this.tracedSet.has(w)) {
-          this.tracedSet.add(w);
-          const completeEl = document.getElementById('wc-complete');
-          if (completeEl) completeEl.textContent = `${w} ✓`;
+        if (!this.solvedSet.has(w)) {
+          this.solvedSet.add(w);
+          // 정답 보기 없이 맞히면(외웠으면) 보너스.
+          const memorized = !this.revealed;
+          const ansEl = document.getElementById('dt-answer');
+          if (ansEl) { ansEl.textContent = `정답: ${w}`; ansEl.hidden = false; }
+          const completeEl = document.getElementById('dt-complete');
+          if (completeEl) completeEl.textContent = memorized ? `${w} ⭐ 외웠어요!` : `${w} ✓`;
+          const subEl = document.getElementById('dt-sub');
+          if (subEl) subEl.textContent = `받아쓰기 ${this.currentIdx + 1} / ${this.cards.length} · 맞힌 단어 ${this.solvedSet.size}`;
           if (typeof TraceSound !== 'undefined') TraceSound.complete();
-          if (typeof TraceRewards !== 'undefined') TraceRewards.award(15);
+          if (typeof TraceRewards !== 'undefined') TraceRewards.award(memorized ? 20 : 12);
         }
       }
     };
 
-    const drawCanvas = document.getElementById('wc-draw-canvas');
+    const drawCanvas = document.getElementById('dt-draw-canvas');
     if (drawCanvas) {
       attachCanvasPointerDrawing(drawCanvas, {
         onDown: onPointerDown,
@@ -233,21 +225,6 @@ class WordCardMode {
     }
   }
 
-  _toggleKnown() {
-    const w = this._current().word;
-    if (!w) return;
-    if (this.knownSet.has(w)) {
-      this.knownSet.delete(w);
-    } else {
-      this.knownSet.add(w);
-      if (typeof TraceSound !== 'undefined') TraceSound.complete();
-    }
-    this._saveKnown();
-    this._syncKnownBtn();
-    this._updateSub();
-  }
-
-  /** mid-stroke 이동 시 잔여 상태 정리. */
   _resetDrawingState() {
     this.isDrawing = false;
     if (this.canvas) {
@@ -257,7 +234,7 @@ class WordCardMode {
     if (this._strokeTracker && typeof this._strokeTracker.cancel === 'function') {
       try { this._strokeTracker.cancel(); } catch (_) { /* ignore */ }
     }
-    const wc = document.getElementById('wc-complete');
+    const wc = document.getElementById('dt-complete');
     if (wc) wc.textContent = '';
   }
 

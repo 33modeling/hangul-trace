@@ -362,6 +362,7 @@ class AdvancedMode {
           const w = this.words[this.wordIdx];
           document.getElementById('adv-complete').textContent = `${w} ✓`;
           if (typeof TraceSound !== 'undefined') TraceSound.complete();
+          if (typeof TraceRewards !== 'undefined') TraceRewards.award(12);
         }
       }
     };

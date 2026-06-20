@@ -371,6 +371,7 @@ class MyWordMode {
           const w = this.words[this.wordIdx];
           document.getElementById('myword-complete').textContent = `${w} ✓`;
           if (typeof TraceSound !== 'undefined') TraceSound.complete();
+          if (typeof TraceRewards !== 'undefined') TraceRewards.award(10);
         }
       }
     };

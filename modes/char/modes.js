@@ -139,6 +139,8 @@ class CharMode {
       <span class="hint-pill">위에서 아래</span>
       <span class="hint-pill">왼쪽에서 오른쪽</span>
     `;
+
+    if (typeof TraceTTS !== 'undefined') TraceTTS.speakAuto(char.ch);
   }
   
   /** 현재 목표 글자 + 행 여부(자모는 단일 글자). */
@@ -226,6 +228,7 @@ class CharMode {
         this.navigation.markDone(this.currentIdx); // (#4)
         traceSaveDone('tracing.done.char.v1', this.navigation.doneSet); // (#5)
         if (typeof TraceSound !== 'undefined') TraceSound.complete();
+        if (typeof TraceRewards !== 'undefined') TraceRewards.award(10);
       }
     };
     

@@ -318,6 +318,7 @@ class EnglishMode {
           this.navigation.doneSet
         );
         if (typeof TraceSound !== 'undefined') TraceSound.complete();
+        if (typeof TraceRewards !== 'undefined') TraceRewards.award(10);
       }
     };
     

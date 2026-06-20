@@ -146,6 +146,7 @@ class QuizMode {
         if (b !== btn) b.classList.add('dim');
       });
       if (typeof TraceSound !== 'undefined') TraceSound.complete();
+      if (typeof TraceRewards !== 'undefined') TraceRewards.award(15);
       this._advanceTimer = setTimeout(() => {
         this._advanceTimer = null;
         this.nextQuestion();

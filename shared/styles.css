@@ -1113,7 +1113,9 @@ button.myword-add-mini.tool-btn.myword-add-del
 #myword-canvas-wrap,
 #adv-canvas-wrap,
 #wc-canvas-wrap,
-#ph-canvas-wrap
+#ph-canvas-wrap,
+#bt-canvas-wrap,
+#dt-canvas-wrap
 {
   position: relative;
   width: 100%;
@@ -1157,7 +1159,11 @@ button.myword-add-mini.tool-btn.myword-add-del
 #wc-guide-canvas,
 #wc-draw-canvas,
 #ph-guide-canvas,
-#ph-draw-canvas
+#ph-draw-canvas,
+#bt-guide-canvas,
+#bt-draw-canvas,
+#dt-guide-canvas,
+#dt-draw-canvas
 {
   position: absolute;
   top: 0;
@@ -1176,7 +1182,9 @@ button.myword-add-mini.tool-btn.myword-add-del
 #myword-guide-canvas,
 #adv-guide-canvas,
 #wc-guide-canvas,
-#ph-guide-canvas
+#ph-guide-canvas,
+#bt-guide-canvas,
+#dt-guide-canvas
 {
   z-index: 1;
   pointer-events: none;
@@ -1189,7 +1197,9 @@ button.myword-add-mini.tool-btn.myword-add-del
 #myword-draw-canvas,
 #adv-draw-canvas,
 #wc-draw-canvas,
-#ph-draw-canvas
+#ph-draw-canvas,
+#bt-draw-canvas,
+#dt-draw-canvas
 {
   z-index: 2;
   pointer-events: auto;
@@ -1202,7 +1212,9 @@ button.myword-add-mini.tool-btn.myword-add-del
   #myword-canvas-wrap,
   #adv-canvas-wrap,
   #wc-canvas-wrap,
-  #ph-canvas-wrap {
+  #ph-canvas-wrap,
+  #bt-canvas-wrap,
+  #dt-canvas-wrap {
     width: min(100%, 92vw, 65dvh, 65svh);
     max-width: 100%;
     max-height: min(92vw, 65dvh, 65svh);
@@ -1431,7 +1443,9 @@ button.myword-add-mini.tool-btn.myword-add-del
 #adv-complete,
 #myword-complete,
 #wc-complete,
-#ph-complete
+#ph-complete,
+#bt-complete,
+#dt-complete
 {
   text-align: center;
   margin-bottom: 8px;
@@ -1445,7 +1459,9 @@ button.myword-add-mini.tool-btn.myword-add-del
 #adv-complete:empty,
 #myword-complete:empty,
 #wc-complete:empty,
-#ph-complete:empty
+#ph-complete:empty,
+#bt-complete:empty,
+#dt-complete:empty
 {
   min-height: 0;
   margin-bottom: 0;
@@ -1524,7 +1540,9 @@ button.myword-add-mini.tool-btn.myword-add-del
   #myword-canvas-wrap,
   #adv-canvas-wrap,
   #wc-canvas-wrap,
-  #ph-canvas-wrap {
+  #ph-canvas-wrap,
+  #bt-canvas-wrap,
+  #dt-canvas-wrap {
     max-width: min(72dvh, 52vw);
     max-height: min(72dvh, 52vw);
     margin: 0 auto;
@@ -2344,4 +2362,99 @@ canvas
   .phonics-combo { margin-bottom: 6px; gap: 6px; }
   .phonics-tile { min-width: 48px; padding: 6px 10px; }
   .phonics-tile b { font-size: 24px; }
+}
+
+/* ── 받침 / 그림 받아쓰기 카드색 ── */
+.mode-card[data-mode="batchim"]   { --m-border: #c79bd6; --m-bg: #f0e4f7; --m-glow: rgba(151, 91, 196, 0.18); }
+.mode-card[data-mode="dictation"] { --m-border: #6fb3c9; --m-bg: #d8eef4; --m-glow: rgba(91, 179, 196, 0.18); }
+
+/* 그림 받아쓰기 — 정답 텍스트 */
+.dt-answer
+{
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--trace-success-muted);
+  font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+.dt-answer[hidden] { display: none; }
+
+/* ── 보상 배지(메인 메뉴) ── */
+.menu-reward-badge
+{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 12px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto 14px;
+  padding: 10px 16px;
+  border-radius: 16px;
+  background: var(--trace-gradient-gold);
+  color: #4a3413;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: var(--trace-shadow-card);
+}
+.menu-reward-badge:empty { display: none; }
+.menu-reward-badge .rb-level { font-size: 14px; }
+.menu-reward-badge .rb-level b { font-weight: 800; }
+.menu-reward-badge .rb-stat { white-space: nowrap; }
+
+/* ── 칭찬 토스트(완성마다 떠서 계속 칭찬) ── */
+.trace-reward-toast
+{
+  position: fixed;
+  left: 50%;
+  top: 18%;
+  transform: translate(-50%, 0);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  background: var(--trace-gradient-primary);
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 800;
+  box-shadow: 0 10px 30px rgba(124, 58, 237, 0.35);
+  z-index: 200;
+  pointer-events: none;
+  opacity: 0;
+  white-space: nowrap;
+  max-width: 92vw;
+}
+.trace-reward-toast.show { animation: traceRewardPop 1.2s ease forwards; }
+.trace-reward-toast.levelup
+{
+  background: var(--trace-gradient-gold);
+  color: #4a3413;
+  font-size: 19px;
+  box-shadow: 0 12px 36px rgba(201, 169, 110, 0.45);
+}
+.trace-reward-toast.levelup.show { animation: traceRewardPop 1.8s ease forwards; }
+.trace-reward-toast .trt-points
+{
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+.trace-reward-toast.levelup .trt-points { background: rgba(0, 0, 0, 0.12); }
+
+@keyframes traceRewardPop
+{
+  0%   { opacity: 0; transform: translate(-50%, 6px) scale(0.85); }
+  15%  { opacity: 1; transform: translate(-50%, -6px) scale(1.05); }
+  30%  { transform: translate(-50%, -6px) scale(1); }
+  80%  { opacity: 1; transform: translate(-50%, -6px) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -14px) scale(0.96); }
+}
+
+@media (prefers-reduced-motion: reduce)
+{
+  .trace-reward-toast.show,
+  .trace-reward-toast.levelup.show { animation: traceRewardFade 1.2s ease forwards; }
+  @keyframes traceRewardFade { 0% { opacity: 0; } 15% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
 }

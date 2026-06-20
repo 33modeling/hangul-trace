@@ -827,3 +827,166 @@ function traceRenderProgress(count, target, opts) {
     + '<span class="trace-pcount">' + fraction + '</span>'
     + '</span>';
 }
+
+/* ==========================================================================
+   커버리지 기반 완성 판정 — "몇 번 그었나(획수)"가 아니라 "가이드 글자를
+   실제로 따라 썼는가"로 완성을 판정한다(소중한글식 기초 쓰기 발상).
+
+   원리: 목표 글자를 오프스크린에 깨끗이 래스터화한 마스크와, 사용자의 필기
+   레이어를 같은 저해상도로 줄여 픽셀 단위로 비교한다.
+     - recall    = 글자(마스크) 픽셀 중 필기가 덮은 비율 → "얼마나 따라 썼나"
+     - precision = 필기 픽셀 중 글자 위에 있는 비율 → "엉뚱한 데 안 그렸나"
+   둘 다 임계치를 넘으면 완성. 약간의 오차 허용을 위해 마스크/필기를 반경
+   r 만큼 팽창(dilate)시켜 비교한다. 이렇게 하면:
+     - 자연스러운 적은 획수로 글자를 채워도 완성된다(획수 미달로 영영 미완성 X).
+     - 아무 데나 낙서로 횟수만 채워도 글자 모양을 안 덮으면 미완성(precision↓).
+   ========================================================================== */
+
+const TRACE_COV_SAMPLE = 112;       // 비교용 저해상도(긴 변 px) — 정확도/성능 균형
+const TRACE_COV_RADIUS_RATIO = 0.05; // 오차 허용 팽창 반경 = 표본 긴 변의 5%
+const TRACE_COV_RECALL_MIN = 0.58;   // 글자의 58% 이상을 덮어야
+const TRACE_COV_PRECISION_MIN = 0.40; // 필기의 40% 이상이 글자 위에 있어야(낙서 차단)
+const TRACE_COV_INK_ALPHA = 40;      // 필기 픽셀로 칠 alpha 하한
+const TRACE_COV_MASK_ALPHA = 80;     // 글자 픽셀로 칠 alpha 하한
+
+/** 목표 글자(들)를 가이드와 동일한 배치로 채워 그린다(마스크용, 단색 솔리드). */
+function _traceFillGlyphs(ctx, w, h, list, row) {
+  ctx.clearRect(0, 0, w, h);
+  ctx.save();
+  ctx.fillStyle = '#000';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const font = (px) => `${px}px "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif`;
+  if (row) {
+    // drawGuideRow 와 동일한 셀 배치(최대 4)
+    const items = list.slice(0, 4);
+    const n = Math.max(1, items.length);
+    const cellW = w / n;
+    const base = Math.min(cellW, h);
+    ctx.font = font(base * 0.62);
+    const y = h / 2 + Math.min(cellW, h) * 0.03;
+    for (let i = 0; i < items.length; i++) {
+      ctx.fillText(items[i], cellW * (i + 0.5), y);
+    }
+  } else {
+    // drawGuide 와 동일한 단일 글자 배치
+    ctx.font = font(Math.min(w, h) * 0.72);
+    const y = h / 2 + Math.min(w, h) * 0.035;
+    ctx.fillText(list[0], w / 2, y);
+  }
+  ctx.restore();
+}
+
+/** boolean 격자(0/1)를 반경 r 만큼 분리형 팽창(가로→세로 max). */
+function _traceDilate(src, w, h, r) {
+  if (r <= 0) return src;
+  const tmp = new Uint8Array(w * h);
+  const out = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) {
+    const row = y * w;
+    for (let x = 0; x < w; x++) {
+      const x0 = x - r < 0 ? 0 : x - r;
+      const x1 = x + r >= w ? w - 1 : x + r;
+      let on = 0;
+      for (let k = x0; k <= x1; k++) { if (src[row + k]) { on = 1; break; } }
+      tmp[row + x] = on;
+    }
+  }
+  for (let x = 0; x < w; x++) {
+    for (let y = 0; y < h; y++) {
+      const y0 = y - r < 0 ? 0 : y - r;
+      const y1 = y + r >= h ? h - 1 : y + r;
+      let on = 0;
+      for (let k = y0; k <= y1; k++) { if (tmp[k * w + x]) { on = 1; break; } }
+      out[y * w + x] = on;
+    }
+  }
+  return out;
+}
+
+/**
+ * 필기 커버리지 평가.
+ * @param {HTMLCanvasElement} drawCanvas 사용자 필기 캔버스(버퍼 기준)
+ * @param {string|string[]} target 목표 글자(단일) 또는 음절 배열(가로 행)
+ * @param {{ row?: boolean, recallMin?: number, precisionMin?: number }} [opts]
+ * @returns {{ recall: number, precision: number, progress: number, done: boolean }}
+ */
+function traceEvaluateTracing(drawCanvas, target, opts) {
+  opts = opts || {};
+  const recallMin = typeof opts.recallMin === 'number' ? opts.recallMin : TRACE_COV_RECALL_MIN;
+  const precisionMin = typeof opts.precisionMin === 'number' ? opts.precisionMin : TRACE_COV_PRECISION_MIN;
+  const fail = { recall: 0, precision: 0, progress: 0, done: false };
+  if (!drawCanvas || !drawCanvas.width || !drawCanvas.height) return fail;
+  const list = (Array.isArray(target) ? target : [target]).filter((c) => typeof c === 'string' && c.length > 0);
+  if (list.length === 0) return fail;
+  const row = !!opts.row;
+
+  const bw = drawCanvas.width;
+  const bh = drawCanvas.height;
+  const s = TRACE_COV_SAMPLE / Math.max(bw, bh);
+  const mw = Math.max(8, Math.round(bw * s));
+  const mh = Math.max(8, Math.round(bh * s));
+
+  let maskData;
+  let inkData;
+  try {
+    const mc = document.createElement('canvas');
+    mc.width = mw; mc.height = mh;
+    const mctx = mc.getContext('2d');
+    _traceFillGlyphs(mctx, mw, mh, list, row);
+    maskData = mctx.getImageData(0, 0, mw, mh).data;
+
+    const dc = document.createElement('canvas');
+    dc.width = mw; dc.height = mh;
+    const dctx = dc.getContext('2d');
+    dctx.drawImage(drawCanvas, 0, 0, mw, mh);
+    inkData = dctx.getImageData(0, 0, mw, mh).data;
+  } catch (_e) {
+    return fail;
+  }
+
+  const N = mw * mh;
+  const mask = new Uint8Array(N);
+  const ink = new Uint8Array(N);
+  for (let i = 0; i < N; i++) {
+    mask[i] = maskData[i * 4 + 3] > TRACE_COV_MASK_ALPHA ? 1 : 0;
+    ink[i] = inkData[i * 4 + 3] > TRACE_COV_INK_ALPHA ? 1 : 0;
+  }
+
+  const r = Math.max(1, Math.round(TRACE_COV_RADIUS_RATIO * Math.max(mw, mh)));
+  const maskDil = _traceDilate(mask, mw, mh, r);
+  const inkDil = _traceDilate(ink, mw, mh, r);
+
+  let maskCount = 0;
+  let inkCount = 0;
+  let recallHit = 0;
+  let precHit = 0;
+  for (let i = 0; i < N; i++) {
+    if (mask[i]) { maskCount++; if (inkDil[i]) recallHit++; }
+    if (ink[i]) { inkCount++; if (maskDil[i]) precHit++; }
+  }
+  if (maskCount === 0) return fail;
+
+  const recall = recallHit / maskCount;
+  const precision = inkCount ? precHit / inkCount : 0;
+  const done = inkCount > 0 && recall >= recallMin && precision >= precisionMin;
+  const progress = Math.max(0, Math.min(1, recall / recallMin));
+  return { recall, precision, progress, done };
+}
+
+/* 커버리지 진행 바 — feedback 영역에 채울 HTML. progress(0~1) + 완성 여부. */
+function traceRenderCoverage(progress, done, opts) {
+  const p = Math.max(0, Math.min(1, Number(progress) || 0));
+  const pct = Math.round(p * 100);
+  const tail = (opts && opts.doneText) || '완성! 🎉';
+  if (done) {
+    return '<span class="trace-cov done">'
+      + '<span class="trace-cov-bar"><span class="trace-cov-fill" style="width:100%"></span></span>'
+      + '<span class="trace-cov-text">' + tail + '</span>'
+      + '</span>';
+  }
+  return '<span class="trace-cov">'
+    + '<span class="trace-cov-bar"><span class="trace-cov-fill" style="width:' + pct + '%"></span></span>'
+    + '<span class="trace-cov-text">' + pct + '%</span>'
+    + '</span>';
+}

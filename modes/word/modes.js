@@ -28,10 +28,6 @@ CONSONANTS.forEach((cons) => {
   });
 });
 
-function traceWordStrokeTarget(w) {
-  return w.consonant.strokes + w.vowel.strokes;
-}
-
 const TRACE_WORD_PEN = '#be3974';
 const TRACE_WORD_GUIDE_MAIN = 'rgba(167, 139, 250, 0.55)';
 
@@ -128,24 +124,36 @@ class WordMode {
     const w = WORDS[this.currentIdx];
     document.getElementById('word-label').textContent = w.syllable;
     document.getElementById('word-sub').textContent = `단어 ${this.currentIdx + 1} / ${WORDS.length}`;
+    this._updateStage(w);
     this._syncWordCanvases();
     this.strokeCount = 0;
     this.updateFeedback();
   }
 
+  /** 초성 예시 단어(파닉스) 칩 — "ㄱ 은 가방🎒 의 ㄱ" 으로 소리·읽기 연결. */
+  _updateStage(w) {
+    const stage = document.getElementById('word-stage');
+    if (!stage) return;
+    const ex = (typeof traceConsonantExample === 'function')
+      ? traceConsonantExample(w.consonant.ch)
+      : null;
+    stage.innerHTML = ex
+      ? `<span class="hint-pill">자음+모음 쓰기</span>`
+        + `<span class="hint-pill word-example">${w.consonant.ch} 은 <b>${ex.word}</b> ${ex.emoji} 의 ${w.consonant.ch}</span>`
+      : `<span class="hint-pill">자음+모음 쓰기</span>`;
+  }
+
+  /** 완성 판정: 획수가 아니라 가이드 글자 커버리지 기반(렌더만, 완성은 호출부에서). */
   updateFeedback() {
-    const w = WORDS[this.currentIdx];
-    const target = traceWordStrokeTarget(w);
     const feedbackEl = document.getElementById('word-feedback');
+    if (!feedbackEl) return null;
+    const w = WORDS[this.currentIdx];
+    const cov = traceEvaluateTracing(this.canvas.canvas, w.syllable, { row: false });
     feedbackEl.style.color = '';
-    feedbackEl.innerHTML = traceRenderProgress(this.strokeCount, target, {
+    feedbackEl.innerHTML = traceRenderCoverage(cov.progress, cov.done, {
       doneText: '완성! 🎉 다음은 ▶'
     });
-    if (this.strokeCount >= target && !this.doneSet.has(this.currentIdx)) {
-      this.doneSet.add(this.currentIdx);
-      document.getElementById('word-complete').textContent = `${w.syllable} ✓`;
-      if (typeof TraceSound !== 'undefined') TraceSound.complete();
-    }
+    return cov;
   }
 
   setupEvents() {
@@ -188,11 +196,14 @@ class WordMode {
       if (!this.isDrawing) return;
       e.preventDefault();
       this.isDrawing = false;
-      const realStroke = this._strokeTracker.end();
-      if (realStroke) {
-        this.strokeCount++;
+      this._strokeTracker.end();
+      const cov = this.updateFeedback();
+      if (cov && cov.done && !this.doneSet.has(this.currentIdx)) {
+        this.doneSet.add(this.currentIdx);
+        const w = WORDS[this.currentIdx];
+        document.getElementById('word-complete').textContent = `${w.syllable} ✓`;
+        if (typeof TraceSound !== 'undefined') TraceSound.complete();
       }
-      this.updateFeedback();
     };
 
     const drawCanvas = document.getElementById('word-draw-canvas');

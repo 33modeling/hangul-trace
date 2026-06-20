@@ -222,10 +222,10 @@ class EnglishMode {
     this.guideLayer.drawGuide(alpha.ch);
     this.canvas.resize();
     this.canvas.clear();
-    
+
     this.strokeCount = 0;
-    this.updateFeedback(0);
-    
+    this.updateFeedback();
+
     if (this.hintHint) this.hintHint.innerHTML = `
       <span class="hint-pill">${alpha.strokes}획</span>
       <span class="hint-pill">위에서 아래</span>
@@ -233,22 +233,29 @@ class EnglishMode {
     `;
   }
 
-  updateFeedback(strokeCount) {
+  /** 현재 목표 알파벳 + 행 여부(단일 글자). */
+  _currentTarget() {
     const list = this.getCurrentList();
-    const alpha = list[this.currentIdx];
+    return { target: list[this.currentIdx].ch, row: false };
+  }
+
+  updateFeedback() {
     const feedbackEl = document.getElementById('eng-feedback');
-    if (!feedbackEl) return; // (#9)
+    if (!feedbackEl) return null; // (#9)
+    const { target, row } = this._currentTarget();
+    const cov = traceEvaluateTracing(this.canvas.canvas, target, { row });
     feedbackEl.style.color = '';
-    feedbackEl.innerHTML = traceRenderProgress(strokeCount, alpha.strokes, {
+    feedbackEl.innerHTML = traceRenderCoverage(cov.progress, cov.done, {
       doneText: '잘 했어요! 🎉 다음은 ▶'
     });
+    return cov;
   }
   
   setupEvents() {
     rebindButtonClickById('eng-clear-btn', () => {
       this.canvas.clear();
       this.strokeCount = 0;
-      this.updateFeedback(0);
+      this.updateFeedback();
     });
     rebindButtonClickById('eng-hint-btn', () => {
       const list = this.getCurrentList();
@@ -300,15 +307,10 @@ class EnglishMode {
       if (!this.isDrawing) return;
       e.preventDefault();
       this.isDrawing = false;
-      const realStroke = this._strokeTracker.end();
-      if (realStroke) {
-        this.strokeCount++;
-      }
-      this.updateFeedback(this.strokeCount);
-
-      const list = this.getCurrentList();
-      const alpha = list[this.currentIdx];
-      if (this.strokeCount >= alpha.strokes && !this.navigation.getIsDone()) {
+      this._strokeTracker.end();
+      // 완성 판정: 가이드 알파벳 커버리지 기반.
+      const cov = this.updateFeedback();
+      if (cov && cov.done && !this.navigation.getIsDone()) {
         this.navigation.markDone(this.currentIdx); // (#4)
         // 현재 유형(대/소문자)의 진도를 저장 (#5)
         traceSaveDone(

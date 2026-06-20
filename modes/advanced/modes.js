@@ -121,6 +121,13 @@ class AdvancedMode {
     return traceMyWordStrokeTargetForSyllables(visible);
   }
 
+  /** 커버리지 판정용 목표 — 가로는 보이는 음절 행, 세로는 한 글자. */
+  _currentTarget() {
+    const visible = this._visibleSyllables();
+    if (this._isLandscape()) return { target: visible, row: true };
+    return { target: visible[0] || '', row: false };
+  }
+
   init() {
     this.guideLayer = new DrawingCanvas('adv-guide-canvas', 'adv-canvas-wrap');
     this.canvas = new DrawingCanvas('adv-draw-canvas', 'adv-canvas-wrap');
@@ -271,30 +278,38 @@ class AdvancedMode {
       subEl.textContent = `상급 ${this.wordIdx + 1} / ${this.words.length} · 글자 ${this.syllableIdx + 1} / ${syl.length}`;
     }
 
+    this._updateMeaning(word);
     this.strokeCount = 0;
     document.getElementById('adv-complete').textContent = '';
     this._syncCanvases();
     this.updateFeedback();
   }
 
+  /** 단어 뜻 칩 — 일상 단어면 뜻을 보여 학습(있을 때만). */
+  _updateMeaning(word) {
+    const el = document.getElementById('adv-meaning-pill');
+    if (!el) return;
+    const m = (typeof traceWordMeaning === 'function') ? traceWordMeaning(word) : null;
+    if (m && m.meaning) {
+      el.textContent = `뜻: ${m.meaning}`;
+      el.hidden = false;
+    } else {
+      el.textContent = '';
+      el.hidden = true;
+    }
+  }
+
+  /** 완성 판정: 커버리지 기반(렌더만, 완성은 호출부에서). */
   updateFeedback() {
     const feedbackEl = document.getElementById('adv-feedback');
-    const target = this._strokeTarget();
+    if (!feedbackEl) return null;
+    const { target, row } = this._currentTarget();
+    const cov = traceEvaluateTracing(this.canvas.canvas, target, { row });
     feedbackEl.style.color = '';
-    feedbackEl.innerHTML = traceRenderProgress(this.strokeCount, target, {
+    feedbackEl.innerHTML = traceRenderCoverage(cov.progress, cov.done, {
       doneText: '완성! 🎉 다음은 ▶'
     });
-    if (this.strokeCount >= target) {
-      const visibleKey = this._isLandscape()
-        ? `L:${this.wordIdx}:${this.windowStart}`
-        : `P:${this.wordIdx}:${this.syllableIdx}`;
-      if (!this.doneSet.has(visibleKey)) {
-        this.doneSet.add(visibleKey);
-        const w = this.words[this.wordIdx];
-        document.getElementById('adv-complete').textContent = `${w} ✓`;
-        if (typeof TraceSound !== 'undefined') TraceSound.complete();
-      }
-    }
+    return cov;
   }
 
   setupEvents() {
@@ -336,11 +351,19 @@ class AdvancedMode {
       if (!this.isDrawing) return;
       e.preventDefault();
       this.isDrawing = false;
-      const realStroke = this._strokeTracker.end();
-      if (realStroke) {
-        this.strokeCount++;
+      this._strokeTracker.end();
+      const cov = this.updateFeedback();
+      if (cov && cov.done) {
+        const visibleKey = this._isLandscape()
+          ? `L:${this.wordIdx}:${this.windowStart}`
+          : `P:${this.wordIdx}:${this.syllableIdx}`;
+        if (!this.doneSet.has(visibleKey)) {
+          this.doneSet.add(visibleKey);
+          const w = this.words[this.wordIdx];
+          document.getElementById('adv-complete').textContent = `${w} ✓`;
+          if (typeof TraceSound !== 'undefined') TraceSound.complete();
+        }
       }
-      this.updateFeedback();
     };
 
     const drawCanvas = document.getElementById('adv-draw-canvas');

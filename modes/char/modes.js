@@ -130,10 +130,10 @@ class CharMode {
     this.guideLayer.drawGuide(char.ch);
     this.canvas.resize();
     this.canvas.clear();
-    
+
     this.strokeCount = 0;
-    this.updateFeedback(0);
-    
+    this.updateFeedback();
+
     this.hintHint.innerHTML = `
       <span class="hint-pill">${char.strokes}획</span>
       <span class="hint-pill">위에서 아래</span>
@@ -141,20 +141,28 @@ class CharMode {
     `;
   }
   
-  updateFeedback(strokeCount) {
-    const char = CHAR_ITEMS[this.currentIdx];
+  /** 현재 목표 글자 + 행 여부(자모는 단일 글자). */
+  _currentTarget() {
+    return { target: CHAR_ITEMS[this.currentIdx].ch, row: false };
+  }
+
+  updateFeedback() {
     const feedbackEl = document.getElementById('feedback');
+    if (!feedbackEl) return null;
+    const { target, row } = this._currentTarget();
+    const cov = traceEvaluateTracing(this.canvas.canvas, target, { row });
     feedbackEl.style.color = '';
-    feedbackEl.innerHTML = traceRenderProgress(strokeCount, char.strokes, {
+    feedbackEl.innerHTML = traceRenderCoverage(cov.progress, cov.done, {
       doneText: '잘 했어요! 🎉 다음은 ▶'
     });
+    return cov;
   }
   
   setupEvents() {
     rebindButtonClickById('clear-btn', () => {
       this.canvas.clear();
       this.strokeCount = 0;
-      this.updateFeedback(0);
+      this.updateFeedback();
     });
 
     rebindButtonClickById('hint-btn', () => {
@@ -211,14 +219,10 @@ class CharMode {
       if (!this.isDrawing) return;
       e.preventDefault();
       this.isDrawing = false;
-      const realStroke = this._strokeTracker.end();
-      if (realStroke) {
-        this.strokeCount++;
-      }
-      this.updateFeedback(this.strokeCount);
-
-      const char = CHAR_ITEMS[this.currentIdx];
-      if (this.strokeCount >= char.strokes && !this.navigation.getIsDone()) {
+      this._strokeTracker.end();
+      // 완성 판정: 획수가 아니라 가이드 글자 커버리지로(소중한글식).
+      const cov = this.updateFeedback();
+      if (cov && cov.done && !this.navigation.getIsDone()) {
         this.navigation.markDone(this.currentIdx); // (#4)
         traceSaveDone('tracing.done.char.v1', this.navigation.doneSet); // (#5)
         if (typeof TraceSound !== 'undefined') TraceSound.complete();

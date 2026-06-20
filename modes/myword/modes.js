@@ -54,6 +54,13 @@ class MyWordMode {
     return traceMyWordStrokeTargetForSyllables(visible);
   }
 
+  /** 커버리지 판정용 목표 — 가로는 보이는 음절 행, 세로는 한 글자. */
+  _currentTarget() {
+    const visible = this._visibleSyllables();
+    if (this._isLandscape()) return { target: visible, row: true };
+    return { target: visible[0] || '', row: false };
+  }
+
   init() {
     this.words = traceLoadMyWords();
     this.guideLayer = new DrawingCanvas('myword-guide-canvas', 'myword-canvas-wrap');
@@ -274,29 +281,22 @@ class MyWordMode {
     this.updateFeedback();
   }
 
+  /** 완성 판정: 커버리지 기반(렌더만, 완성은 호출부에서). */
   updateFeedback() {
     const feedbackEl = document.getElementById('myword-feedback');
+    if (!feedbackEl) return null;
     if (this.words.length === 0) {
       feedbackEl.textContent = '';
       feedbackEl.style.color = '';
-      return;
+      return null;
     }
-    const target = this._strokeTarget();
+    const { target, row } = this._currentTarget();
+    const cov = traceEvaluateTracing(this.canvas.canvas, target, { row });
     feedbackEl.style.color = '';
-    feedbackEl.innerHTML = traceRenderProgress(this.strokeCount, target, {
+    feedbackEl.innerHTML = traceRenderCoverage(cov.progress, cov.done, {
       doneText: '완성! 🎉 다음은 ▶'
     });
-    if (this.strokeCount >= target) {
-      const visibleKey = this._isLandscape()
-        ? `L:${this.wordIdx}:${this.windowStart}`
-        : `P:${this.wordIdx}:${this.syllableIdx}`;
-      if (!this.doneSet.has(visibleKey)) {
-        this.doneSet.add(visibleKey);
-        const w = this.words[this.wordIdx];
-        document.getElementById('myword-complete').textContent = `${w} ✓`;
-        if (typeof TraceSound !== 'undefined') TraceSound.complete();
-      }
-    }
+    return cov;
   }
 
   setupEvents() {
@@ -360,11 +360,19 @@ class MyWordMode {
       if (!this.isDrawing) return;
       e.preventDefault();
       this.isDrawing = false;
-      const realStroke = this._strokeTracker.end();
-      if (realStroke) {
-        this.strokeCount++;
+      this._strokeTracker.end();
+      const cov = this.updateFeedback();
+      if (cov && cov.done) {
+        const visibleKey = this._isLandscape()
+          ? `L:${this.wordIdx}:${this.windowStart}`
+          : `P:${this.wordIdx}:${this.syllableIdx}`;
+        if (!this.doneSet.has(visibleKey)) {
+          this.doneSet.add(visibleKey);
+          const w = this.words[this.wordIdx];
+          document.getElementById('myword-complete').textContent = `${w} ✓`;
+          if (typeof TraceSound !== 'undefined') TraceSound.complete();
+        }
       }
-      this.updateFeedback();
     };
 
     const drawCanvas = document.getElementById('myword-draw-canvas');

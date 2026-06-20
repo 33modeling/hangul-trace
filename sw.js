@@ -21,7 +21,7 @@
  * VERSION 을 올릴 때 이 줄의 'tracing-v<버전>' 도 함께 갱신해서, 새 배포가
  * 옛 캐시를 activate 단계에서 정리하도록 한다. 형식을 바꾸면 bump 스크립트의
  * 정규식도 같이 고칠 것. */
-const CACHE = 'tracing-v0.0.37';
+const CACHE = 'tracing-v0.0.38';
 
 const ASSETS = [
   './',
@@ -39,6 +39,7 @@ const ASSETS = [
   './shared/navigation.js',
   './shared/utils.js',
   './shared/myWords.js',
+  './shared/vocab.js',
   './shared/sound.js',
   './index.js',
   './modes/char/modes.js',
@@ -47,7 +48,9 @@ const ASSETS = [
   './modes/number/modes.js',
   './modes/english/modes.js',
   './modes/myword/modes.js',
-  './modes/myword-add/modes.js'
+  './modes/myword-add/modes.js',
+  './modes/wordcard/modes.js',
+  './modes/quiz/modes.js'
 ];
 
 self.addEventListener('install', (event) => {

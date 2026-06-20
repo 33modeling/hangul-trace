@@ -130,10 +130,10 @@ class NumberMode {
     this.guideLayer.drawGuide(num.ch);
     this.canvas.resize();
     this.canvas.clear();
-    
+
     this.strokeCount = 0;
-    this.updateFeedback(0);
-    
+    this.updateFeedback();
+
     if (this.hintHint) this.hintHint.innerHTML = `
       <span class="hint-pill">${num.strokes}획</span>
       <span class="hint-pill">위에서 아래</span>
@@ -141,21 +141,28 @@ class NumberMode {
     `;
   }
 
-  updateFeedback(strokeCount) {
-    const num = NUMBERS[this.currentIdx];
+  /** 현재 목표 숫자 + 행 여부(숫자는 단일 글자). */
+  _currentTarget() {
+    return { target: NUMBERS[this.currentIdx].ch, row: false };
+  }
+
+  updateFeedback() {
     const feedbackEl = document.getElementById('num-feedback');
-    if (!feedbackEl) return; // (#9)
+    if (!feedbackEl) return null; // (#9)
+    const { target, row } = this._currentTarget();
+    const cov = traceEvaluateTracing(this.canvas.canvas, target, { row });
     feedbackEl.style.color = '';
-    feedbackEl.innerHTML = traceRenderProgress(strokeCount, num.strokes, {
+    feedbackEl.innerHTML = traceRenderCoverage(cov.progress, cov.done, {
       doneText: '잘 했어요! 🎉 다음은 ▶'
     });
+    return cov;
   }
   
   setupEvents() {
     rebindButtonClickById('num-clear-btn', () => {
       this.canvas.clear();
       this.strokeCount = 0;
-      this.updateFeedback(0);
+      this.updateFeedback();
     });
     rebindButtonClickById('num-hint-btn', () => {
       const ch = NUMBERS[this.currentIdx].ch;
@@ -206,14 +213,10 @@ class NumberMode {
       if (!this.isDrawing) return;
       e.preventDefault();
       this.isDrawing = false;
-      const realStroke = this._strokeTracker.end();
-      if (realStroke) {
-        this.strokeCount++;
-      }
-      this.updateFeedback(this.strokeCount);
-
-      const num = NUMBERS[this.currentIdx];
-      if (this.strokeCount >= num.strokes && !this.navigation.getIsDone()) {
+      this._strokeTracker.end();
+      // 완성 판정: 가이드 숫자 커버리지 기반.
+      const cov = this.updateFeedback();
+      if (cov && cov.done && !this.navigation.getIsDone()) {
         this.navigation.markDone(this.currentIdx); // (#4)
         traceSaveDone('tracing.done.number.v1', this.navigation.doneSet); // (#5)
         if (typeof TraceSound !== 'undefined') TraceSound.complete();

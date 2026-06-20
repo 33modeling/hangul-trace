@@ -21,7 +21,11 @@ function traceTeardownActiveMode() {
     clearTimeout(window.__traceHintFallbackTimer);
     window.__traceHintFallbackTimer = null;
   }
-  ['__traceCharRO', '__traceWordRO', '__traceNumberRO', '__traceEnglishRO', '__traceMyWordRO', '__traceAdvRO'].forEach((k) => {
+  // 퀴즈 자동 넘김 타이머 — 모드 이탈 후 숨은 패널에 다음 문제 렌더 방지.
+  if (window.quizMode && typeof window.quizMode.clearTimer === 'function') {
+    try { window.quizMode.clearTimer(); } catch (_e) { /* ignore */ }
+  }
+  ['__traceCharRO', '__traceWordRO', '__traceNumberRO', '__traceEnglishRO', '__traceMyWordRO', '__traceAdvRO', '__traceWordcardRO'].forEach((k) => {
     const ro = window[k];
     if (ro && typeof ro.disconnect === 'function') {
       try { ro.disconnect(); } catch (_e) { /* ignore */ }
@@ -36,7 +40,7 @@ function traceTeardownActiveMode() {
     window[k] = null;
   });
   // 그리던 도중 이탈 시 window 에 남는 pointer/touch stroke 리스너 정리(#28).
-  ['draw-canvas', 'word-draw-canvas', 'num-draw-canvas', 'eng-draw-canvas', 'myword-draw-canvas', 'adv-draw-canvas'].forEach((id) => {
+  ['draw-canvas', 'word-draw-canvas', 'num-draw-canvas', 'eng-draw-canvas', 'myword-draw-canvas', 'adv-draw-canvas', 'wc-draw-canvas'].forEach((id) => {
     const c = document.getElementById(id);
     if (c && typeof c.__traceDrawUnbind === 'function') {
       try { c.__traceDrawUnbind(); } catch (_e) { /* ignore */ }
@@ -109,6 +113,14 @@ function showMyWordAddMode() {
 
 function showAdvancedMode() {
   showSingleMode('advanced');
+}
+
+function showWordCardMode() {
+  showSingleMode('wordcard');
+}
+
+function showQuizMode() {
+  showSingleMode('quiz');
 }
 
 /* === 이스터에그: byline '통통이' 15클릭 → 비밀 모드 ===
@@ -204,7 +216,9 @@ function showSingleMode(modeName, opts) {
     english: EnglishMode,
     myword: MyWordMode,
     'myword-add': MyWordAddMode,
-    advanced: typeof AdvancedMode !== 'undefined' ? AdvancedMode : undefined
+    advanced: typeof AdvancedMode !== 'undefined' ? AdvancedMode : undefined,
+    wordcard: typeof WordCardMode !== 'undefined' ? WordCardMode : undefined,
+    quiz: typeof QuizMode !== 'undefined' ? QuizMode : undefined
   }[modeName];
 
   function startMode() {
@@ -216,6 +230,8 @@ function showSingleMode(modeName, opts) {
       else if (modeName === 'myword') window.myWordMode = new ModeClass();
       else if (modeName === 'myword-add') window.myWordAddMode = new ModeClass();
       else if (modeName === 'advanced') window.advancedMode = new ModeClass();
+      else if (modeName === 'wordcard') window.wordCardMode = new ModeClass();
+      else if (modeName === 'quiz') window.quizMode = new ModeClass();
     } catch (err) {
       console.error('tracing: mode init failed', modeName, err);
     }
@@ -251,7 +267,7 @@ function initAppShell() {
       const el = traceClickElement(e);
       if (!el) return;
       const back = el.closest(
-        '#back-btn, #word-back-btn, #num-back-btn, #eng-back-btn, #myword-back-btn, #myword-add-back-btn, #myword-add-menu-btn, #adv-back-btn, #secret-back-btn'
+        '#back-btn, #word-back-btn, #num-back-btn, #eng-back-btn, #myword-back-btn, #myword-add-back-btn, #myword-add-menu-btn, #adv-back-btn, #wc-back-btn, #quiz-back-btn, #secret-back-btn'
       );
       if (back && app.contains(back)) {
         e.preventDefault();
@@ -288,6 +304,10 @@ function initAppShell() {
         } else if (id === 'adv-prev-btn' || id === 'adv-next-btn') {
           if (window.advancedMode && typeof window.advancedMode[action] === 'function') {
             window.advancedMode[action]();
+          }
+        } else if (id === 'wc-prev-btn' || id === 'wc-next-btn') {
+          if (window.wordCardMode && typeof window.wordCardMode[action] === 'function') {
+            window.wordCardMode[action]();
           }
         }
         return;
@@ -397,4 +417,6 @@ if (typeof window !== 'undefined') {
   window.showMyWordMode = showMyWordMode;
   window.showMyWordAddMode = showMyWordAddMode;
   window.showAdvancedMode = showAdvancedMode;
+  window.showWordCardMode = showWordCardMode;
+  window.showQuizMode = showQuizMode;
 }

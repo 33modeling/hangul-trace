@@ -188,6 +188,83 @@ test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리
     expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
   });
 
+  test('나의 기록: 스티커 도감·모드별 통계·헤더가 렌더된다', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    await gotoApp(page);
+
+    // 점수를 좀 쌓아 스티커가 해금되게 한 뒤 진입
+    await page.evaluate(() => { for (let i = 0; i < 3; i++) TraceRewards.award(20); });
+
+    await page.locator('button.mode-card[data-mode="progress"]').click();
+    await expect(page.locator('#progress-mode')).toHaveClass(/active/);
+
+    // 헤더(레벨/오늘목표 링), 스티커 그리드, 통계가 채워짐
+    await expect(page.locator('#progress-head')).toContainText('Lv.');
+    await expect(page.locator('#progress-stickers .pg-sticker')).toHaveCount(12);
+    await expect(page.locator('#progress-stickers .pg-sticker.earned').first()).toBeVisible();
+    await expect(page.locator('#progress-stats .pg-stat-row').first()).toBeVisible();
+
+    await page.locator('#progress-back-btn').click();
+    await expect(page.locator('#main-menu')).toBeVisible();
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
+  test('보상: 데일리 카운트·스티커가 award로 갱신된다', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    await gotoApp(page);
+
+    const res = await page.evaluate(() => {
+      const r1 = TraceRewards.award(10); // 첫 글자 → 'first' 스티커
+      const g = TraceRewards.get();
+      const stk = TraceRewards.stickers();
+      return {
+        today: g.todayCount, goal: g.goal,
+        firstEarned: stk.find((s) => s.id === 'first').earned,
+        newStickerId: r1.newSticker ? r1.newSticker.id : null,
+        total: stk.length
+      };
+    });
+    expect(res.today).toBeGreaterThanOrEqual(1);
+    expect(res.goal).toBe(10);
+    expect(res.total).toBe(12);
+    expect(res.firstEarned).toBe(true);
+    expect(res.newStickerId).toBe('first');
+
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
+  test('"놓친 곳" 피드백: 부분 필기 시 가이드에 미작성 하이라이트가 칠해진다', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    await gotoApp(page);
+
+    await page.locator('button.mode-card[data-mode="char"]').click();
+    await expect(page.locator('#char-mode')).toHaveClass(/active/);
+
+    const res = await page.evaluate(() => {
+      const draw = /** @type {HTMLCanvasElement} */ (document.getElementById('draw-canvas'));
+      const dctx = draw.getContext('2d');
+      // 글자 일부만 덮는 작은 획(완성 안 됨, 잉크는 있음)
+      dctx.fillStyle = '#000';
+      dctx.fillRect(draw.width * 0.45, draw.height * 0.1, draw.width * 0.1, draw.height * 0.3);
+      const cov = window.charMode.updateFeedback();
+      // 가이드 캔버스에 핑크(미작성) 픽셀이 칠해졌는지
+      const g = /** @type {HTMLCanvasElement} */ (document.getElementById('guide-canvas'));
+      const gctx = g.getContext('2d');
+      const data = gctx.getImageData(0, 0, g.width, g.height).data;
+      let pink = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        // rgba(236,72,153,*) 계열: R 높고 G 낮고 B 중간
+        if (data[i] > 180 && data[i + 1] < 130 && data[i + 2] > 110 && data[i + 3] > 30) pink++;
+      }
+      return { hasInk: cov.hasInk, done: cov.done, pink };
+    });
+    expect(res.hasInk).toBe(true);
+    expect(res.done).toBe(false);
+    expect(res.pink, 'guide should have missed-spot pink pixels').toBeGreaterThan(0);
+
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
   test('커버리지 엔진: 가이드 글자를 그대로 덮으면 완성(done) 판정', async ({ page }) => {
     const errors = collectClientErrors(page);
     await gotoApp(page);

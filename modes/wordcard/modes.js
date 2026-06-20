@@ -163,7 +163,7 @@ class WordCardMode {
     const fb = document.getElementById('wc-feedback');
     if (!fb) return null;
     const { target, row } = this._currentTarget();
-    const cov = traceEvaluateTracing(this.canvas.canvas, target, { row });
+    const cov = traceCoverageStep(this.canvas.canvas, this.guideLayer, target, { row });
     fb.style.color = '';
     fb.innerHTML = traceRenderCoverage(cov.progress, cov.done, { doneText: '잘 썼어요! 🎉' });
     return cov;

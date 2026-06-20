@@ -149,7 +149,7 @@ class WordMode {
     const feedbackEl = document.getElementById('word-feedback');
     if (!feedbackEl) return null;
     const w = WORDS[this.currentIdx];
-    const cov = traceEvaluateTracing(this.canvas.canvas, w.syllable, { row: false });
+    const cov = traceCoverageStep(this.canvas.canvas, this.guideLayer, w.syllable, { row: false });
     feedbackEl.style.color = '';
     feedbackEl.innerHTML = traceRenderCoverage(cov.progress, cov.done, {
       doneText: '완성! 🎉 다음은 ▶'

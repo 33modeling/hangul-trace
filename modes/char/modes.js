@@ -152,7 +152,7 @@ class CharMode {
     const feedbackEl = document.getElementById('feedback');
     if (!feedbackEl) return null;
     const { target, row } = this._currentTarget();
-    const cov = traceEvaluateTracing(this.canvas.canvas, target, { row });
+    const cov = traceCoverageStep(this.canvas.canvas, this.guideLayer, target, { row });
     feedbackEl.style.color = '';
     feedbackEl.innerHTML = traceRenderCoverage(cov.progress, cov.done, {
       doneText: '잘 했어요! 🎉 다음은 ▶'

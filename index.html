@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#7c3aed">
   <meta name="description" content="손가락으로 한글·숫자·영어를 따라 써요.">
-  <title>채윤 한글 v0.0.40</title>
+  <title>채윤 한글 v0.0.41</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <!-- Pretendard: 한글+영문 통일감 있는 모던 산세리프. system fallback chain은 styles.css에서. -->
@@ -137,6 +137,12 @@
           <span class="mode-icon" aria-hidden="true">🖼️</span>
           <span class="mode-title">그림 받아쓰기</span>
           <span class="mode-subtitle">그림 보고 단어 쓰기</span>
+        </button>
+
+        <button type="button" class="mode-card" data-mode="progress">
+          <span class="mode-icon" aria-hidden="true">📊</span>
+          <span class="mode-title">나의 기록</span>
+          <span class="mode-subtitle">스티커·진척·부모</span>
         </button>
       </div>
 
@@ -543,6 +549,26 @@
 
       <div id="dt-feedback"></div>
     </div>
+
+    <!-- 나의 기록(진척) — 스티커 도감 + 부모 대시보드 -->
+    <div id="progress-mode" class="mode-ui">
+      <div class="progress-titlebar">
+        <h2 class="progress-title">📊 나의 기록</h2>
+        <button type="button" id="progress-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
+      </div>
+
+      <div id="progress-head" class="progress-head"></div>
+
+      <h3 class="progress-section-title">🏅 스티커 도감</h3>
+      <div id="progress-stickers" class="progress-stickers"></div>
+
+      <h3 class="progress-section-title">📈 모드별 완료 (부모용)</h3>
+      <div id="progress-stats" class="progress-stats"></div>
+
+      <div class="progress-reset-row">
+        <button type="button" id="progress-reset-btn" class="tool-btn danger"><span>기록 초기화</span></button>
+      </div>
+    </div>
   </div>
 
   <script src="shared/common.js"></script>
@@ -567,6 +593,7 @@
   <script src="modes/phonics/modes.js"></script>
   <script src="modes/batchim/modes.js"></script>
   <script src="modes/dictation/modes.js"></script>
+  <script src="modes/progress/modes.js"></script>
   <script src="index.js"></script>
 </body>
 </html>

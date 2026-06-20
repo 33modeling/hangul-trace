@@ -2452,9 +2452,150 @@ canvas
   100% { opacity: 0; transform: translate(-50%, -14px) scale(0.96); }
 }
 
+.trace-reward-toast.sticker
+{
+  background: var(--trace-gradient-gold);
+  color: #4a3413;
+  font-size: 18px;
+}
+
 @media (prefers-reduced-motion: reduce)
 {
   .trace-reward-toast.show,
-  .trace-reward-toast.levelup.show { animation: traceRewardFade 1.2s ease forwards; }
+  .trace-reward-toast.levelup.show,
+  .trace-reward-toast.sticker.show { animation: traceRewardFade 1.2s ease forwards; }
   @keyframes traceRewardFade { 0% { opacity: 0; } 15% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+}
+
+/* ==========================================================================
+   나의 기록(진척) 화면 — 스티커 도감 + 부모 대시보드
+   ========================================================================== */
+#progress-mode { padding-bottom: 12px; }
+
+.progress-titlebar
+{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.progress-title { font-size: 1.3rem; margin: 0; }
+.progress-titlebar #progress-back-btn { flex: 0 0 auto; min-width: 100px; }
+
+.progress-section-title
+{
+  font-size: 15px;
+  font-weight: 800;
+  color: #2d1b4e;
+  margin: 16px 0 8px;
+}
+
+.progress-head
+{
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--trace-gradient-soft);
+  border: 1px solid rgba(212, 183, 94, 0.18);
+  box-shadow: var(--trace-shadow-card);
+}
+
+/* 오늘 목표 링 (conic-gradient) */
+.pg-ring
+{
+  flex: 0 0 auto;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: conic-gradient(var(--trace-accent) calc(var(--pg-pct, 0) * 1%), var(--trace-border-ui) 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pg-ring-inner
+{
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--trace-surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+.pg-ring-num { font-size: 17px; font-weight: 800; color: var(--trace-accent-dark); }
+.pg-ring-cap { font-size: 10px; color: #6e5a8a; font-weight: 600; }
+
+.pg-head-stats { flex: 1 1 auto; min-width: 0; }
+.pg-level { font-size: 16px; font-weight: 700; color: #2d1b4e; margin-bottom: 8px; }
+.pg-level b { font-weight: 800; }
+.pg-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pg-chip
+{
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--trace-chip);
+  color: var(--trace-chip-text);
+  white-space: nowrap;
+}
+
+/* 스티커 도감 그리드 */
+.progress-stickers
+{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 10px;
+}
+.pg-sticker
+{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 6px;
+  border-radius: 14px;
+  border: 1.5px solid var(--trace-border);
+  background: var(--trace-surface);
+  text-align: center;
+}
+.pg-sticker.earned
+{
+  border-color: var(--trace-gold);
+  background: var(--trace-gold-soft);
+  box-shadow: 0 2px 8px var(--trace-gold-soft);
+}
+.pg-sticker.locked { opacity: 0.6; }
+.pg-sticker-emoji { font-size: 30px; line-height: 1; }
+.pg-sticker.locked .pg-sticker-emoji { filter: grayscale(1); opacity: 0.7; }
+.pg-sticker-label { font-size: 11px; font-weight: 600; color: var(--trace-chip-text); }
+
+/* 모드별 완료 통계 */
+.progress-stats { display: flex; flex-direction: column; gap: 8px; }
+.pg-stat-row { display: flex; align-items: center; gap: 10px; }
+.pg-stat-label { flex: 0 0 96px; font-size: 13px; font-weight: 700; color: #2d1b4e; }
+.pg-stat-bar
+{
+  flex: 1 1 auto;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--trace-border-ui);
+  overflow: hidden;
+}
+.pg-stat-fill { display: block; height: 100%; border-radius: 999px; background: var(--trace-success); }
+.pg-stat-num { flex: 0 0 auto; font-size: 12px; font-weight: 700; color: var(--trace-chip-text); min-width: 46px; text-align: right; }
+
+.progress-reset-row { margin-top: 20px; display: flex; justify-content: center; }
+.progress-reset-row .tool-btn { flex: 0 0 auto; min-width: 160px; }
+
+@media (max-width: 380px)
+{
+  .pg-stat-label { flex-basis: 76px; font-size: 12px; }
+  .pg-ring { width: 72px; height: 72px; }
+  .pg-ring-inner { width: 54px; height: 54px; }
 }

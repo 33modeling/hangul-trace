@@ -905,20 +905,16 @@ function _traceDilate(src, w, h, r) {
 }
 
 /**
- * 필기 커버리지 평가.
- * @param {HTMLCanvasElement} drawCanvas 사용자 필기 캔버스(버퍼 기준)
- * @param {string|string[]} target 목표 글자(단일) 또는 음절 배열(가로 행)
- * @param {{ row?: boolean, recallMin?: number, precisionMin?: number }} [opts]
- * @returns {{ recall: number, precision: number, progress: number, done: boolean }}
+ * 마스크/필기 저해상도 격자 + 팽창 맵을 한 번 계산해 돌려준다(평가·하이라이트 공용).
+ * @returns {null | { mw:number, mh:number, mask:Uint8Array, ink:Uint8Array,
+ *   maskDil:Uint8Array, inkDil:Uint8Array, maskCount:number, inkCount:number,
+ *   list:string[], row:boolean }}
  */
-function traceEvaluateTracing(drawCanvas, target, opts) {
+function _traceCoverageMaps(drawCanvas, target, opts) {
   opts = opts || {};
-  const recallMin = typeof opts.recallMin === 'number' ? opts.recallMin : TRACE_COV_RECALL_MIN;
-  const precisionMin = typeof opts.precisionMin === 'number' ? opts.precisionMin : TRACE_COV_PRECISION_MIN;
-  const fail = { recall: 0, precision: 0, progress: 0, done: false };
-  if (!drawCanvas || !drawCanvas.width || !drawCanvas.height) return fail;
+  if (!drawCanvas || !drawCanvas.width || !drawCanvas.height) return null;
   const list = (Array.isArray(target) ? target : [target]).filter((c) => typeof c === 'string' && c.length > 0);
-  if (list.length === 0) return fail;
+  if (list.length === 0) return null;
   const row = !!opts.row;
 
   const bw = drawCanvas.width;
@@ -942,36 +938,123 @@ function traceEvaluateTracing(drawCanvas, target, opts) {
     dctx.drawImage(drawCanvas, 0, 0, mw, mh);
     inkData = dctx.getImageData(0, 0, mw, mh).data;
   } catch (_e) {
-    return fail;
+    return null;
   }
 
   const N = mw * mh;
   const mask = new Uint8Array(N);
   const ink = new Uint8Array(N);
-  for (let i = 0; i < N; i++) {
-    mask[i] = maskData[i * 4 + 3] > TRACE_COV_MASK_ALPHA ? 1 : 0;
-    ink[i] = inkData[i * 4 + 3] > TRACE_COV_INK_ALPHA ? 1 : 0;
-  }
-
-  const r = Math.max(1, Math.round(TRACE_COV_RADIUS_RATIO * Math.max(mw, mh)));
-  const maskDil = _traceDilate(mask, mw, mh, r);
-  const inkDil = _traceDilate(ink, mw, mh, r);
-
   let maskCount = 0;
   let inkCount = 0;
+  for (let i = 0; i < N; i++) {
+    const m = maskData[i * 4 + 3] > TRACE_COV_MASK_ALPHA ? 1 : 0;
+    const k = inkData[i * 4 + 3] > TRACE_COV_INK_ALPHA ? 1 : 0;
+    mask[i] = m; ink[i] = k;
+    if (m) maskCount++;
+    if (k) inkCount++;
+  }
+  if (maskCount === 0) return null;
+
+  const r = Math.max(1, Math.round(TRACE_COV_RADIUS_RATIO * Math.max(mw, mh)));
+  return {
+    mw, mh, mask, ink,
+    maskDil: _traceDilate(mask, mw, mh, r),
+    inkDil: _traceDilate(ink, mw, mh, r),
+    maskCount, inkCount, list, row
+  };
+}
+
+/** maps → recall/precision/progress/done/hasInk. */
+function _traceCovFromMaps(maps, recallMin, precisionMin) {
+  const N = maps.mw * maps.mh;
   let recallHit = 0;
   let precHit = 0;
   for (let i = 0; i < N; i++) {
-    if (mask[i]) { maskCount++; if (inkDil[i]) recallHit++; }
-    if (ink[i]) { inkCount++; if (maskDil[i]) precHit++; }
+    if (maps.mask[i] && maps.inkDil[i]) recallHit++;
+    if (maps.ink[i] && maps.maskDil[i]) precHit++;
   }
-  if (maskCount === 0) return fail;
-
-  const recall = recallHit / maskCount;
-  const precision = inkCount ? precHit / inkCount : 0;
-  const done = inkCount > 0 && recall >= recallMin && precision >= precisionMin;
+  const recall = recallHit / maps.maskCount;
+  const precision = maps.inkCount ? precHit / maps.inkCount : 0;
+  const done = maps.inkCount > 0 && recall >= recallMin && precision >= precisionMin;
   const progress = Math.max(0, Math.min(1, recall / recallMin));
-  return { recall, precision, progress, done };
+  return { recall, precision, progress, done, hasInk: maps.inkCount > 0 };
+}
+
+/**
+ * 필기 커버리지 평가.
+ * @param {HTMLCanvasElement} drawCanvas 사용자 필기 캔버스(버퍼 기준)
+ * @param {string|string[]} target 목표 글자(단일) 또는 음절 배열(가로 행)
+ * @param {{ row?: boolean, recallMin?: number, precisionMin?: number }} [opts]
+ * @returns {{ recall:number, precision:number, progress:number, done:boolean, hasInk:boolean }}
+ */
+function traceEvaluateTracing(drawCanvas, target, opts) {
+  opts = opts || {};
+  const recallMin = typeof opts.recallMin === 'number' ? opts.recallMin : TRACE_COV_RECALL_MIN;
+  const precisionMin = typeof opts.precisionMin === 'number' ? opts.precisionMin : TRACE_COV_PRECISION_MIN;
+  const fail = { recall: 0, precision: 0, progress: 0, done: false, hasInk: false };
+  const maps = _traceCoverageMaps(drawCanvas, target, opts);
+  if (!maps) return fail;
+  return _traceCovFromMaps(maps, recallMin, precisionMin);
+}
+
+/**
+ * 미작성 영역 하이라이트 — 가이드 글자 픽셀 중 (팽창된) 필기에 아직 안 덮인
+ * 곳을 가이드 캔버스에 따뜻한 핑크로 칠한다. "여기 더 써봐" 교정 피드백.
+ */
+function _tracePaintMissed(guideLayer, maps) {
+  if (!guideLayer || !guideLayer.ctx || !guideLayer.canvas || !maps) return;
+  const ctx = guideLayer.ctx;
+  const bw = guideLayer.canvas.width;
+  const bh = guideLayer.canvas.height;
+  if (bw < 2 || bh < 2) return;
+  const cw = bw / maps.mw;
+  const ch = bh / maps.mh;
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = 'rgba(236, 72, 153, 0.34)';
+  for (let y = 0; y < maps.mh; y++) {
+    for (let x = 0; x < maps.mw; x++) {
+      const i = y * maps.mw + x;
+      if (maps.mask[i] && !maps.inkDil[i]) {
+        ctx.fillRect(x * cw, y * ch, cw + 0.6, ch + 0.6);
+      }
+    }
+  }
+  ctx.restore();
+}
+
+/**
+ * 커버리지 평가 + 가이드 갱신을 한 번에. 평가 후:
+ *  - 필기가 있고 미완성이면: 가이드를 다시 그리고 '아직 안 쓴 부분'을 하이라이트.
+ *  - 필기가 없거나 완성이면: 가이드를 깨끗이 다시 그린다(이전 하이라이트 제거).
+ * dictation 처럼 가이드를 숨겨야 하는 모드는 이 함수를 쓰지 않고 traceEvaluateTracing 사용.
+ * @param {HTMLCanvasElement} drawCanvas
+ * @param {DrawingCanvas} guideLayer
+ * @param {string|string[]} target
+ * @param {{row?:boolean, guideColor?:string, recallMin?:number, precisionMin?:number}} [opts]
+ * @returns {{ recall:number, precision:number, progress:number, done:boolean, hasInk:boolean }}
+ */
+function traceCoverageStep(drawCanvas, guideLayer, target, opts) {
+  opts = opts || {};
+  const recallMin = typeof opts.recallMin === 'number' ? opts.recallMin : TRACE_COV_RECALL_MIN;
+  const precisionMin = typeof opts.precisionMin === 'number' ? opts.precisionMin : TRACE_COV_PRECISION_MIN;
+  const maps = _traceCoverageMaps(drawCanvas, target, opts);
+  if (!maps) return { recall: 0, precision: 0, progress: 0, done: false, hasInk: false };
+  const cov = _traceCovFromMaps(maps, recallMin, precisionMin);
+
+  if (guideLayer && guideLayer.canvas && guideLayer.canvas.width > 1 && typeof guideLayer.drawGuide === 'function') {
+    guideLayer.clear();
+    if (maps.row && typeof guideLayer.drawGuideRow === 'function') {
+      guideLayer.drawGuideRow(maps.list, opts.guideColor);
+    } else {
+      guideLayer.drawGuide(maps.list[0], opts.guideColor);
+    }
+    if (cov.hasInk && !cov.done) {
+      _tracePaintMissed(guideLayer, maps);
+    }
+  }
+  return cov;
 }
 
 /* 커버리지 진행 바 — feedback 영역에 채울 HTML. progress(0~1) + 완성 여부. */

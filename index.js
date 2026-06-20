@@ -137,6 +137,10 @@ function showDictationMode() {
   showSingleMode('dictation');
 }
 
+function showProgressMode() {
+  showSingleMode('progress');
+}
+
 /* === 이스터에그: byline '통통이' 15클릭 → 비밀 모드 ===
  * 외관상 일반 텍스트라 모르는 사람에겐 보이지 않음.
  * 5초 안에 15회 누르지 못하면 카운트 자동 리셋.
@@ -235,7 +239,8 @@ function showSingleMode(modeName, opts) {
     quiz: typeof QuizMode !== 'undefined' ? QuizMode : undefined,
     phonics: typeof PhonicsMode !== 'undefined' ? PhonicsMode : undefined,
     batchim: typeof BatchimMode !== 'undefined' ? BatchimMode : undefined,
-    dictation: typeof DictationMode !== 'undefined' ? DictationMode : undefined
+    dictation: typeof DictationMode !== 'undefined' ? DictationMode : undefined,
+    progress: typeof ProgressMode !== 'undefined' ? ProgressMode : undefined
   }[modeName];
 
   function startMode() {
@@ -252,6 +257,7 @@ function showSingleMode(modeName, opts) {
       else if (modeName === 'phonics') window.phonicsMode = new ModeClass();
       else if (modeName === 'batchim') window.batchimMode = new ModeClass();
       else if (modeName === 'dictation') window.dictationMode = new ModeClass();
+      else if (modeName === 'progress') window.progressMode = new ModeClass();
     } catch (err) {
       console.error('tracing: mode init failed', modeName, err);
     }
@@ -287,7 +293,7 @@ function initAppShell() {
       const el = traceClickElement(e);
       if (!el) return;
       const back = el.closest(
-        '#back-btn, #word-back-btn, #num-back-btn, #eng-back-btn, #myword-back-btn, #myword-add-back-btn, #myword-add-menu-btn, #adv-back-btn, #wc-back-btn, #quiz-back-btn, #ph-back-btn, #bt-back-btn, #dt-back-btn, #secret-back-btn'
+        '#back-btn, #word-back-btn, #num-back-btn, #eng-back-btn, #myword-back-btn, #myword-add-back-btn, #myword-add-menu-btn, #adv-back-btn, #wc-back-btn, #quiz-back-btn, #ph-back-btn, #bt-back-btn, #dt-back-btn, #progress-back-btn, #secret-back-btn'
       );
       if (back && app.contains(back)) {
         e.preventDefault();
@@ -454,4 +460,5 @@ if (typeof window !== 'undefined') {
   window.showPhonicsMode = showPhonicsMode;
   window.showBatchimMode = showBatchimMode;
   window.showDictationMode = showDictationMode;
+  window.showProgressMode = showProgressMode;
 }

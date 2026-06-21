@@ -28,6 +28,9 @@ function traceTeardownActiveMode() {
   if (window.reviewMode && typeof window.reviewMode.clearTimer === 'function') {
     try { window.reviewMode.clearTimer(); } catch (_e) { /* ignore */ }
   }
+  if (window.matchMode && typeof window.matchMode.clearTimer === 'function') {
+    try { window.matchMode.clearTimer(); } catch (_e) { /* ignore */ }
+  }
   // 진행 중인 획순 애니메이션(rAF) 모두 취소 — 숨은 캔버스에 stale 그리기 방지.
   if (typeof cancelAllStrokeOrderAnims === 'function') {
     try { cancelAllStrokeOrderAnims(); } catch (_e) { /* ignore */ }
@@ -164,6 +167,10 @@ function showSettingsMode() {
   showSingleMode('settings');
 }
 
+function showMatchMode() {
+  showSingleMode('match');
+}
+
 /* === 이스터에그: byline '통통이' 15클릭 → 비밀 모드 ===
  * 외관상 일반 텍스트라 모르는 사람에겐 보이지 않음.
  * 5초 안에 15회 누르지 못하면 카운트 자동 리셋.
@@ -267,6 +274,7 @@ function showSingleMode(modeName, opts) {
     review: typeof ReviewMode !== 'undefined' ? ReviewMode : undefined,
     sentence: typeof SentenceMode !== 'undefined' ? SentenceMode : undefined,
     settings: typeof SettingsMode !== 'undefined' ? SettingsMode : undefined,
+    match: typeof MatchMode !== 'undefined' ? MatchMode : undefined,
     progress: typeof ProgressMode !== 'undefined' ? ProgressMode : undefined
   }[modeName];
 
@@ -288,6 +296,7 @@ function showSingleMode(modeName, opts) {
       else if (modeName === 'review') window.reviewMode = new ModeClass();
       else if (modeName === 'sentence') window.sentenceMode = new ModeClass();
       else if (modeName === 'settings') window.settingsMode = new ModeClass();
+      else if (modeName === 'match') window.matchMode = new ModeClass();
       else if (modeName === 'progress') window.progressMode = new ModeClass();
     } catch (err) {
       console.error('tracing: mode init failed', modeName, err);
@@ -324,7 +333,7 @@ function initAppShell() {
       const el = traceClickElement(e);
       if (!el) return;
       const back = el.closest(
-        '#back-btn, #word-back-btn, #num-back-btn, #eng-back-btn, #myword-back-btn, #myword-add-back-btn, #myword-add-menu-btn, #adv-back-btn, #wc-back-btn, #quiz-back-btn, #ph-back-btn, #bt-back-btn, #dt-back-btn, #so-back-btn, #rv-back-btn, #rv-empty-back-btn, #sn-back-btn, #settings-back-btn, #progress-back-btn, #secret-back-btn'
+        '#back-btn, #word-back-btn, #num-back-btn, #eng-back-btn, #myword-back-btn, #myword-add-back-btn, #myword-add-menu-btn, #adv-back-btn, #wc-back-btn, #quiz-back-btn, #ph-back-btn, #bt-back-btn, #dt-back-btn, #so-back-btn, #rv-back-btn, #rv-empty-back-btn, #sn-back-btn, #settings-back-btn, #match-back-btn, #progress-back-btn, #secret-back-btn'
       );
       if (back && app.contains(back)) {
         e.preventDefault();
@@ -508,4 +517,5 @@ if (typeof window !== 'undefined') {
   window.showReviewMode = showReviewMode;
   window.showSentenceMode = showSentenceMode;
   window.showSettingsMode = showSettingsMode;
+  window.showMatchMode = showMatchMode;
 }

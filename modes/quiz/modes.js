@@ -11,6 +11,9 @@ class QuizMode {
     this.qType = 'meaning'; // 'meaning'(뜻→단어) | 'word'(단어→뜻)
     this.category = '전체';
     this.score = 0;
+    this.streak = 0;        // 연속 정답
+    this.best = this._loadBest(); // 최고 연속(저장)
+    this.numOptions = 4;    // 보기 수(3지/4지)
     this.current = null;    // { answer, options }
     this.locked = false;    // 정답 후 보기 잠금
     this._advanceTimer = null;
@@ -18,14 +21,45 @@ class QuizMode {
     this.init();
   }
 
+  _loadBest() {
+    const v = (typeof Utils !== 'undefined') ? Utils.loadLocal('tracing.quiz.best.v1', 0) : 0;
+    return (typeof v === 'number' && v >= 0) ? v : 0;
+  }
+  _saveBest() {
+    if (typeof Utils !== 'undefined') Utils.saveLocal('tracing.quiz.best.v1', this.best);
+  }
+
   init() {
     this.setupToggle();
+    this.setupDiff();
     this._renderCats();
     rebindButtonClickById('quiz-next-btn', () => this.nextQuestion());
     this.score = 0;
+    this.streak = 0;
     this._updateScore();
     this.nextQuestion();
     window.quizMode = this;
+  }
+
+  setupDiff() {
+    this.diffButtons = document.querySelectorAll('.quiz-diff-btn');
+    const sync = () => {
+      this.diffButtons.forEach((b) => {
+        const on = Number(b.dataset.opt) === this.numOptions;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    };
+    sync();
+    this.diffButtons.forEach((btn) => {
+      btn.onclick = () => {
+        const n = Number(btn.dataset.opt);
+        if (n !== 3 && n !== 4) return;
+        this.numOptions = n;
+        sync();
+        this.nextQuestion();
+      };
+    });
   }
 
   _pool() {
@@ -79,9 +113,10 @@ class QuizMode {
       return;
     }
     const answer = traceShuffleArray(pool)[0];
+    const nDist = Math.max(2, this.numOptions - 1);
     const distractors = (typeof traceVocabDistractorsFrom === 'function')
-      ? traceVocabDistractorsFrom(pool, answer.word, 3)
-      : traceVocabDistractors(answer.word, 3);
+      ? traceVocabDistractorsFrom(pool, answer.word, nDist)
+      : traceVocabDistractors(answer.word, nDist);
     const options = traceShuffleArray([answer].concat(distractors));
     this.current = { answer, options };
     this._renderQuestion();
@@ -149,9 +184,13 @@ class QuizMode {
       this.locked = true;
       btn.classList.add('correct');
       this.score++;
+      this.streak++;
+      let newBest = false;
+      if (this.streak > this.best) { this.best = this.streak; this._saveBest(); newBest = true; }
       this._updateScore();
       if (fbEl) {
-        fbEl.textContent = '정답이에요! 🎉';
+        fbEl.textContent = newBest ? `최고 기록! 연속 ${this.streak} 🏆`
+          : (this.streak >= 3 ? `연속 ${this.streak}! 멋져요 🔥` : '정답이에요! 🎉');
         fbEl.style.color = 'var(--trace-success)';
       }
       document.querySelectorAll('.quiz-option').forEach((b) => {
@@ -159,7 +198,8 @@ class QuizMode {
         if (b !== btn) b.classList.add('dim');
       });
       if (typeof TraceSound !== 'undefined') TraceSound.complete();
-      if (typeof TraceRewards !== 'undefined') TraceRewards.award(15);
+      // 연속 정답 콤보 보너스(최대 +10)
+      if (typeof TraceRewards !== 'undefined') TraceRewards.award(15 + Math.min(10, (this.streak - 1) * 2));
       this._advanceTimer = setTimeout(() => {
         this._advanceTimer = null;
         this.nextQuestion();
@@ -167,6 +207,8 @@ class QuizMode {
     } else {
       btn.classList.add('wrong');
       btn.disabled = true;
+      this.streak = 0; // 연속 끊김
+      this._updateScore();
       if (fbEl) {
         fbEl.textContent = '다시 한 번 골라 볼까요?';
         fbEl.style.color = 'var(--trace-danger)';
@@ -176,6 +218,6 @@ class QuizMode {
 
   _updateScore() {
     const el = document.getElementById('quiz-score');
-    if (el) el.textContent = `맞은 개수 ${this.score}`;
+    if (el) el.textContent = `맞은 개수 ${this.score} · 연속 ${this.streak} · 최고 ${this.best}`;
   }
 }

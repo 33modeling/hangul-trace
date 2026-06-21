@@ -15,6 +15,41 @@ function collectClientErrors(page) {
 }
 
 test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리지', () => {
+  test('짝맞추기: 12장·짝 맞추기 + 퀴즈 난이도/연속', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    await gotoApp(page);
+
+    // 짝맞추기: 12장, 같은 pid 두 장 → matched
+    await page.locator('button.mode-card[data-mode="match"]').click();
+    await expect(page.locator('#match-mode')).toHaveClass(/active/);
+    await expect(page.locator('#match-grid .match-card')).toHaveCount(12);
+    const matchedOk = await page.evaluate(() => {
+      const m = window.matchMode;
+      let a = -1, b = -1;
+      for (let i = 0; i < m.cards.length && a < 0; i++) {
+        for (let j = i + 1; j < m.cards.length; j++) {
+          if (m.cards[i].pid === m.cards[j].pid) { a = i; b = j; break; }
+        }
+      }
+      m._onCard(a); m._onCard(b);
+      return m.matched.has(a) && m.matched.has(b);
+    });
+    expect(matchedOk).toBe(true);
+    await page.locator('#match-back-btn').click();
+
+    // 퀴즈: 3지 난이도 → 보기 3개, 정답 클릭 → 연속 1
+    await page.locator('button.mode-card[data-mode="quiz"]').click();
+    await page.locator('.quiz-diff-btn[data-opt="3"]').click();
+    await expect(page.locator('#quiz-options .quiz-option')).toHaveCount(3);
+    const ans = await page.evaluate(() => window.quizMode.current.answer.word);
+    await page.locator(`.quiz-option[data-word="${ans}"]`).click();
+    await expect(page.locator('#quiz-score')).toContainText('연속 1');
+    await page.locator('#quiz-back-btn').click();
+    await expect(page.locator('#main-menu')).toBeVisible();
+
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
   test('카테고리 필터(단어카드·퀴즈·받아쓰기) + 받아쓰기 첫 글자 힌트', async ({ page }) => {
     const errors = collectClientErrors(page);
     await gotoApp(page);
@@ -116,7 +151,7 @@ test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리
     await page.locator('.quiz-type-btn[data-qtype="meaning"]').click();
     const answerWord = await page.evaluate(() => window.quizMode.current.answer.word);
     await page.locator(`.quiz-option[data-word="${answerWord}"]`).click();
-    await expect(page.locator('#quiz-score')).toHaveText('맞은 개수 1');
+    await expect(page.locator('#quiz-score')).toContainText('맞은 개수 1');
 
     expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
   });

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#7c3aed">
   <meta name="description" content="손가락으로 한글·숫자·영어를 따라 써요.">
-  <title>채윤 한글 v0.0.48</title>
+  <title>채윤 한글 v0.0.49</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <!-- Pretendard: 한글+영문 통일감 있는 모던 산세리프. system fallback chain은 styles.css에서. -->
@@ -149,6 +149,12 @@
           <span class="mode-icon" aria-hidden="true">📖</span>
           <span class="mode-title">문장</span>
           <span class="mode-subtitle">짧은 문장 읽고 쓰기</span>
+        </button>
+
+        <button type="button" class="mode-card" data-mode="match">
+          <span class="mode-icon" aria-hidden="true">🃏</span>
+          <span class="mode-title">짝맞추기</span>
+          <span class="mode-subtitle">단어↔그림 기억놀이</span>
         </button>
 
         <button type="button" class="mode-card" data-mode="review">
@@ -455,7 +461,12 @@
 
       <div id="quiz-cats" class="cat-chips"></div>
 
-      <div id="quiz-score" class="quiz-score" aria-live="polite">맞은 개수 0</div>
+      <div class="quiz-diff-toggle">
+        <button type="button" class="quiz-diff-btn" data-opt="3" aria-pressed="false">쉬움 (3지)</button>
+        <button type="button" class="quiz-diff-btn active" data-opt="4" aria-pressed="true">보통 (4지)</button>
+      </div>
+
+      <div id="quiz-score" class="quiz-score" aria-live="polite">맞은 개수 0 · 연속 0 · 최고 0</div>
 
       <div id="quiz-prompt" class="quiz-prompt"></div>
 
@@ -669,6 +680,19 @@
       <p class="settings-note">배경음·효과음은 메인 화면에서 켜고 끌 수 있어요. · <span class="menu-version">v0.0.0</span></p>
     </div>
 
+    <!-- 짝맞추기 미니게임 -->
+    <div id="match-mode" class="mode-ui">
+      <div class="progress-titlebar">
+        <h2 class="progress-title">🃏 짝맞추기</h2>
+        <button type="button" id="match-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
+      </div>
+      <div id="match-status" class="match-status" aria-live="polite">남은 짝 6 · 시도 0</div>
+      <div id="match-grid" class="match-grid"></div>
+      <div class="match-toolbar">
+        <button type="button" id="match-new-btn" class="tool-btn"><span class="btn-icon" aria-hidden="true">🔄</span><span>새 게임</span></button>
+      </div>
+    </div>
+
     <!-- 복습 모드 — 아직 안 익힌 자모·숫자·알파벳 집중 -->
     <div id="review-mode" class="mode-ui">
       <div id="rv-nav" class="trace-mode-nav">
@@ -756,6 +780,7 @@
   <script src="modes/dictation/modes.js"></script>
   <script src="modes/strokeorder/modes.js"></script>
   <script src="modes/review/modes.js"></script>
+  <script src="modes/match/modes.js"></script>
   <script src="modes/sentence/modes.js"></script>
   <script src="modes/settings/modes.js"></script>
   <script src="modes/progress/modes.js"></script>

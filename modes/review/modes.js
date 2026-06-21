@@ -124,7 +124,7 @@ class ReviewMode {
   _reflowWhenReady() {
     const go = () => {
       if (!this.wrapper) return;
-      if (this.wrapper.clientWidth < 1) { requestAnimationFrame(go); return; }
+      if (this.wrapper.clientWidth < 1) { if (this.wrapper.offsetParent === null) return; requestAnimationFrame(go); return; }
       if (this.guideLayer.canvas.width < 2) this._syncCanvases();
     };
     requestAnimationFrame(go);

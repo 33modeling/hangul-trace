@@ -93,6 +93,7 @@ class WordMode {
     const go = () => {
       if (!this.wrapper) return;
       if (this.wrapper.clientWidth < 1) {
+        if (this.wrapper.offsetParent === null) return; // 모드가 숨겨졌으면(teardown) rAF 루프 종료
         requestAnimationFrame(go);
         return;
       }

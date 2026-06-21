@@ -573,6 +573,30 @@ test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리
     expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
   });
 
+  test('숫자(1·4·7): 세리프 있어도 자연스러운 따라쓰기로 완성된다', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    await gotoApp(page);
+    const res = await page.evaluate(() => {
+      const W = 320, H = 320, PEN = W * 0.035;
+      function trace(ch) {
+        const c = document.createElement('canvas'); c.width = W; c.height = H;
+        const ctx = c.getContext('2d');
+        const f = (Math.min(W, H) * 0.72) + 'px "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif';
+        const x = W / 2, y = H / 2 + Math.min(W, H) * 0.035;
+        ctx.fillStyle = '#000'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.font = f; ctx.fillText(ch, x, y);
+        ctx.strokeStyle = '#000'; ctx.lineWidth = PEN; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.font = f; ctx.strokeText(ch, x, y);
+        return c;
+      }
+      // 기본 '보통' 난이도(recall 0.85)에서 숫자 1·4·7 완전 따라쓰기가 완성돼야
+      let done = 0, total = 0;
+      for (const g of ['1', '4', '7']) { total++; if (traceEvaluateTracing(trace(g), g, { row: false }).done) done++; }
+      return { done, total };
+    });
+    expect(res.done, '숫자 완성 개수').toBe(res.total);
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
   test('얇은 글자(ㅣ·ㅡ): 좌우로 살짝 빗나가게 따라 써도 완성된다', async ({ page }) => {
     const errors = collectClientErrors(page);
     await gotoApp(page);

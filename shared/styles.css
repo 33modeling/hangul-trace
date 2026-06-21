@@ -976,7 +976,7 @@ to {
   cursor: pointer;
   transition: all 0.18s ease;
   -webkit-tap-highlight-color: transparent;
-  min-height: 36px;
+  min-height: 44px;
 }
 
 .myword-kind-btn.active
@@ -1634,7 +1634,7 @@ button.myword-add-mini.tool-btn.myword-add-del
   color: var(--trace-accent-dark);
   cursor: pointer;
   transition: all 0.2s ease;
-  min-height: 40px;
+  min-height: 44px;
 }
 
 .alpha-type-btn.active
@@ -2189,7 +2189,7 @@ canvas
   color: var(--trace-accent-dark);
   cursor: pointer;
   transition: all 0.2s ease;
-  min-height: 40px;
+  min-height: 44px;
 }
 
 .quiz-type-btn.active
@@ -2824,7 +2824,7 @@ canvas
   font-weight: 600;
   color: var(--trace-accent-dark);
   cursor: pointer;
-  min-height: 36px;
+  min-height: 44px;
   -webkit-tap-highlight-color: transparent;
   transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
@@ -2849,7 +2849,7 @@ canvas
   font-weight: 600;
   color: var(--trace-accent-dark);
   cursor: pointer;
-  min-height: 40px;
+  min-height: 44px;
   -webkit-tap-highlight-color: transparent;
 }
 .quiz-diff-btn.active { background: var(--trace-gradient-primary); border-color: transparent; color: #fff; box-shadow: 0 2px 8px var(--trace-accent-glow); }
@@ -2950,8 +2950,9 @@ canvas
   left: 0; right: 0; top: 0;
   height: 100vh; height: var(--app-vh, 100vh); height: 100svh; height: 100dvh;
   z-index: 95;
-  display: flex; align-items: center; justify-content: center;
-  padding: 20px;
+  display: flex; align-items: flex-start; justify-content: center;
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: max(20px, env(safe-area-inset-top, 0px)) 20px max(20px, env(safe-area-inset-bottom, 0px));
   background: var(--trace-gradient-soft);
   animation: fadeIn 0.4s ease;
 }
@@ -2960,6 +2961,7 @@ canvas
 .onboard-card
 {
   width: 100%; max-width: 420px;
+  margin: auto;
   background: var(--trace-surface);
   border-radius: 22px;
   padding: 28px 24px;

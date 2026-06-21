@@ -260,10 +260,13 @@ const TraceRewards = (function () {
     save();
     if (newSticker) {
       showStickerToast(newSticker);
+    } else if (leveledUp) {
+      // 레벨업 축하가 최우선(오늘 목표 달성과 겹쳐도 레벨업을 보여 준다).
+      showPraiseToast(total, true, afterLevel, _comboCount);
     } else if (hitDailyGoal) {
-      flashToast(`<span class="trt-praise">오늘 목표 달성! 🎯 ${DAILY_GOAL}개</span>`, 'levelup', 1800);
+      flashToast(`<span class="trt-praise">오늘 목표 달성! 🎯 ${DAILY_GOAL}개</span> <span class="trt-points">+${total}</span>`, 'levelup', 1800);
     } else {
-      showPraiseToast(total, leveledUp, afterLevel, _comboCount);
+      showPraiseToast(total, false, afterLevel, _comboCount);
     }
     updateBadge();
     return { score: state.score, level: afterLevel, leveledUp, newSticker, combo: _comboCount };
@@ -273,6 +276,8 @@ const TraceRewards = (function () {
   function reset() {
     state = blank();
     booted = true;
+    _comboCount = 0;   // 콤보 누적도 초기화(리셋 직후 옛 콤보가 이어지지 않게)
+    _lastAwardAt = 0;
     try { if (typeof localStorage !== 'undefined') localStorage.removeItem(KEY); } catch (_e) { /* 무시 */ }
     save();
     updateBadge();

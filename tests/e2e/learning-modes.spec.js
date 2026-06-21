@@ -15,6 +15,45 @@ function collectClientErrors(page) {
 }
 
 test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리지', () => {
+  test('카테고리 필터(단어카드·퀴즈·받아쓰기) + 받아쓰기 첫 글자 힌트', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    await gotoApp(page);
+
+    // 단어 카드: 칩 9개(전체+8), 동물 선택 시 동물만
+    await page.locator('button.mode-card[data-mode="wordcard"]').click();
+    await expect(page.locator('#wc-cats .cat-chip')).toHaveCount(9);
+    const before = await page.evaluate(() => window.wordCardMode.cards.length);
+    await page.locator('#wc-cats .cat-chip').filter({ hasText: '동물' }).click();
+    const wc = await page.evaluate(() => ({
+      cat: window.wordCardMode.category,
+      len: window.wordCardMode.cards.length,
+      allAnimal: window.wordCardMode.cards.every((c) => c.category === '동물')
+    }));
+    expect(wc.cat).toBe('동물');
+    expect(wc.allAnimal).toBe(true);
+    expect(wc.len).toBeLessThan(before);
+    await page.locator('#wc-back-btn').click();
+
+    // 퀴즈: 칩 렌더 + 카테고리 선택 시 풀 필터
+    await page.locator('button.mode-card[data-mode="quiz"]').click();
+    await expect(page.locator('#quiz-cats .cat-chip')).toHaveCount(9);
+    await page.locator('#quiz-cats .cat-chip').filter({ hasText: '과일' }).click();
+    const quizPool = await page.evaluate(() => window.quizMode._pool().every((v) => v.category === '과일'));
+    expect(quizPool).toBe(true);
+    await page.locator('#quiz-back-btn').click();
+
+    // 받아쓰기: 칩 + 첫 글자 힌트
+    await page.locator('button.mode-card[data-mode="dictation"]').click();
+    await expect(page.locator('#dt-cats .cat-chip')).toHaveCount(9);
+    await page.locator('#dt-hint-btn').click();
+    await expect(page.locator('#dt-answer')).toContainText('첫 글자');
+    expect(await page.evaluate(() => window.dictationMode.hinted)).toBe(true);
+    await page.locator('#dt-back-btn').click();
+    await expect(page.locator('#main-menu')).toBeVisible();
+
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
   test('단어 카드: 그림·뜻 표시, 캔버스, 아는 단어 토글, 네비게이션', async ({ page }) => {
     const errors = collectClientErrors(page);
     await gotoApp(page);

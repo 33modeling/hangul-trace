@@ -9,6 +9,7 @@
 class QuizMode {
   constructor() {
     this.qType = 'meaning'; // 'meaning'(뜻→단어) | 'word'(단어→뜻)
+    this.category = '전체';
     this.score = 0;
     this.current = null;    // { answer, options }
     this.locked = false;    // 정답 후 보기 잠금
@@ -19,6 +20,7 @@ class QuizMode {
 
   init() {
     this.setupToggle();
+    this._renderCats();
     rebindButtonClickById('quiz-next-btn', () => this.nextQuestion());
     this.score = 0;
     this._updateScore();
@@ -27,7 +29,16 @@ class QuizMode {
   }
 
   _pool() {
-    return (typeof TRACE_VOCAB !== 'undefined') ? TRACE_VOCAB : [];
+    return (typeof traceVocabByCategory === 'function') ? traceVocabByCategory(this.category) : ((typeof TRACE_VOCAB !== 'undefined') ? TRACE_VOCAB : []);
+  }
+
+  _renderCats() {
+    if (typeof traceRenderCategoryChips !== 'function') return;
+    traceRenderCategoryChips(document.getElementById('quiz-cats'), this.category, (cat) => {
+      this.category = cat;
+      this._renderCats();
+      this.nextQuestion();
+    });
   }
 
   setupToggle() {
@@ -68,7 +79,9 @@ class QuizMode {
       return;
     }
     const answer = traceShuffleArray(pool)[0];
-    const distractors = traceVocabDistractors(answer.word, 3);
+    const distractors = (typeof traceVocabDistractorsFrom === 'function')
+      ? traceVocabDistractorsFrom(pool, answer.word, 3)
+      : traceVocabDistractors(answer.word, 3);
     const options = traceShuffleArray([answer].concat(distractors));
     this.current = { answer, options };
     this._renderQuestion();

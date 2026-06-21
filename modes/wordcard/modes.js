@@ -11,8 +11,9 @@ const TRACE_WC_KNOWN_KEY = 'tracing.wordcard.known.v1';
 
 class WordCardMode {
   constructor() {
+    this.category = '전체';
     // 매 입장마다 카드 순서를 새로 섞어 새 느낌으로 학습(원본 불변).
-    this.cards = (typeof TRACE_VOCAB !== 'undefined') ? traceShuffleArray(TRACE_VOCAB) : [];
+    this.cards = (typeof traceVocabByCategory === 'function') ? traceShuffleArray(traceVocabByCategory(this.category)) : [];
     this.currentIdx = 0;
     this.guideLayer = null;
     this.canvas = null;
@@ -24,6 +25,21 @@ class WordCardMode {
     this._wrapRoRaf = 0;
 
     this.init();
+  }
+
+  _rebuildCards() {
+    this.cards = (typeof traceVocabByCategory === 'function') ? traceShuffleArray(traceVocabByCategory(this.category)) : this.cards;
+    this.currentIdx = 0;
+  }
+
+  _renderCats() {
+    if (typeof traceRenderCategoryChips !== 'function') return;
+    traceRenderCategoryChips(document.getElementById('wc-cats'), this.category, (cat) => {
+      this.category = cat;
+      this._rebuildCards();
+      this._renderCats();
+      this.updateUI();
+    });
   }
 
   _loadKnown() {
@@ -184,6 +200,8 @@ class WordCardMode {
     rebindButtonClickById('wc-speak-btn', () => {
       if (typeof TraceTTS !== 'undefined') TraceTTS.speak(this._current().word);
     });
+
+    this._renderCats();
 
     const onPointerDown = (e) => {
       e.preventDefault();

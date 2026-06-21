@@ -79,8 +79,116 @@ const TRACE_VOCAB = [
   { word: '코', meaning: '냄새를 맡는 몸의 부분', emoji: '👃', category: '몸' },
   { word: '입', meaning: '말하고 먹는 몸의 부분', emoji: '👄', category: '몸' },
   { word: '귀', meaning: '소리를 듣는 몸의 부분', emoji: '👂', category: '몸' },
-  { word: '손', meaning: '물건을 잡는 몸의 부분', emoji: '✋', category: '몸' }
+  { word: '손', meaning: '물건을 잡는 몸의 부분', emoji: '✋', category: '몸' },
+  { word: '발', meaning: '서고 걷는 몸의 부분', emoji: '🦶', category: '몸' },
+  { word: '이', meaning: '음식을 씹는 하얀 것', emoji: '🦷', category: '몸' },
+  { word: '팔', meaning: '어깨에서 손까지', emoji: '💪', category: '몸' },
+  { word: '다리', meaning: '서고 걷게 하는 몸', emoji: '🦵', category: '몸' },
+  { word: '혀', meaning: '맛을 보는 입속 부분', emoji: '👅', category: '몸' },
+
+  // ── 동물 (추가) ───────────────────────
+  { word: '돼지', meaning: '꿀꿀 우는 분홍 동물', emoji: '🐷', category: '동물' },
+  { word: '오리', meaning: '꽥꽥 우는 물새', emoji: '🦆', category: '동물' },
+  { word: '개구리', meaning: '개굴개굴 뛰는 동물', emoji: '🐸', category: '동물' },
+  { word: '펭귄', meaning: '뒤뚱뒤뚱 걷는 새', emoji: '🐧', category: '동물' },
+  { word: '나비', meaning: '날개가 예쁜 곤충', emoji: '🦋', category: '동물' },
+  { word: '벌', meaning: '윙윙 나는 꿀 곤충', emoji: '🐝', category: '동물' },
+  { word: '뱀', meaning: '길게 기어 다니는 동물', emoji: '🐍', category: '동물' },
+  { word: '원숭이', meaning: '나무를 잘 타는 동물', emoji: '🐵', category: '동물' },
+  { word: '다람쥐', meaning: '도토리를 모으는 동물', emoji: '🐿️', category: '동물' },
+  { word: '여우', meaning: '꼬리가 복슬한 동물', emoji: '🦊', category: '동물' },
+
+  // ── 과일 (추가) ───────────────────────
+  { word: '귤', meaning: '주황색 새콤한 과일', emoji: '🍊', category: '과일' },
+  { word: '키위', meaning: '초록색 털 있는 과일', emoji: '🥝', category: '과일' },
+  { word: '레몬', meaning: '노랗고 신 과일', emoji: '🍋', category: '과일' },
+  { word: '체리', meaning: '빨갛고 작은 과일', emoji: '🍒', category: '과일' },
+  { word: '멜론', meaning: '달고 향긋한 초록 과일', emoji: '🍈', category: '과일' },
+  { word: '망고', meaning: '노랗고 말랑한 과일', emoji: '🥭', category: '과일' },
+
+  // ── 음식 (추가) ───────────────────────
+  { word: '피자', meaning: '둥글게 자른 빵 요리', emoji: '🍕', category: '음식' },
+  { word: '치즈', meaning: '노랗고 고소한 것', emoji: '🧀', category: '음식' },
+  { word: '케이크', meaning: '생일에 먹는 단 빵', emoji: '🍰', category: '음식' },
+  { word: '햄버거', meaning: '빵 사이에 넣은 음식', emoji: '🍔', category: '음식' },
+  { word: '떡', meaning: '쫄깃한 쌀 간식', emoji: '🍡', category: '음식' },
+  { word: '과자', meaning: '바삭한 단 간식', emoji: '🍪', category: '음식' },
+  { word: '꿀', meaning: '벌이 만든 단 것', emoji: '🍯', category: '음식' },
+
+  // ── 자연 (추가) ───────────────────────
+  { word: '비', meaning: '하늘에서 내리는 물', emoji: '🌧️', category: '자연' },
+  { word: '눈송이', meaning: '하늘에서 내리는 하얀 것', emoji: '❄️', category: '자연' },
+  { word: '무지개', meaning: '비 온 뒤 일곱 빛깔', emoji: '🌈', category: '자연' },
+  { word: '불', meaning: '뜨겁고 빨간 것', emoji: '🔥', category: '자연' },
+  { word: '돌', meaning: '단단한 작은 바위', emoji: '🪨', category: '자연' },
+  { word: '풀', meaning: '땅에 자라는 초록 식물', emoji: '🌿', category: '자연' },
+  { word: '번개', meaning: '번쩍 빛나는 하늘 빛', emoji: '⚡', category: '자연' },
+
+  // ── 가족 (추가) ───────────────────────
+  { word: '형', meaning: '남자아이의 손위 남자', emoji: '👦', category: '가족' },
+  { word: '누나', meaning: '남자아이의 손위 여자', emoji: '👧', category: '가족' },
+  { word: '친구', meaning: '같이 노는 또래', emoji: '🧒', category: '가족' },
+  { word: '선생님', meaning: '가르쳐 주시는 분', emoji: '🧑‍🏫', category: '가족' },
+
+  // ── 물건 (추가) ───────────────────────
+  { word: '의자', meaning: '앉을 때 쓰는 가구', emoji: '🪑', category: '물건' },
+  { word: '침대', meaning: '잠잘 때 눕는 곳', emoji: '🛏️', category: '물건' },
+  { word: '칫솔', meaning: '이를 닦는 도구', emoji: '🪥', category: '물건' },
+  { word: '열쇠', meaning: '문을 여는 것', emoji: '🔑', category: '물건' },
+  { word: '풍선', meaning: '바람 넣어 부푸는 것', emoji: '🎈', category: '물건' },
+  { word: '인형', meaning: '안고 노는 장난감', emoji: '🧸', category: '물건' },
+  { word: '북', meaning: '둥둥 치는 악기', emoji: '🥁', category: '물건' },
+  { word: '카메라', meaning: '사진을 찍는 물건', emoji: '📷', category: '물건' },
+
+  // ── 탈것 (추가) ───────────────────────
+  { word: '배', meaning: '물 위를 가는 탈것', emoji: '⛵', category: '탈것' },
+  { word: '트럭', meaning: '짐을 싣는 큰 차', emoji: '🚚', category: '탈것' },
+  { word: '택시', meaning: '태워 주는 노란 차', emoji: '🚕', category: '탈것' },
+  { word: '오토바이', meaning: '두 바퀴 엔진 탈것', emoji: '🏍️', category: '탈것' },
+  { word: '로켓', meaning: '우주로 가는 탈것', emoji: '🚀', category: '탈것' }
 ];
+
+/** 어휘 카테고리 목록(등장 순서, 중복 제거). */
+function traceVocabCategories() {
+  const seen = [];
+  TRACE_VOCAB.forEach((v) => { if (seen.indexOf(v.category) < 0) seen.push(v.category); });
+  return seen;
+}
+
+/** 카테고리로 필터(없거나 '전체'면 전부). */
+function traceVocabByCategory(cat) {
+  if (!cat || cat === '전체') return TRACE_VOCAB.slice();
+  return TRACE_VOCAB.filter((v) => v.category === cat);
+}
+
+/** 카테고리 선택 칩 렌더(단어카드·퀴즈·받아쓰기 공용). */
+function traceRenderCategoryChips(container, current, onSelect) {
+  if (!container) return;
+  const cur = current || '전체';
+  const cats = ['전체'].concat(traceVocabCategories());
+  container.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  cats.forEach((cat) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'cat-chip' + (cat === cur ? ' active' : '');
+    b.textContent = cat;
+    b.setAttribute('aria-pressed', cat === cur ? 'true' : 'false');
+    b.addEventListener('click', () => { if (typeof onSelect === 'function') onSelect(cat); }, { passive: true });
+    frag.appendChild(b);
+  });
+  container.appendChild(frag);
+}
+
+/** 정답과 같은 풀(카테고리)에서 오답 n개 — 풀이 작으면 전체에서 보충. */
+function traceVocabDistractorsFrom(pool, answerWord, n) {
+  let cand = (Array.isArray(pool) ? pool : TRACE_VOCAB).filter((x) => x.word !== answerWord);
+  if (cand.length < n) {
+    const extra = TRACE_VOCAB.filter((x) => x.word !== answerWord && !cand.some((c) => c.word === x.word));
+    cand = cand.concat(extra);
+  }
+  return traceShuffleArray(cand).slice(0, Math.max(0, n));
+}
 
 /*
  * 자음 예시 단어(파닉스) — 단어 모드에서 음절의 초성을 실제 단어로 연결해

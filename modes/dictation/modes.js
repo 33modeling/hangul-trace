@@ -13,7 +13,9 @@ const TRACE_DT_GUIDE = 'rgba(167, 139, 250, 0.55)';
 
 class DictationMode {
   constructor() {
-    this.cards = (typeof TRACE_VOCAB !== 'undefined') ? traceShuffleArray(TRACE_VOCAB) : [];
+    this.category = '전체';
+    this.hinted = false;
+    this.cards = (typeof traceVocabByCategory === 'function') ? traceShuffleArray(traceVocabByCategory(this.category)) : [];
     this.currentIdx = 0;
     this.guideLayer = null;
     this.canvas = null;
@@ -109,11 +111,27 @@ class DictationMode {
     }
   }
 
+  _rebuildCards() {
+    this.cards = (typeof traceVocabByCategory === 'function') ? traceShuffleArray(traceVocabByCategory(this.category)) : this.cards;
+    this.currentIdx = 0;
+  }
+
+  _renderCats() {
+    if (typeof traceRenderCategoryChips !== 'function') return;
+    traceRenderCategoryChips(document.getElementById('dt-cats'), this.category, (cat) => {
+      this.category = cat;
+      this._rebuildCards();
+      this._renderCats();
+      this.updateUI();
+    });
+  }
+
   updateUI() {
     this._resetDrawingState();
     if (this.cards.length === 0) return;
     if (this.currentIdx >= this.cards.length) this.currentIdx = 0;
     this.revealed = false;
+    this.hinted = false;
     const c = this._current();
 
     const emojiEl = document.getElementById('dt-emoji');
@@ -171,6 +189,16 @@ class DictationMode {
       this._reveal();
     });
 
+    rebindButtonClickById('dt-hint-btn', () => {
+      const c = this._current();
+      const first = Array.from(c.word || '')[0] || '';
+      const ansEl = document.getElementById('dt-answer');
+      if (ansEl) { ansEl.textContent = `첫 글자: ${first}`; ansEl.hidden = false; }
+      this.hinted = true;
+    });
+
+    this._renderCats();
+
     const onPointerDown = (e) => {
       e.preventDefault();
       this.isDrawing = true;
@@ -201,8 +229,8 @@ class DictationMode {
         const w = this._current().word;
         if (!this.solvedSet.has(w)) {
           this.solvedSet.add(w);
-          // 정답 보기 없이 맞히면(외웠으면) 보너스.
-          const memorized = !this.revealed;
+          // 정답 보기·힌트 없이 맞히면(외웠으면) 보너스.
+          const memorized = !this.revealed && !this.hinted;
           const ansEl = document.getElementById('dt-answer');
           if (ansEl) { ansEl.textContent = `정답: ${w}`; ansEl.hidden = false; }
           const completeEl = document.getElementById('dt-complete');

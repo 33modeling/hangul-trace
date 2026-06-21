@@ -418,6 +418,7 @@ function initAppShell() {
 
   initSecretEgg();
   initIntroScreen();
+  initOnboarding();
 
   // History 베이스(메뉴) 항목을 심고 popstate 를 구독한다(#1-UX). 모드 화면에서
   // 기기 하드웨어/제스처 뒤로가기를 눌러도 앱이 종료되는 대신 메뉴로 복귀한다.
@@ -433,6 +434,23 @@ function initAppShell() {
   });
 
   showMainMenu();
+}
+
+/* === 첫 실행 안내(온보딩) === 처음 한 번만 표시. 시작하기로 닫고 플래그 저장. */
+function initOnboarding() {
+  const ob = document.getElementById('onboard-screen');
+  if (!ob) return;
+  let done = false;
+  try { done = localStorage.getItem('tracing.onboarded.v1') === '1'; } catch (_e) { /* ignore */ }
+  if (done) { ob.hidden = true; return; }
+  ob.hidden = false;
+  const finish = () => {
+    try { localStorage.setItem('tracing.onboarded.v1', '1'); } catch (_e) { /* ignore */ }
+    ob.classList.add('onboard-dismiss');
+    setTimeout(() => { ob.hidden = true; }, 320);
+  };
+  const btn = document.getElementById('onboard-start-btn');
+  if (btn) btn.addEventListener('click', finish, { once: true });
 }
 
 /* === 인트로 화면 ===

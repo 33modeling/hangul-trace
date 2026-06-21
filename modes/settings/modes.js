@@ -11,6 +11,8 @@ class SettingsMode {
   init() {
     this.renderColors();
     this.renderWidths();
+    this.renderJudge();
+    this.renderSound();
     this.renderTts();
     this.renderPreview();
     rebindButtonClickById('settings-tts-btn', () => {
@@ -19,7 +21,60 @@ class SettingsMode {
         this.renderTts();
       }
     });
+    rebindButtonClickById('settings-bgm-btn', () => {
+      if (typeof TraceSound !== 'undefined') {
+        TraceSound.setBgmEnabled(!TraceSound.isBgmEnabled());
+        TraceSound.syncUI();
+        this.renderSound();
+      }
+    });
+    rebindButtonClickById('settings-sfx-btn', () => {
+      if (typeof TraceSound !== 'undefined') {
+        TraceSound.setSfxEnabled(!TraceSound.isSfxEnabled());
+        TraceSound.syncUI();
+        this.renderSound();
+      }
+    });
     window.settingsMode = this;
+  }
+
+  renderJudge() {
+    const wrap = document.getElementById('settings-judge');
+    if (!wrap || typeof traceJudgeLevel !== 'function') return;
+    const cur = traceJudgeLevel();
+    wrap.innerHTML = '';
+    (typeof TRACE_JUDGE_LEVELS !== 'undefined' ? TRACE_JUDGE_LEVELS : []).forEach((lv) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'pen-width-btn' + (lv.id === cur ? ' active' : '');
+      b.textContent = lv.label;
+      b.setAttribute('aria-pressed', lv.id === cur ? 'true' : 'false');
+      b.addEventListener('click', () => {
+        if (typeof traceSetJudgeLevel === 'function') traceSetJudgeLevel(lv.id);
+        this.renderJudge();
+      }, { passive: true });
+      wrap.appendChild(b);
+    });
+  }
+
+  renderSound() {
+    if (typeof TraceSound === 'undefined') return;
+    const bgm = document.getElementById('settings-bgm-btn');
+    if (bgm) {
+      const on = TraceSound.isBgmEnabled();
+      bgm.classList.toggle('off', !on);
+      bgm.setAttribute('aria-pressed', on ? 'true' : 'false');
+      const lbl = bgm.querySelector('.sound-label');
+      if (lbl) lbl.textContent = on ? '배경음 켜짐' : '배경음 꺼짐';
+    }
+    const sfx = document.getElementById('settings-sfx-btn');
+    if (sfx) {
+      const on = TraceSound.isSfxEnabled();
+      sfx.classList.toggle('off', !on);
+      sfx.setAttribute('aria-pressed', on ? 'true' : 'false');
+      const lbl = sfx.querySelector('.sound-label');
+      if (lbl) lbl.textContent = on ? '효과음 켜짐' : '효과음 꺼짐';
+    }
   }
 
   renderColors() {

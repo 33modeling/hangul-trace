@@ -193,6 +193,12 @@ const TraceSound = (() => {
     click();
   }, { capture: true });
 
+  // 메뉴 토글 버튼 시각 상태를 현재 값에 맞춰 재동기화(설정 화면에서 바꾼 뒤 호출).
+  function syncUI() {
+    _syncToggleBtn(document.getElementById('bgm-toggle'), bgmEnabled);
+    _syncToggleBtn(document.getElementById('sfx-toggle'), sfxEnabled);
+  }
+
   return {
     stroke,
     complete,
@@ -200,6 +206,7 @@ const TraceSound = (() => {
     setBgmEnabled,
     setSfxEnabled,
     isBgmEnabled,
-    isSfxEnabled
+    isSfxEnabled,
+    syncUI
   };
 })();

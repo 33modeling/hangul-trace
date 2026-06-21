@@ -2921,3 +2921,55 @@ canvas
 /* 콤보 토스트 강조 */
 .trace-reward-toast .trt-combo { font-weight: 800; color: var(--trace-gold-deep); margin-right: 4px; }
 .trace-reward-toast.combo { background: var(--trace-gradient-gold); color: #4a3413; }
+
+/* ==========================================================================
+   메뉴 섹션 헤더 (모드 카드 그룹 구분)
+   ========================================================================== */
+.mode-section
+{
+  grid-column: 1 / -1;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--trace-gold-deep);
+  letter-spacing: 0.04em;
+  margin: 6px 2px 0;
+  padding-top: 6px;
+  border-top: 1px solid var(--trace-border);
+}
+#mode-cards > .mode-section:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+
+/* 설정 — 소리 토글 행 */
+.settings-sound-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ==========================================================================
+   첫 실행 온보딩 안내
+   ========================================================================== */
+.onboard-screen
+{
+  position: fixed;
+  left: 0; right: 0; top: 0;
+  height: 100vh; height: var(--app-vh, 100vh); height: 100svh; height: 100dvh;
+  z-index: 95;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  background: var(--trace-gradient-soft);
+  animation: fadeIn 0.4s ease;
+}
+.onboard-screen[hidden] { display: none; }
+.onboard-screen.onboard-dismiss { animation: introFadeOut 0.3s ease forwards; pointer-events: none; }
+.onboard-card
+{
+  width: 100%; max-width: 420px;
+  background: var(--trace-surface);
+  border-radius: 22px;
+  padding: 28px 24px;
+  text-align: center;
+  box-shadow: var(--trace-shadow-card-hover);
+  border: 1px solid rgba(212, 183, 94, 0.18);
+}
+.onboard-emoji { font-size: 44px; line-height: 1; margin-bottom: 8px; }
+.onboard-title { font-size: 26px; font-weight: 800; color: var(--trace-accent-dark); margin: 0 0 8px; }
+.onboard-desc { font-size: 15px; color: #6e5a8a; line-height: 1.5; margin: 0 0 16px; }
+.onboard-tips { list-style: none; padding: 0; margin: 0 0 20px; text-align: left; display: flex; flex-direction: column; gap: 8px; }
+.onboard-tips li { font-size: 14px; color: #4a3a63; font-weight: 600; background: var(--trace-chip); border-radius: 12px; padding: 10px 14px; }
+.onboard-cta { flex: 0 0 auto; min-width: 200px; padding: 14px 26px; font-size: 16px; }

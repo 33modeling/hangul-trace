@@ -284,6 +284,37 @@ test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리
     expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
   });
 
+  test('설정 심화: 판정 난이도·배경음/효과음 + 메뉴 섹션 + 온보딩', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    // 온보딩: 첫 로드 시 안내가 떠야 함(localStorage 비어 있음)
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
+    const intro = page.locator('#intro-screen');
+    if (await intro.isVisible().catch(() => false)) await intro.click({ force: true });
+    await expect(page.locator('#onboard-screen')).toBeVisible();
+    await page.locator('#onboard-start-btn').click();
+    await expect(page.locator('#onboard-screen')).toBeHidden();
+    await page.waitForSelector('#main-menu', { state: 'visible' });
+
+    // 메뉴 섹션 헤더 5개
+    await expect(page.locator('#mode-cards .mode-section')).toHaveCount(5);
+
+    // 설정: 난이도 '쉽게' → traceJudgeLevel 반영
+    await page.locator('button.mode-card[data-mode="settings"]').click();
+    await expect(page.locator('#settings-judge .pen-width-btn')).toHaveCount(3);
+    await page.locator('#settings-judge .pen-width-btn').filter({ hasText: '쉽게' }).click();
+    const judge = await page.evaluate(() => ({ id: traceJudgeLevel(), r: _traceJudge().recall }));
+    expect(judge.id).toBe('easy');
+    expect(judge.r).toBeLessThan(0.85);
+    // 효과음 토글
+    const sfxOn0 = await page.evaluate(() => TraceSound.isSfxEnabled());
+    await page.locator('#settings-sfx-btn').click();
+    const sfxOn1 = await page.evaluate(() => TraceSound.isSfxEnabled());
+    expect(sfxOn1).toBe(!sfxOn0);
+    await page.locator('#settings-back-btn').click();
+    await expect(page.locator('#main-menu')).toBeVisible();
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
   test('설정: 펜 색·굵기 변경이 TracePen에 반영되고 잉크 색이 바뀐다', async ({ page }) => {
     const errors = collectClientErrors(page);
     await gotoApp(page);

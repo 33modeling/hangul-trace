@@ -13,6 +13,9 @@ test.describe('자유 이동 — stroke 완성 안 해도 이동 가능', () => 
     await page.goto('/');
     // intro splash dismiss
     await page.click('#intro-screen', { force: true }).catch(() => {});
+    // 첫 실행 온보딩 안내 닫기
+    await page.click('#onboard-start-btn', { force: true }).catch(() => {});
+    await page.waitForSelector('#onboard-screen', { state: 'hidden' }).catch(() => {});
     await page.waitForSelector('#main-menu', { state: 'visible' });
   });
 
@@ -127,6 +130,8 @@ test.describe('mid-stroke 이동 — 잔여 상태가 다음 화면 첫 획에 s
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.click('#intro-screen', { force: true }).catch(() => {});
+    await page.click('#onboard-start-btn', { force: true }).catch(() => {});
+    await page.waitForSelector('#onboard-screen', { state: 'hidden' }).catch(() => {});
     await page.waitForSelector('#main-menu', { state: 'visible' });
   });
 

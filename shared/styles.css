@@ -1116,7 +1116,8 @@ button.myword-add-mini.tool-btn.myword-add-del
 #ph-canvas-wrap,
 #bt-canvas-wrap,
 #dt-canvas-wrap,
-#so-canvas-wrap
+#so-canvas-wrap,
+#rv-canvas-wrap
 {
   position: relative;
   width: 100%;
@@ -1166,7 +1167,9 @@ button.myword-add-mini.tool-btn.myword-add-del
 #dt-guide-canvas,
 #dt-draw-canvas,
 #so-guide-canvas,
-#so-draw-canvas
+#so-draw-canvas,
+#rv-guide-canvas,
+#rv-draw-canvas
 {
   position: absolute;
   top: 0;
@@ -1188,7 +1191,8 @@ button.myword-add-mini.tool-btn.myword-add-del
 #ph-guide-canvas,
 #bt-guide-canvas,
 #dt-guide-canvas,
-#so-guide-canvas
+#so-guide-canvas,
+#rv-guide-canvas
 {
   z-index: 1;
   pointer-events: none;
@@ -1204,7 +1208,8 @@ button.myword-add-mini.tool-btn.myword-add-del
 #ph-draw-canvas,
 #bt-draw-canvas,
 #dt-draw-canvas,
-#so-draw-canvas
+#so-draw-canvas,
+#rv-draw-canvas
 {
   z-index: 2;
   pointer-events: auto;
@@ -1220,7 +1225,8 @@ button.myword-add-mini.tool-btn.myword-add-del
   #ph-canvas-wrap,
   #bt-canvas-wrap,
   #dt-canvas-wrap,
-  #so-canvas-wrap {
+  #so-canvas-wrap,
+  #rv-canvas-wrap {
     width: min(100%, 92vw, 65dvh, 65svh);
     max-width: 100%;
     max-height: min(92vw, 65dvh, 65svh);
@@ -1406,7 +1412,8 @@ button.myword-add-mini.tool-btn.myword-add-del
 #ph-feedback,
 #bt-feedback,
 #dt-feedback,
-#so-feedback
+#so-feedback,
+#rv-feedback
 {
   text-align: center;
   margin-top: 12px;
@@ -1457,7 +1464,8 @@ button.myword-add-mini.tool-btn.myword-add-del
 #ph-complete,
 #bt-complete,
 #dt-complete,
-#so-complete
+#so-complete,
+#rv-complete
 {
   text-align: center;
   margin-bottom: 8px;
@@ -1474,10 +1482,32 @@ button.myword-add-mini.tool-btn.myword-add-del
 #ph-complete:empty,
 #bt-complete:empty,
 #dt-complete:empty,
-#so-complete:empty
+#so-complete:empty,
+#rv-complete:empty
 {
   min-height: 0;
   margin-bottom: 0;
+}
+
+/* 복습 모드 라벨 + 카드색 */
+.mode-card[data-mode="review"] { --m-border: #d99c5b; --m-bg: #f7ead4; --m-glow: rgba(217, 156, 91, 0.20); }
+#rv-label
+{
+  font-size: 26px;
+  font-weight: 700;
+  color: #2d1b4e;
+  text-align: center;
+  font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+#rv-sub { font-size: 14px; color: #6e5a8a; margin-top: 6px; text-align: center; }
+#rv-stroke-hint
+{
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  min-height: 26px;
 }
 
 /* 획순 익히기 모드 라벨 */
@@ -1568,7 +1598,8 @@ button.myword-add-mini.tool-btn.myword-add-del
   #ph-canvas-wrap,
   #bt-canvas-wrap,
   #dt-canvas-wrap,
-  #so-canvas-wrap {
+  #so-canvas-wrap,
+  #rv-canvas-wrap {
     max-width: min(72dvh, 52vw);
     max-height: min(72dvh, 52vw);
     margin: 0 auto;

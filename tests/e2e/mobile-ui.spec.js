@@ -34,10 +34,10 @@ for (const vp of MOBILE_VIEWPORTS) {
       const menu = page.locator('#main-menu');
       await expect(menu).toBeVisible();
 
-      // 모든 모드 카드가 보이는지 (자모·첫걸음·받침·획순·단어·상급·내단어·내단어추가·숫자·영어·단어카드·퀴즈·그림받아쓰기·나의기록 = 14)
+      // 모든 모드 카드가 보이는지 (자모·첫걸음·받침·획순·단어·상급·내단어·내단어추가·숫자·영어·단어카드·퀴즈·그림받아쓰기·복습·나의기록 = 15)
       const cards = page.locator('.mode-card');
       const count = await cards.count();
-      expect(count).toBe(14);
+      expect(count).toBe(15);
 
       for (let i = 0; i < count; i++) {
         await expect(cards.nth(i)).toBeVisible();

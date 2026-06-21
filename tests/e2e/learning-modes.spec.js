@@ -188,6 +188,48 @@ test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리
     expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
   });
 
+  test('복습: 미완료 항목 큐·따라쓰기·완성 시 진도 반영·빈 상태', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    await gotoApp(page);
+
+    // 진도 일부 미리 채워, 복습 큐가 '미완료만' 모으는지 확인(자모 24 중 일부 완료)
+    await page.evaluate(() => {
+      // 자모 0~21 완료로 표시(2개 미완료), 숫자/영어는 전부 완료 → 자모 2개만 큐에
+      localStorage.setItem('tracing.done.char.v1', JSON.stringify(Array.from({ length: 22 }, (_, i) => i)));
+      localStorage.setItem('tracing.done.number.v1', JSON.stringify(Array.from({ length: 10 }, (_, i) => i)));
+      localStorage.setItem('tracing.done.english.upper.v1', JSON.stringify(Array.from({ length: 26 }, (_, i) => i)));
+      localStorage.setItem('tracing.done.english.lower.v1', JSON.stringify(Array.from({ length: 26 }, (_, i) => i)));
+    });
+
+    await page.locator('button.mode-card[data-mode="review"]').click();
+    await expect(page.locator('#review-mode')).toHaveClass(/active/);
+
+    // 큐 길이 = 미완료 자모 2개
+    const qlen = await page.evaluate(() => window.reviewMode.queue.length);
+    expect(qlen, '복습 큐 길이(미완료 자모 2)').toBe(2);
+    await expect(page.locator('#rv-sub')).toContainText('복습 1 / 2');
+
+    const dw = await page.locator('#rv-draw-canvas').evaluate((c) => /** @type {HTMLCanvasElement} */ (c).width);
+    expect(dw, 'rv-draw-canvas width').toBeGreaterThan(80);
+
+    // 가이드 글자를 그대로 덮어 완성 → 진도 반영 + 큐 감소
+    await page.evaluate(async () => {
+      const g = document.getElementById('rv-guide-canvas');
+      const d = document.getElementById('rv-draw-canvas');
+      d.getContext('2d').drawImage(g, 0, 0);
+      window.reviewMode.updateFeedback();
+      // onPointerUp 경로의 완성 처리 직접 호출
+      const cov = window.reviewMode.updateFeedback();
+      if (cov && cov.done) window.reviewMode._onComplete();
+    });
+    // 900ms 자동 넘김 후 큐 1개로
+    await page.waitForFunction(() => window.reviewMode.queue.length === 1, null, { timeout: 3000 });
+
+    await page.locator('#rv-back-btn').click();
+    await expect(page.locator('#main-menu')).toBeVisible();
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
   test('획순 익히기: 획순 카드·재생·캔버스·네비게이션', async ({ page }) => {
     const errors = collectClientErrors(page);
     await gotoApp(page);

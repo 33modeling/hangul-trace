@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#7c3aed">
   <meta name="description" content="손가락으로 한글·숫자·영어를 따라 써요.">
-  <title>채윤 한글 v0.0.45</title>
+  <title>채윤 한글 v0.0.46</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <!-- Pretendard: 한글+영문 통일감 있는 모던 산세리프. system fallback chain은 styles.css에서. -->
@@ -143,6 +143,12 @@
           <span class="mode-icon" aria-hidden="true">🖼️</span>
           <span class="mode-title">그림 받아쓰기</span>
           <span class="mode-subtitle">그림 보고 단어 쓰기</span>
+        </button>
+
+        <button type="button" class="mode-card" data-mode="review">
+          <span class="mode-icon" aria-hidden="true">🔁</span>
+          <span class="mode-title">복습</span>
+          <span class="mode-subtitle">아직 안 익힌 것 모아</span>
         </button>
 
         <button type="button" class="mode-card" data-mode="progress">
@@ -586,6 +592,46 @@
       <div id="so-feedback"></div>
     </div>
 
+    <!-- 복습 모드 — 아직 안 익힌 자모·숫자·알파벳 집중 -->
+    <div id="review-mode" class="mode-ui">
+      <div id="rv-nav" class="trace-mode-nav">
+        <button type="button" id="rv-prev-btn" data-action="prev" aria-label="이전"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg></button>
+        <div>
+          <div id="rv-label">복습</div>
+          <div id="rv-sub">복습 1 / 1</div>
+        </div>
+        <button type="button" id="rv-next-btn" data-action="next" aria-label="다음"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg></button>
+      </div>
+
+      <div id="rv-stroke-hint"></div>
+
+      <div id="rv-complete"></div>
+
+      <div id="review-empty" class="myword-empty" hidden>
+        <div class="myword-empty-icon" aria-hidden="true">🌟</div>
+        <p class="myword-empty-title">복습할 게 없어요!</p>
+        <p class="myword-empty-desc">자모·숫자·알파벳을 모두 잘 익혔어요.<br>그래도 한 번 더 연습할까요?</p>
+        <button type="button" id="review-extra-btn" class="tool-btn primary myword-empty-cta"><span class="btn-icon" aria-hidden="true">🔁</span><span>그래도 복습하기</span></button>
+        <button type="button" id="rv-empty-back-btn" class="tool-btn"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
+      </div>
+
+      <div id="rv-canvas-wrap" class="canvas-wrap">
+        <canvas id="rv-guide-canvas"></canvas>
+        <canvas id="rv-draw-canvas"></canvas>
+      </div>
+
+      <div id="rv-stroke-strip" class="stroke-strip" aria-live="polite"></div>
+
+      <div id="rv-toolbar" class="mode-toolbar">
+        <button id="rv-clear-btn" class="tool-btn" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13l-7.07 7.07a2 2 0 0 1-2.83 0l-3.17-3.17a2 2 0 0 1 0-2.83L12 7l6 6Z"/><path d="M14 5l4 4"/><path d="M9 21h12"/></svg></span><span>지우기</span></button>
+        <button id="rv-hint-btn" class="tool-btn info" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4" fill="currentColor" stroke="none"/></svg></span><span>획순 보기</span></button>
+        <button type="button" id="rv-speak-btn" class="tool-btn info"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg></span><span>듣기</span></button>
+        <button type="button" id="rv-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
+      </div>
+
+      <div id="rv-feedback"></div>
+    </div>
+
     <!-- 나의 기록(진척) — 스티커 도감 + 부모 대시보드 -->
     <div id="progress-mode" class="mode-ui">
       <div class="progress-titlebar">
@@ -631,6 +677,7 @@
   <script src="modes/batchim/modes.js"></script>
   <script src="modes/dictation/modes.js"></script>
   <script src="modes/strokeorder/modes.js"></script>
+  <script src="modes/review/modes.js"></script>
   <script src="modes/progress/modes.js"></script>
   <script src="index.js"></script>
 </body>

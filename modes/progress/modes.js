@@ -67,6 +67,9 @@ class ProgressMode {
         + `</div></div>`;
     }
 
+    // 주간 학습 달력
+    this._renderWeekly();
+
     // 스티커 도감
     const stkEl = document.getElementById('progress-stickers');
     if (stkEl) {
@@ -97,6 +100,31 @@ class ProgressMode {
         + `<span class="pg-stat-bar"><span class="pg-stat-fill" style="width:0%"></span></span>`
         + `<span class="pg-stat-num">${myWords}개</span></div>`;
     }
+  }
+
+  _renderWeekly() {
+    const el = document.getElementById('progress-weekly');
+    if (!el) return;
+    const active = (typeof TraceRewards !== 'undefined' && typeof TraceRewards.activeDays === 'function')
+      ? TraceRewards.activeDays() : [];
+    const activeSet = new Set(active);
+    const dows = ['일', '월', '화', '수', '목', '금', '토'];
+    const cells = [];
+    const now = new Date();
+    // 최근 7일(오늘 포함, 왼→오 과거→오늘)
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 86400000);
+      const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+      const on = activeSet.has(key);
+      const isToday = i === 0;
+      cells.push(
+        `<div class="pg-day${on ? ' on' : ''}${isToday ? ' today' : ''}">`
+        + `<span class="pg-dow">${dows[d.getDay()]}</span>`
+        + `<span class="pg-day-mark">${on ? '⭐' : '·'}</span>`
+        + `</div>`
+      );
+    }
+    el.innerHTML = cells.join('');
   }
 
   _reset() {

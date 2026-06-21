@@ -254,8 +254,8 @@ test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리
       const badge = document.getElementById('menu-reward-badge');
       return { score: g.score, level: g.level, badgeText: badge ? badge.textContent : '' };
     });
-    expect(res.score).toBe(100);
-    expect(res.level).toBeGreaterThanOrEqual(2); // 50점에서 Lv.2
+    expect(res.score).toBeGreaterThanOrEqual(100); // 50+50(+콤보 보너스)
+    expect(res.level).toBeGreaterThanOrEqual(2); // 100점에서 Lv.2
     expect(res.badgeText).toContain('Lv.');
     expect(res.badgeText).toContain('점');
 
@@ -409,6 +409,30 @@ test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리
     expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
   });
 
+  test('보상 심화: 활동일 기록·콤보·스티커18 + 주간 달력 렌더', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    await gotoApp(page);
+    const res = await page.evaluate(() => {
+      for (let i = 0; i < 12; i++) TraceRewards.award(10); // 빠른 연속 → 콤보 + 활동일 + 오늘목표
+      const g = TraceRewards.get();
+      const stk = TraceRewards.stickers();
+      const days = TraceRewards.activeDays();
+      return { total: stk.length, today: g.todayCount, daysHasToday: days.length >= 1 };
+    });
+    expect(res.total).toBe(18);            // 스티커 12→18
+    expect(res.today).toBeGreaterThanOrEqual(10);
+    expect(res.daysHasToday).toBe(true);
+
+    // 나의 기록 화면에 주간 달력 7칸
+    await page.locator('button.mode-card[data-mode="progress"]').click();
+    await expect(page.locator('#progress-weekly .pg-day')).toHaveCount(7);
+    await expect(page.locator('#progress-weekly .pg-day.today')).toHaveCount(1);
+    await expect(page.locator('#progress-weekly .pg-day.on').first()).toBeVisible();
+    await page.locator('#progress-back-btn').click();
+    await expect(page.locator('#main-menu')).toBeVisible();
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
   test('나의 기록: 스티커 도감·모드별 통계·헤더가 렌더된다', async ({ page }) => {
     const errors = collectClientErrors(page);
     await gotoApp(page);
@@ -421,7 +445,7 @@ test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리
 
     // 헤더(레벨/오늘목표 링), 스티커 그리드, 통계가 채워짐
     await expect(page.locator('#progress-head')).toContainText('Lv.');
-    await expect(page.locator('#progress-stickers .pg-sticker')).toHaveCount(12);
+    await expect(page.locator('#progress-stickers .pg-sticker')).toHaveCount(18);
     await expect(page.locator('#progress-stickers .pg-sticker.earned').first()).toBeVisible();
     await expect(page.locator('#progress-stats .pg-stat-row').first()).toBeVisible();
 
@@ -447,7 +471,7 @@ test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리
     });
     expect(res.today).toBeGreaterThanOrEqual(1);
     expect(res.goal).toBe(10);
-    expect(res.total).toBe(12);
+    expect(res.total).toBe(18);
     expect(res.firstEarned).toBe(true);
     expect(res.newStickerId).toBe('first');
 

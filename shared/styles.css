@@ -2902,3 +2902,22 @@ canvas
 .match-card:focus-visible { outline: 2.5px solid var(--trace-accent); outline-offset: 2px; }
 .match-toolbar { margin-top: 16px; display: flex; justify-content: center; }
 .match-toolbar .tool-btn { flex: 0 0 auto; min-width: 160px; }
+
+/* 주간 학습 달력 (나의 기록) */
+.progress-weekly { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.pg-day
+{
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 8px 2px; border-radius: 12px;
+  border: 1.5px solid var(--trace-border);
+  background: var(--trace-surface);
+}
+.pg-day.on { border-color: var(--trace-gold); background: var(--trace-gold-soft); }
+.pg-day.today { box-shadow: 0 0 0 2px var(--trace-accent-soft); }
+.pg-dow { font-size: 11px; font-weight: 700; color: var(--trace-chip-text); }
+.pg-day-mark { font-size: 18px; line-height: 1; }
+.pg-day:not(.on) .pg-day-mark { color: var(--trace-border-ui); }
+
+/* 콤보 토스트 강조 */
+.trace-reward-toast .trt-combo { font-weight: 800; color: var(--trace-gold-deep); margin-right: 4px; }
+.trace-reward-toast.combo { background: var(--trace-gradient-gold); color: #4a3413; }

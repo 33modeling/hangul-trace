@@ -38,15 +38,26 @@ const TraceRewards = (function () {
     { id: 'stars5', emoji: '⭐', label: '별 5개', cond: (s) => s.stars >= 5 },
     { id: 'hundred', emoji: '💯', label: '100글자', cond: (s) => s.count >= 100 },
     { id: 'streak7', emoji: '📅', label: '7일 연속', cond: (s) => s.streak >= 7 },
-    { id: 'twohundred', emoji: '🏆', label: '200글자', cond: (s) => s.count >= 200 }
+    { id: 'twohundred', emoji: '🏆', label: '200글자', cond: (s) => s.count >= 200 },
+    { id: 'lv7', emoji: '🦅', label: '레벨 7', cond: (s) => s.level >= 7 },
+    { id: 'streak14', emoji: '📆', label: '14일 연속', cond: (s) => s.streak >= 14 },
+    { id: 'stars10', emoji: '🌠', label: '별 10개', cond: (s) => s.stars >= 10 },
+    { id: 'threehundred', emoji: '🎖️', label: '300글자', cond: (s) => s.count >= 300 },
+    { id: 'lv8', emoji: '👑', label: '레벨 8', cond: (s) => s.level >= 8 },
+    { id: 'fivehundred', emoji: '🏵️', label: '500글자', cond: (s) => s.count >= 500 }
   ];
 
   function blank() {
-    return { score: 0, stars: 0, streak: 0, lastDay: '', count: 0, dayCount: 0, dayCountDay: '' };
+    return {
+      score: 0, stars: 0, streak: 0, lastDay: '', count: 0, dayCount: 0, dayCountDay: '',
+      activeDays: [], goalCelebratedDay: ''
+    };
   }
 
   let state = blank();
   let booted = false;
+  let _comboCount = 0;   // 짧은 시간 안에 연속 완성한 콤보
+  let _lastAwardAt = 0;
 
   function load() {
     const d = (typeof Utils !== 'undefined') ? Utils.loadLocal(KEY, null) : null;
@@ -167,12 +178,13 @@ const TraceRewards = (function () {
     }, ms);
   }
 
-  function showPraiseToast(points, leveledUp, level) {
+  function showPraiseToast(points, leveledUp, level, combo) {
     const plus = points > 0 ? `<span class="trt-points">+${points}</span>` : '';
     if (leveledUp) {
       flashToast(`<span class="trt-praise">레벨 업! ⭐ ${levelTitle(level)}</span>${plus}`, 'levelup', 1800);
     } else {
-      flashToast(`<span class="trt-praise">${praise()}</span>${plus}`, '', 1200);
+      const comboTxt = (combo >= 3) ? `<span class="trt-combo">콤보 x${combo}!</span> ` : '';
+      flashToast(`${comboTxt}<span class="trt-praise">${praise()}</span>${plus}`, combo >= 3 ? 'combo' : '', 1200);
     }
   }
 
@@ -214,10 +226,29 @@ const TraceRewards = (function () {
 
     touchStreak();
     touchDay();
+    const today = dayStr(new Date());
 
-    state.score += pts;
+    // 활동일 기록(주간 달력용) — 최근 60일만 유지.
+    if (!Array.isArray(state.activeDays)) state.activeDays = [];
+    if (state.activeDays.indexOf(today) < 0) {
+      state.activeDays.push(today);
+      if (state.activeDays.length > 60) state.activeDays = state.activeDays.slice(-60);
+    }
+
+    // 콤보: 8초 안에 연속 완성하면 콤보 누적(보너스 최대 +8).
+    const now = (typeof Date.now === 'function') ? Date.now() : 0;
+    _comboCount = (now - _lastAwardAt < 8000) ? (_comboCount + 1) : 1;
+    _lastAwardAt = now;
+    const comboBonus = Math.min(8, Math.max(0, _comboCount - 1) * 2);
+    const total = pts + comboBonus;
+
+    state.score += total;
     state.count += 1;
     state.dayCount += 1;
+
+    // 오늘 목표(10개) 달성 — 하루 한 번 축하.
+    const hitDailyGoal = state.dayCount === DAILY_GOAL && state.goalCelebratedDay !== today;
+    if (hitDailyGoal) state.goalCelebratedDay = today;
 
     const afterLevel = levelFor(state.score);
     const leveledUp = afterLevel > beforeLevel;
@@ -229,11 +260,13 @@ const TraceRewards = (function () {
     save();
     if (newSticker) {
       showStickerToast(newSticker);
+    } else if (hitDailyGoal) {
+      flashToast(`<span class="trt-praise">오늘 목표 달성! 🎯 ${DAILY_GOAL}개</span>`, 'levelup', 1800);
     } else {
-      showPraiseToast(pts, leveledUp, afterLevel);
+      showPraiseToast(total, leveledUp, afterLevel, _comboCount);
     }
     updateBadge();
-    return { score: state.score, level: afterLevel, leveledUp, newSticker };
+    return { score: state.score, level: afterLevel, leveledUp, newSticker, combo: _comboCount };
   }
 
   /** 메모리 상태까지 초기화(부모용 진행 기록 리셋). localStorage 키도 제거. */
@@ -260,8 +293,13 @@ const TraceRewards = (function () {
     }
   }
 
+  /** 활동일 목록(주간 달력용) — 'YYYY-M-D' 문자열 배열. */
+  function activeDays() {
+    return Array.isArray(state.activeDays) ? state.activeDays.slice() : [];
+  }
+
   return {
-    award, praise, get, stickers, updateBadge, reset,
+    award, praise, get, stickers, updateBadge, reset, activeDays,
     level: () => levelFor(state.score)
   };
 })();

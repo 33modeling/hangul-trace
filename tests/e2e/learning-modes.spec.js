@@ -485,6 +485,29 @@ test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리
     expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
   });
 
+  test('나의 기록: 완료 통계는 중복·범위 밖 저장값을 제외해 센다', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    await gotoApp(page);
+
+    await page.evaluate(() => {
+      localStorage.setItem('tracing.done.char.v1', JSON.stringify([0, 0, 1, 23, 24, -1, '2', null]));
+      localStorage.setItem('tracing.done.number.v1', JSON.stringify([0, 1, 1, 10, 999]));
+    });
+
+    await page.locator('button.mode-card[data-mode="progress"]').click();
+    await expect(page.locator('#progress-mode')).toHaveClass(/active/);
+
+    const rows = await page.locator('#progress-stats .pg-stat-row').evaluateAll((els) =>
+      els.map((el) => el.textContent || '')
+    );
+    expect(rows.find((t) => t.includes('자음·모음'))).toContain('3/24');
+    expect(rows.find((t) => t.includes('숫자'))).toContain('2/10');
+
+    await page.locator('#progress-back-btn').click();
+    await expect(page.locator('#main-menu')).toBeVisible();
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
   test('보상: 데일리 카운트·스티커가 award로 갱신된다', async ({ page }) => {
     const errors = collectClientErrors(page);
     await gotoApp(page);

@@ -21,8 +21,14 @@ class ProgressMode {
 
   _doneCount(key, total) {
     const arr = (typeof Utils !== 'undefined') ? Utils.loadLocal(key, []) : [];
-    const n = Array.isArray(arr) ? arr.filter((x) => x !== null && x !== undefined).length : 0;
-    return { n: Math.min(n, total), total };
+    const max = Math.max(0, Number(total) || 0);
+    const seen = new Set();
+    if (Array.isArray(arr)) {
+      arr.forEach((x) => {
+        if (Number.isInteger(x) && x >= 0 && x < max) seen.add(x);
+      });
+    }
+    return { n: seen.size, total: max };
   }
 
   _vocabTotal() {

@@ -250,7 +250,7 @@ class MyWordAddMode {
         <button type="button" class="tool-btn myword-add-mini" data-action="up" aria-label="한 칸 위로" title="한 칸 위로" ${isFirst ? 'disabled' : ''}>↑</button>
         <button type="button" class="tool-btn myword-add-mini" data-action="down" aria-label="한 칸 아래로" title="한 칸 아래로" ${isLast ? 'disabled' : ''}>↓</button>
         <button type="button" class="tool-btn myword-add-mini" data-action="bottom" aria-label="맨 아래로" title="맨 아래로" ${isLast ? 'disabled' : ''}>↡</button>
-        <button type="button" class="tool-btn myword-add-mini myword-add-del" data-action="del" aria-label="삭제" title="삭제">✕</button>
+        <button type="button" class="tool-btn danger myword-add-mini myword-add-del" data-action="del" aria-label="삭제" title="삭제">✕</button>
       `;
       li.appendChild(wordSpan);
       li.appendChild(actions);

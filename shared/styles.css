@@ -1089,7 +1089,7 @@ button.myword-add-mini.tool-btn
   line-height: 1;
 }
 
-button.myword-add-mini.tool-btn.myword-add-del
+button.myword-add-mini.tool-btn.myword-add-del:not(.danger)
 {
   color: var(--trace-pink);
 }

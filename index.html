@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#7c3aed">
   <meta name="description" content="손가락으로 한글·숫자·영어를 따라 써요.">
-  <title>채윤 한글 v0.0.46</title>
+  <title>채윤 한글 v0.0.47</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <!-- Pretendard: 한글+영문 통일감 있는 모던 산세리프. system fallback chain은 styles.css에서. -->
@@ -145,6 +145,12 @@
           <span class="mode-subtitle">그림 보고 단어 쓰기</span>
         </button>
 
+        <button type="button" class="mode-card" data-mode="sentence">
+          <span class="mode-icon" aria-hidden="true">📖</span>
+          <span class="mode-title">문장</span>
+          <span class="mode-subtitle">짧은 문장 읽고 쓰기</span>
+        </button>
+
         <button type="button" class="mode-card" data-mode="review">
           <span class="mode-icon" aria-hidden="true">🔁</span>
           <span class="mode-title">복습</span>
@@ -155,6 +161,12 @@
           <span class="mode-icon" aria-hidden="true">📊</span>
           <span class="mode-title">나의 기록</span>
           <span class="mode-subtitle">스티커·진척·부모</span>
+        </button>
+
+        <button type="button" class="mode-card" data-mode="settings">
+          <span class="mode-icon" aria-hidden="true">⚙️</span>
+          <span class="mode-title">설정</span>
+          <span class="mode-subtitle">펜 색·굵기·발음</span>
         </button>
       </div>
 
@@ -592,6 +604,64 @@
       <div id="so-feedback"></div>
     </div>
 
+    <!-- 문장 모드 — 짧은 문장 읽고 글자별로 따라쓰기 -->
+    <div id="sentence-mode" class="mode-ui">
+      <div id="sn-nav" class="trace-mode-nav">
+        <button type="button" id="sn-prev-btn" data-action="prev" aria-label="이전"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg></button>
+        <div>
+          <div id="sn-label">나</div>
+          <div id="sn-sub">문장 1 / 18 · 글자 1 / 4</div>
+        </div>
+        <button type="button" id="sn-next-btn" data-action="next" aria-label="다음"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg></button>
+      </div>
+
+      <div id="sn-card" class="sn-card">
+        <span id="sn-emoji" class="sn-emoji" aria-hidden="true">👶</span>
+        <span id="sn-text" class="sn-text">나는 아기</span>
+        <button type="button" id="sn-listen-btn" class="tool-btn info sn-listen"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></span><span>문장 듣기</span></button>
+      </div>
+
+      <div id="sn-complete"></div>
+
+      <div id="sn-canvas-wrap" class="canvas-wrap">
+        <canvas id="sn-guide-canvas"></canvas>
+        <canvas id="sn-draw-canvas"></canvas>
+      </div>
+
+      <div id="sn-toolbar" class="mode-toolbar">
+        <button id="sn-clear-btn" class="tool-btn" type="button"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13l-7.07 7.07a2 2 0 0 1-2.83 0l-3.17-3.17a2 2 0 0 1 0-2.83L12 7l6 6Z"/><path d="M14 5l4 4"/><path d="M9 21h12"/></svg></span><span>지우기</span></button>
+        <button type="button" id="sn-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
+      </div>
+
+      <div id="sn-feedback"></div>
+    </div>
+
+    <!-- 설정 — 펜 색·굵기, 발음 -->
+    <div id="settings-mode" class="mode-ui">
+      <div class="progress-titlebar">
+        <h2 class="progress-title">⚙️ 설정</h2>
+        <button type="button" id="settings-back-btn" class="tool-btn primary"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/><path d="M9 21V14h6v7"/></svg></span><span>메뉴로</span></button>
+      </div>
+
+      <h3 class="progress-section-title">🖊️ 펜 색깔</h3>
+      <div id="settings-colors" class="pen-swatches"></div>
+
+      <h3 class="progress-section-title">✏️ 펜 굵기</h3>
+      <div id="settings-widths" class="pen-widths"></div>
+
+      <h3 class="progress-section-title">미리보기</h3>
+      <canvas id="settings-preview" class="pen-preview"></canvas>
+
+      <div id="settings-tts-row">
+        <h3 class="progress-section-title">🔊 발음</h3>
+        <button type="button" id="settings-tts-btn" class="sound-toggle-btn off" aria-pressed="false">
+          <span class="sound-icon" aria-hidden="true">🔊</span><span class="sound-label">발음 꺼짐</span>
+        </button>
+      </div>
+
+      <p class="settings-note">배경음·효과음은 메인 화면에서 켜고 끌 수 있어요. · <span class="menu-version">v0.0.0</span></p>
+    </div>
+
     <!-- 복습 모드 — 아직 안 익힌 자모·숫자·알파벳 집중 -->
     <div id="review-mode" class="mode-ui">
       <div id="rv-nav" class="trace-mode-nav">
@@ -659,6 +729,7 @@
   <script src="shared/strokePaths.js"></script>
   <script src="shared/navigation.js"></script>
   <script src="shared/utils.js"></script>
+  <script src="shared/pen.js"></script>
   <script src="shared/myWords.js"></script>
   <script src="shared/vocab.js"></script>
   <script src="shared/rewards.js"></script>
@@ -678,6 +749,8 @@
   <script src="modes/dictation/modes.js"></script>
   <script src="modes/strokeorder/modes.js"></script>
   <script src="modes/review/modes.js"></script>
+  <script src="modes/sentence/modes.js"></script>
+  <script src="modes/settings/modes.js"></script>
   <script src="modes/progress/modes.js"></script>
   <script src="index.js"></script>
 </body>

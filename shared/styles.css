@@ -1117,7 +1117,8 @@ button.myword-add-mini.tool-btn.myword-add-del
 #bt-canvas-wrap,
 #dt-canvas-wrap,
 #so-canvas-wrap,
-#rv-canvas-wrap
+#rv-canvas-wrap,
+#sn-canvas-wrap
 {
   position: relative;
   width: 100%;
@@ -1169,7 +1170,9 @@ button.myword-add-mini.tool-btn.myword-add-del
 #so-guide-canvas,
 #so-draw-canvas,
 #rv-guide-canvas,
-#rv-draw-canvas
+#rv-draw-canvas,
+#sn-guide-canvas,
+#sn-draw-canvas
 {
   position: absolute;
   top: 0;
@@ -1192,7 +1195,8 @@ button.myword-add-mini.tool-btn.myword-add-del
 #bt-guide-canvas,
 #dt-guide-canvas,
 #so-guide-canvas,
-#rv-guide-canvas
+#rv-guide-canvas,
+#sn-guide-canvas
 {
   z-index: 1;
   pointer-events: none;
@@ -1209,7 +1213,8 @@ button.myword-add-mini.tool-btn.myword-add-del
 #bt-draw-canvas,
 #dt-draw-canvas,
 #so-draw-canvas,
-#rv-draw-canvas
+#rv-draw-canvas,
+#sn-draw-canvas
 {
   z-index: 2;
   pointer-events: auto;
@@ -1226,7 +1231,8 @@ button.myword-add-mini.tool-btn.myword-add-del
   #bt-canvas-wrap,
   #dt-canvas-wrap,
   #so-canvas-wrap,
-  #rv-canvas-wrap {
+  #rv-canvas-wrap,
+  #sn-canvas-wrap {
     width: min(100%, 92vw, 65dvh, 65svh);
     max-width: 100%;
     max-height: min(92vw, 65dvh, 65svh);
@@ -1413,7 +1419,8 @@ button.myword-add-mini.tool-btn.myword-add-del
 #bt-feedback,
 #dt-feedback,
 #so-feedback,
-#rv-feedback
+#rv-feedback,
+#sn-feedback
 {
   text-align: center;
   margin-top: 12px;
@@ -1465,7 +1472,8 @@ button.myword-add-mini.tool-btn.myword-add-del
 #bt-complete,
 #dt-complete,
 #so-complete,
-#rv-complete
+#rv-complete,
+#sn-complete
 {
   text-align: center;
   margin-bottom: 8px;
@@ -1483,7 +1491,8 @@ button.myword-add-mini.tool-btn.myword-add-del
 #bt-complete:empty,
 #dt-complete:empty,
 #so-complete:empty,
-#rv-complete:empty
+#rv-complete:empty,
+#sn-complete:empty
 {
   min-height: 0;
   margin-bottom: 0;
@@ -1599,7 +1608,8 @@ button.myword-add-mini.tool-btn.myword-add-del
   #bt-canvas-wrap,
   #dt-canvas-wrap,
   #so-canvas-wrap,
-  #rv-canvas-wrap {
+  #rv-canvas-wrap,
+  #sn-canvas-wrap {
     max-width: min(72dvh, 52vw);
     max-height: min(72dvh, 52vw);
     margin: 0 auto;
@@ -2655,4 +2665,139 @@ canvas
   .pg-stat-label { flex-basis: 76px; font-size: 12px; }
   .pg-ring { width: 72px; height: 72px; }
   .pg-ring-inner { width: 54px; height: 54px; }
+}
+
+/* ==========================================================================
+   문장 모드 — 문장 카드 + 글자별 따라쓰기
+   ========================================================================== */
+.mode-card[data-mode="sentence"] { --m-border: #6fa8c9; --m-bg: #d9eaf4; --m-glow: rgba(91, 140, 196, 0.18); }
+.mode-card[data-mode="settings"] { --m-border: #b9a98f; --m-bg: #efe9dd; --m-glow: rgba(150, 130, 95, 0.18); }
+
+#sn-label
+{
+  font-size: 26px;
+  font-weight: 700;
+  color: #2d1b4e;
+  text-align: center;
+  font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+}
+#sn-sub { font-size: 14px; color: #6e5a8a; margin-top: 6px; text-align: center; }
+
+.sn-card
+{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  margin-bottom: 10px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--trace-gradient-soft);
+  border: 1px solid rgba(212, 183, 94, 0.16);
+  box-shadow: var(--trace-shadow-card);
+}
+.sn-emoji { font-size: 46px; line-height: 1; }
+.sn-text
+{
+  font-size: 26px;
+  font-weight: 700;
+  color: #2d1b4e;
+  font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  letter-spacing: 0.02em;
+}
+.sn-text .sn-syl { padding: 1px 2px; border-radius: 6px; transition: background 0.2s ease, color 0.2s ease; }
+.sn-text .sn-syl.current { background: var(--trace-gradient-primary); color: #fff; }
+.sn-text .sn-syl.done { color: var(--trace-success-muted); }
+.sn-listen { flex: 0 0 auto; min-width: 130px; margin-top: 2px; }
+
+@media (orientation: landscape)
+{
+  .sn-card { padding: 8px 14px; margin-bottom: 6px; }
+  .sn-emoji { font-size: 34px; }
+  .sn-text { font-size: 22px; }
+}
+
+/* ==========================================================================
+   설정 모드 — 펜 색·굵기·미리보기
+   ========================================================================== */
+.settings-note { font-size: 12px; color: #8d7da6; margin-top: 18px; text-align: center; line-height: 1.5; }
+.settings-note .menu-version { color: var(--trace-accent-dark); font-weight: 600; }
+#settings-tts-row { margin-top: 16px; }
+#settings-tts-row #settings-tts-btn { display: inline-flex; }
+
+.pen-swatches
+{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-start;
+}
+.pen-swatch
+{
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid var(--trace-border);
+  cursor: pointer;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+}
+.pen-swatch:active { transform: scale(0.92); }
+.pen-swatch.selected
+{
+  border-color: #2d1b4e;
+  transform: scale(1.12);
+  box-shadow: 0 4px 12px rgba(45, 27, 78, 0.25);
+}
+.pen-swatch.selected::after
+{
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='5 12 10 17 19 8'/></svg>");
+  background-size: 22px 22px;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.4));
+}
+.pen-swatch:focus-visible { outline: 2.5px solid var(--trace-accent); outline-offset: 3px; }
+
+.pen-widths { display: flex; gap: 10px; flex-wrap: wrap; }
+.pen-width-btn
+{
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 1.5px solid var(--trace-border-ui);
+  background: var(--trace-surface);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--trace-accent-dark);
+  cursor: pointer;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+}
+.pen-width-btn.active
+{
+  background: var(--trace-gradient-primary);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 2px 8px var(--trace-accent-glow);
+}
+.pen-width-btn:focus-visible { outline: 2.5px solid var(--trace-accent); outline-offset: 3px; }
+
+.pen-preview
+{
+  display: block;
+  width: 100%;
+  max-width: 340px;
+  height: 76px;
+  border-radius: 14px;
+  border: 1px solid var(--trace-border);
+  background:
+    linear-gradient(180deg, #ffffff 0%, #fbf7ee 100%);
+  box-shadow: var(--trace-shadow-card);
 }

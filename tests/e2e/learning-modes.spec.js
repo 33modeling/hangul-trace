@@ -188,6 +188,62 @@ test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리
     expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
   });
 
+  test('문장: 문장 카드·글자별 따라쓰기·네비게이션', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    await gotoApp(page);
+    await page.locator('button.mode-card[data-mode="sentence"]').click();
+    await expect(page.locator('#sentence-mode')).toHaveClass(/active/);
+    // 문장 텍스트·이모지·현재 글자
+    await expect(page.locator('#sn-emoji')).not.toBeEmpty();
+    await expect(page.locator('#sn-text .sn-syl.current')).toHaveCount(1);
+    const ch1 = (await page.locator('#sn-label').textContent()) || '';
+    expect(ch1.length).toBe(1);
+    expect(ch1.trim().length).toBe(1); // 공백 글자는 건너뜀
+    const dw = await page.locator('#sn-draw-canvas').evaluate((c) => /** @type {HTMLCanvasElement} */ (c).width);
+    expect(dw).toBeGreaterThan(80);
+    // 다음 글자
+    await page.locator('#sn-next-btn').click();
+    const ch2 = (await page.locator('#sn-label').textContent()) || '';
+    expect(ch2.trim().length).toBe(1);
+    await page.locator('#sn-back-btn').click();
+    await expect(page.locator('#main-menu')).toBeVisible();
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
+  test('설정: 펜 색·굵기 변경이 TracePen에 반영되고 잉크 색이 바뀐다', async ({ page }) => {
+    const errors = collectClientErrors(page);
+    await gotoApp(page);
+    await page.locator('button.mode-card[data-mode="settings"]').click();
+    await expect(page.locator('#settings-mode')).toHaveClass(/active/);
+    // 색 스와치·굵기 버튼 렌더
+    await expect(page.locator('#settings-colors .pen-swatch')).toHaveCount(7);
+    await expect(page.locator('#settings-widths .pen-width-btn')).toHaveCount(3);
+    // 파란색 + 굵게 선택 → TracePen 반영
+    const res = await page.evaluate(() => {
+      TracePen.setColor('#2f7fd1');
+      TracePen.setWidth('thick');
+      return { color: TracePen.color(), scale: TracePen.widthScale() };
+    });
+    expect(res.color).toBe('#2f7fd1');
+    expect(res.scale).toBeGreaterThan(1);
+    // 실제 잉크 색이 펜 색을 따르는지(char 모드 draw → 파란 픽셀)
+    await page.locator('#settings-back-btn').click();
+    await page.locator('button.mode-card[data-mode="char"]').click();
+    const bluePixels = await page.evaluate(() => {
+      const d = document.getElementById('draw-canvas');
+      const ctx = d.getContext('2d');
+      window.charMode.canvas.drawLine(d.width * 0.3, d.height * 0.3, d.width * 0.7, d.height * 0.7);
+      const data = ctx.getImageData(0, 0, d.width, d.height).data;
+      let blue = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i] < 120 && data[i + 1] > 90 && data[i + 1] < 180 && data[i + 2] > 160 && data[i + 3] > 40) blue++;
+      }
+      return blue;
+    });
+    expect(bluePixels, '펜 색(파랑) 잉크 픽셀').toBeGreaterThan(0);
+    expect(errors, `JS errors: ${errors.join(' | ')}`).toEqual([]);
+  });
+
   test('복습: 미완료 항목 큐·따라쓰기·완성 시 진도 반영·빈 상태', async ({ page }) => {
     const errors = collectClientErrors(page);
     await gotoApp(page);

@@ -311,7 +311,11 @@ class DrawingCanvas {
 
   drawLine(x1, y1, x2, y2, color = '#be3974', width = null) {
     if (!this.ctx) return;
-    const lineW = (width != null) ? width : this.lineWidth;
+    // 사용자 잉크는 펜 설정(색·굵기)을 따른다(설정 화면에서 변경). TracePen 이
+    // 없으면 전달된 기본값 사용. 가이드 글자·획순 애니는 이 메서드를 안 쓴다.
+    const penColor = (typeof TracePen !== 'undefined') ? TracePen.color() : color;
+    const penScale = (typeof TracePen !== 'undefined') ? TracePen.widthScale() : 1;
+    const lineW = ((width != null) ? width : this.lineWidth) * penScale;
     const ctx = this.ctx;
     ctx.save();
     ctx.globalAlpha = 1;
@@ -325,7 +329,7 @@ class DrawingCanvas {
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
-    ctx.strokeStyle = color;
+    ctx.strokeStyle = penColor;
     ctx.lineWidth = lineW;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -336,6 +340,8 @@ class DrawingCanvas {
 
   drawDot(x, y, color = '#be3974', size = 6) {
     if (!this.ctx) return;
+    const penColor = (typeof TracePen !== 'undefined') ? TracePen.color() : color;
+    const penScale = (typeof TracePen !== 'undefined') ? TracePen.widthScale() : 1;
     const ctx = this.ctx;
     ctx.save();
     ctx.globalAlpha = 1;
@@ -347,8 +353,8 @@ class DrawingCanvas {
     }
     ctx.setLineDash([]);
     ctx.beginPath();
-    ctx.arc(x, y, size, 0, Math.PI * 2);
-    ctx.fillStyle = color;
+    ctx.arc(x, y, size * penScale, 0, Math.PI * 2);
+    ctx.fillStyle = penColor;
     ctx.fill();
     ctx.restore();
   }

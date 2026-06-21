@@ -32,7 +32,7 @@ function traceTeardownActiveMode() {
   if (typeof cancelAllStrokeOrderAnims === 'function') {
     try { cancelAllStrokeOrderAnims(); } catch (_e) { /* ignore */ }
   }
-  ['__traceCharRO', '__traceWordRO', '__traceNumberRO', '__traceEnglishRO', '__traceMyWordRO', '__traceAdvRO', '__traceWordcardRO', '__tracePhonicsRO', '__traceBatchimRO', '__traceDictationRO', '__traceStrokeOrderRO', '__traceReviewRO'].forEach((k) => {
+  ['__traceCharRO', '__traceWordRO', '__traceNumberRO', '__traceEnglishRO', '__traceMyWordRO', '__traceAdvRO', '__traceWordcardRO', '__tracePhonicsRO', '__traceBatchimRO', '__traceDictationRO', '__traceStrokeOrderRO', '__traceReviewRO', '__traceSentenceRO'].forEach((k) => {
     const ro = window[k];
     if (ro && typeof ro.disconnect === 'function') {
       try { ro.disconnect(); } catch (_e) { /* ignore */ }
@@ -47,7 +47,7 @@ function traceTeardownActiveMode() {
     window[k] = null;
   });
   // 그리던 도중 이탈 시 window 에 남는 pointer/touch stroke 리스너 정리(#28).
-  ['draw-canvas', 'word-draw-canvas', 'num-draw-canvas', 'eng-draw-canvas', 'myword-draw-canvas', 'adv-draw-canvas', 'wc-draw-canvas', 'ph-draw-canvas', 'bt-draw-canvas', 'dt-draw-canvas', 'so-draw-canvas', 'rv-draw-canvas'].forEach((id) => {
+  ['draw-canvas', 'word-draw-canvas', 'num-draw-canvas', 'eng-draw-canvas', 'myword-draw-canvas', 'adv-draw-canvas', 'wc-draw-canvas', 'ph-draw-canvas', 'bt-draw-canvas', 'dt-draw-canvas', 'so-draw-canvas', 'rv-draw-canvas', 'sn-draw-canvas'].forEach((id) => {
     const c = document.getElementById(id);
     if (c && typeof c.__traceDrawUnbind === 'function') {
       try { c.__traceDrawUnbind(); } catch (_e) { /* ignore */ }
@@ -156,6 +156,14 @@ function showReviewMode() {
   showSingleMode('review');
 }
 
+function showSentenceMode() {
+  showSingleMode('sentence');
+}
+
+function showSettingsMode() {
+  showSingleMode('settings');
+}
+
 /* === 이스터에그: byline '통통이' 15클릭 → 비밀 모드 ===
  * 외관상 일반 텍스트라 모르는 사람에겐 보이지 않음.
  * 5초 안에 15회 누르지 못하면 카운트 자동 리셋.
@@ -257,6 +265,8 @@ function showSingleMode(modeName, opts) {
     dictation: typeof DictationMode !== 'undefined' ? DictationMode : undefined,
     strokeorder: typeof StrokeOrderMode !== 'undefined' ? StrokeOrderMode : undefined,
     review: typeof ReviewMode !== 'undefined' ? ReviewMode : undefined,
+    sentence: typeof SentenceMode !== 'undefined' ? SentenceMode : undefined,
+    settings: typeof SettingsMode !== 'undefined' ? SettingsMode : undefined,
     progress: typeof ProgressMode !== 'undefined' ? ProgressMode : undefined
   }[modeName];
 
@@ -276,6 +286,8 @@ function showSingleMode(modeName, opts) {
       else if (modeName === 'dictation') window.dictationMode = new ModeClass();
       else if (modeName === 'strokeorder') window.strokeOrderMode = new ModeClass();
       else if (modeName === 'review') window.reviewMode = new ModeClass();
+      else if (modeName === 'sentence') window.sentenceMode = new ModeClass();
+      else if (modeName === 'settings') window.settingsMode = new ModeClass();
       else if (modeName === 'progress') window.progressMode = new ModeClass();
     } catch (err) {
       console.error('tracing: mode init failed', modeName, err);
@@ -312,7 +324,7 @@ function initAppShell() {
       const el = traceClickElement(e);
       if (!el) return;
       const back = el.closest(
-        '#back-btn, #word-back-btn, #num-back-btn, #eng-back-btn, #myword-back-btn, #myword-add-back-btn, #myword-add-menu-btn, #adv-back-btn, #wc-back-btn, #quiz-back-btn, #ph-back-btn, #bt-back-btn, #dt-back-btn, #so-back-btn, #rv-back-btn, #rv-empty-back-btn, #progress-back-btn, #secret-back-btn'
+        '#back-btn, #word-back-btn, #num-back-btn, #eng-back-btn, #myword-back-btn, #myword-add-back-btn, #myword-add-menu-btn, #adv-back-btn, #wc-back-btn, #quiz-back-btn, #ph-back-btn, #bt-back-btn, #dt-back-btn, #so-back-btn, #rv-back-btn, #rv-empty-back-btn, #sn-back-btn, #settings-back-btn, #progress-back-btn, #secret-back-btn'
       );
       if (back && app.contains(back)) {
         e.preventDefault();
@@ -373,6 +385,10 @@ function initAppShell() {
         } else if (id === 'rv-prev-btn' || id === 'rv-next-btn') {
           if (window.reviewMode && typeof window.reviewMode[action] === 'function') {
             window.reviewMode[action]();
+          }
+        } else if (id === 'sn-prev-btn' || id === 'sn-next-btn') {
+          if (window.sentenceMode && typeof window.sentenceMode[action] === 'function') {
+            window.sentenceMode[action]();
           }
         }
         return;
@@ -490,4 +506,6 @@ if (typeof window !== 'undefined') {
   window.showProgressMode = showProgressMode;
   window.showStrokeOrderMode = showStrokeOrderMode;
   window.showReviewMode = showReviewMode;
+  window.showSentenceMode = showSentenceMode;
+  window.showSettingsMode = showSettingsMode;
 }

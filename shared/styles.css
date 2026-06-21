@@ -1401,7 +1401,12 @@ button.myword-add-mini.tool-btn.myword-add-del
 #num-feedback,
 #eng-feedback,
 #myword-feedback,
-#adv-feedback
+#adv-feedback,
+#wc-feedback,
+#ph-feedback,
+#bt-feedback,
+#dt-feedback,
+#so-feedback
 {
   text-align: center;
   margin-top: 12px;

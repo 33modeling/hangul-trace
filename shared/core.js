@@ -169,8 +169,21 @@ class DrawingCanvas {
       }
     }
 
+    // 진행 중인 획의 마지막 좌표(lastX/lastY)는 옛 버퍼 픽셀 기준이다. 버퍼가
+    // 재할당되면(회전 등) 다음 drawLine 이 옛 좌표→새 좌표로 글자를 가로지르는
+    // 점프 선을 그리므로, 잉크 스냅샷처럼 lastX/lastY 도 같은 비율로 재배율한다.
+    const _oldW = this.canvas.width;
+    const _oldH = this.canvas.height;
+
     this.canvas.width = bw;
     this.canvas.height = bh;
+
+    if (_oldW > 0 && _oldH > 0) {
+      const _sx = bw / _oldW;
+      const _sy = bh / _oldH;
+      if (typeof this.lastX === 'number') this.lastX *= _sx;
+      if (typeof this.lastY === 'number') this.lastY *= _sy;
+    }
 
     if (snapshot) {
       try {
@@ -395,6 +408,10 @@ function attachCanvasPointerDrawing(canvas, h) {
 
   const onPointerDown = (e) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
+    // 이미 한 손가락으로 그리는 중이면 두 번째 포인터(손바닥·다른 손가락)는
+    // 무시한다. 안 그러면 진행 중인 획을 가로채(첫 손가락 onUp 미발생) 첫
+    // 손가락이 먹통이 되고 획 평가가 누락된다(터치 폴백은 이미 같은 가드 있음).
+    if (activePointerId !== null) { e.preventDefault(); return; }
     e.preventDefault();
     cleanupPointerWin();
     activePointerId = e.pointerId;
@@ -1029,7 +1046,11 @@ function traceRenderProgress(count, target, opts) {
    ========================================================================== */
 
 const TRACE_COV_SAMPLE = 112;       // 비교용 저해상도(긴 변 px) — 정확도/성능 균형
-const TRACE_COV_RADIUS_RATIO = 0.022; // 오차 허용 팽창 반경 = 표본 긴 변의 2.2%
+const TRACE_COV_RADIUS_RATIO = 0.022; // precision(마스크 팽창) 반경 = 표본 긴 변의 2.2%
+// recall(잉크 팽창) 반경은 더 넉넉히 — 얇은 세로/가로 글자(ㅣ ㅡ 1 I l)는
+// 마스크가 1~2칸 폭이라, 살짝만 좌우로 빗나가도 recall 이 급락해 거의 맞게 써도
+// 완성이 안 되던 문제를 막는다. precision 은 좁은 반경을 유지해 낙서 차단력은 보존.
+const TRACE_COV_RECALL_RADIUS_RATIO = 0.038;
 const TRACE_COV_RECALL_MIN = 0.85;   // 글자의 85% 이상을 덮어야(거의 다 써야 완성).
 // 예전 0.58/5% 는 글자를 절반만 따라 써도 dilation 이 빈 곳을 메워 '완성'으로
 // 오판정됐다(부분 작성 → 정답 버그). 측정 기반으로 50~60% 부분 작성은 미완성,
@@ -1138,20 +1159,36 @@ function _traceCoverageMaps(drawCanvas, target, opts) {
   const ink = new Uint8Array(N);
   let maskCount = 0;
   let inkCount = 0;
-  for (let i = 0; i < N; i++) {
-    const m = maskData[i * 4 + 3] > TRACE_COV_MASK_ALPHA ? 1 : 0;
-    const k = inkData[i * 4 + 3] > TRACE_COV_INK_ALPHA ? 1 : 0;
-    mask[i] = m; ink[i] = k;
-    if (m) maskCount++;
-    if (k) inkCount++;
+  // 마스크 경계상자 — 얇은(1차원) 글자 판별용.
+  let minX = mw, maxX = -1, minY = mh, maxY = -1;
+  for (let y = 0; y < mh; y++) {
+    for (let x = 0; x < mw; x++) {
+      const i = y * mw + x;
+      const m = maskData[i * 4 + 3] > TRACE_COV_MASK_ALPHA ? 1 : 0;
+      const k = inkData[i * 4 + 3] > TRACE_COV_INK_ALPHA ? 1 : 0;
+      mask[i] = m; ink[i] = k;
+      if (m) { maskCount++; if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+      if (k) inkCount++;
+    }
   }
   if (maskCount === 0) return null;
 
   const r = Math.max(1, Math.round(TRACE_COV_RADIUS_RATIO * Math.max(mw, mh)));
+  // 얇은 글자(ㅣ ㅡ 1 I l 등 한 변이 매우 좁은 1차원 형태)일 때만 recall 쪽
+  // 잉크 팽창을 넉넉히 한다. 2차원 글자(ㅁ ㅎ 8 …)는 좁은 반경을 유지해 부분
+  // 작성(50~60%)이 조기 완성되지 않게 한다.
+  const bboxW = maxX - minX + 1;
+  const bboxH = maxY - minY + 1;
+  const thinSpan = Math.min(bboxW, bboxH);
+  const isThin = thinSpan <= Math.max(4, 0.16 * Math.max(mw, mh));
+  const rRecall = isThin
+    ? Math.max(r, Math.round(TRACE_COV_RECALL_RADIUS_RATIO * Math.max(mw, mh)))
+    : r;
   return {
     mw, mh, mask, ink,
+    // precision 은 항상 좁은 반경(r), recall 은 얇은 글자에서만 넉넉한 반경(rRecall).
     maskDil: _traceDilate(mask, mw, mh, r),
-    inkDil: _traceDilate(ink, mw, mh, r),
+    inkDil: _traceDilate(ink, mw, mh, rRecall),
     maskCount, inkCount, list, row
   };
 }

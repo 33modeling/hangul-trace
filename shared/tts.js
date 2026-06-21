@@ -36,6 +36,9 @@ const TraceTTS = (function () {
     if (!supported || !text) return;
     try {
       window.speechSynthesis.cancel();
+      // 화면 잠금/탭 전환/중단 후 speechSynthesis 가 paused 상태로 멈춰
+      // 영영 소리가 안 나는 문제 방지 — 매번 resume 으로 깨운다.
+      try { window.speechSynthesis.resume(); } catch (_r) { /* 무시 */ }
       const u = new SpeechSynthesisUtterance(String(text));
       u.lang = 'ko-KR';
       if (voice) u.voice = voice;
@@ -89,6 +92,12 @@ const TraceTTS = (function () {
           window.speechSynthesis.onvoiceschanged = pickVoice;
         }
       } catch (_e) { /* 무시 */ }
+      // 탭/화면 복귀 시 paused 상태를 깨워 발음이 다시 나오게 한다.
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          try { window.speechSynthesis.resume(); } catch (_e) { /* 무시 */ }
+        }
+      });
     }
     const b = document.getElementById('tts-toggle');
     if (b) {

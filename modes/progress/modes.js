@@ -31,6 +31,22 @@ class ProgressMode {
     return { n: seen.size, total: max };
   }
 
+  // 단어 카드는 '아는 단어'를 단어 문자열 배열로 저장(정수 집합이 아님).
+  // TRACE_VOCAB 에 존재하는 서로 다른 단어만 센다.
+  _knownCount(key, total) {
+    const arr = (typeof Utils !== 'undefined') ? Utils.loadLocal(key, []) : [];
+    const max = Math.max(0, Number(total) || 0);
+    const words = (typeof TRACE_VOCAB !== 'undefined' && Array.isArray(TRACE_VOCAB))
+      ? new Set(TRACE_VOCAB.map((v) => v && v.word)) : new Set();
+    const seen = new Set();
+    if (Array.isArray(arr)) {
+      arr.forEach((w) => {
+        if (typeof w === 'string' && words.has(w)) seen.add(w);
+      });
+    }
+    return { n: seen.size, total: max };
+  }
+
   _vocabTotal() {
     return (typeof TRACE_VOCAB !== 'undefined' && Array.isArray(TRACE_VOCAB)) ? TRACE_VOCAB.length : 0;
   }
@@ -94,7 +110,7 @@ class ProgressMode {
       const num = this._doneCount('tracing.done.number.v1', 10);
       const up = this._doneCount('tracing.done.english.upper.v1', 26);
       const low = this._doneCount('tracing.done.english.lower.v1', 26);
-      const known = this._doneCount('tracing.wordcard.known.v1', this._vocabTotal());
+      const known = this._knownCount('tracing.wordcard.known.v1', this._vocabTotal());
       const myWords = this._myWordsCount();
       statsEl.innerHTML =
         this._statRow('자음·모음', char.n, char.total)
@@ -143,7 +159,8 @@ class ProgressMode {
       'tracing.done.number.v1',
       'tracing.done.english.upper.v1',
       'tracing.done.english.lower.v1',
-      'tracing.wordcard.known.v1'
+      'tracing.wordcard.known.v1',
+      'tracing.quiz.best.v1'
     ];
     keys.forEach((k) => {
       try { localStorage.removeItem(k); } catch (_e) { /* 무시 */ }

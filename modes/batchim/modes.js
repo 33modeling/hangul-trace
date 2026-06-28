@@ -69,6 +69,8 @@ class BatchimMode {
     this.wrapper = null;
     this.isDrawing = false;
     this.doneSet = new Set();
+    // 완료 진도 복원 (#5) — 재방문에도 완료 항목이 유지돼 점수 중복 적립 방지
+    traceLoadDoneInto(this.doneSet, 'tracing.done.batchim.v1', BATCHIM_ITEMS.length);
     this._wrapRo = null;
     this._wrapRoRaf = 0;
 
@@ -245,6 +247,7 @@ class BatchimMode {
       const cov = this.updateFeedback();
       if (cov && cov.done && !this.doneSet.has(this.currentIdx)) {
         this.doneSet.add(this.currentIdx);
+        traceSaveDone('tracing.done.batchim.v1', this.doneSet); // (#5)
         const it = this._current();
         const completeEl = document.getElementById('bt-complete');
         if (completeEl) completeEl.textContent = `${it.syllable} ✓`;

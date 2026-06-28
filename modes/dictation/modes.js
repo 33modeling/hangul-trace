@@ -22,7 +22,11 @@ class DictationMode {
     this.wrapper = null;
     this.isDrawing = false;
     this.revealed = false;     // 정답(가이드)을 띄웠는가
-    this.solvedSet = new Set(); // 맞힌 단어
+    // 맞힌 단어 — 단어 내용 키. 재방문에도 유지해 점수 중복 적립 방지 (#5)
+    this.solvedSet = new Set(
+      (typeof Utils !== 'undefined' ? Utils.loadLocal('tracing.done.dictation.v1', []) : [])
+        .filter((w) => typeof w === 'string')
+    );
     this._wrapRo = null;
     this._wrapRoRaf = 0;
 
@@ -230,6 +234,7 @@ class DictationMode {
         const w = this._current().word;
         if (!this.solvedSet.has(w)) {
           this.solvedSet.add(w);
+          if (typeof Utils !== 'undefined') Utils.saveLocal('tracing.done.dictation.v1', Array.from(this.solvedSet)); // (#5)
           // 정답 보기·힌트 없이 맞히면(외웠으면) 보너스.
           const memorized = !this.revealed && !this.hinted;
           const ansEl = document.getElementById('dt-answer');

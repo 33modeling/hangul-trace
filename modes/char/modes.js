@@ -104,7 +104,19 @@ class CharMode {
     this.canvas.resize({ preserveInk: true });
   }
   
+  _resetDrawingState() {
+    this.isDrawing = false;
+    if (this.canvas) {
+      this.canvas.lastX = 0;
+      this.canvas.lastY = 0;
+    }
+    if (this._strokeTracker && typeof this._strokeTracker.cancel === 'function') {
+      try { this._strokeTracker.cancel(); } catch (_) { /* tracker may not have cancel */ }
+    }
+  }
+
   updateUI(idx) {
+    this._resetDrawingState();
     this.currentIdx = idx;
     // 글자 이동 시 hint fallback 타이머 취소(#8) — 이전 글자로 가이드를 덮어쓰지 않게
     if (window.__traceHintFallbackTimer) {

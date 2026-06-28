@@ -34,7 +34,13 @@ class SentenceMode {
     this.cards = (typeof traceShuffleArray === 'function') ? traceShuffleArray(SENTENCES) : SENTENCES.slice();
     this.sentenceIdx = 0;
     this.syllableIdx = 0;
-    this.doneSet = new Set();        // `${sentenceIdx}:${syllableIdx}`
+    // 완료 진도 복원 (#5) — 재방문에도 완료 음절이 유지돼 점수 중복 적립 방지.
+    // 입장마다 문장을 섞으므로(traceShuffleArray) 키는 인덱스가 아니라 문장 내용
+    // 기반 `${text}:${syllableIdx}` — 셔플 후에도 같은 음절 재추적이 정확히 걸린다.
+    this.doneSet = new Set(
+      (typeof Utils !== 'undefined' ? Utils.loadLocal('tracing.done.sentence.v1', []) : [])
+        .filter((k) => typeof k === 'string')
+    );
     this.guideLayer = null;
     this.canvas = null;
     this.wrapper = null;
@@ -131,7 +137,7 @@ class SentenceMode {
           return;
         }
         const span = document.createElement('span');
-        span.className = 'sn-syl' + (i === curPos ? ' current' : '') + (this.doneSet.has(`${this.sentenceIdx}:${ti.indexOf(i)}`) ? ' done' : '');
+        span.className = 'sn-syl' + (i === curPos ? ' current' : '') + (this.doneSet.has(`${this._card().text}:${ti.indexOf(i)}`) ? ' done' : '');
         span.textContent = ch;
         textEl.appendChild(span);
       });
@@ -170,15 +176,16 @@ class SentenceMode {
   _sentenceAllDone() {
     const ti = this._traceIdxs();
     for (let i = 0; i < ti.length; i++) {
-      if (!this.doneSet.has(`${this.sentenceIdx}:${i}`)) return false;
+      if (!this.doneSet.has(`${this._card().text}:${i}`)) return false;
     }
     return ti.length > 0;
   }
 
   _onSyllableComplete() {
-    const key = `${this.sentenceIdx}:${this.syllableIdx}`;
+    const key = `${this._card().text}:${this.syllableIdx}`;
     if (this.doneSet.has(key)) return;
     this.doneSet.add(key);
+    if (typeof Utils !== 'undefined') Utils.saveLocal('tracing.done.sentence.v1', Array.from(this.doneSet)); // (#5)
     if (typeof TraceSound !== 'undefined') TraceSound.complete();
     if (typeof TraceRewards !== 'undefined') TraceRewards.award(10);
     this._renderHeader();

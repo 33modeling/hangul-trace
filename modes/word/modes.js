@@ -41,6 +41,8 @@ class WordMode {
     this.isDrawing = false;
     this.startPoint = { x: 0, y: 0 };
     this.doneSet = new Set();
+    // 완료 진도 복원 (#5) — 재방문에도 완료 항목이 유지돼 점수 중복 적립 방지
+    traceLoadDoneInto(this.doneSet, 'tracing.done.word.v1', WORDS.length);
     this._wrapRo = null;
     this._wrapRoRaf = 0;
 
@@ -202,6 +204,7 @@ class WordMode {
       const cov = this.updateFeedback();
       if (cov && cov.done && !this.doneSet.has(this.currentIdx)) {
         this.doneSet.add(this.currentIdx);
+        traceSaveDone('tracing.done.word.v1', this.doneSet); // (#5)
         const w = WORDS[this.currentIdx];
         document.getElementById('word-complete').textContent = `${w.syllable} ✓`;
         if (typeof TraceSound !== 'undefined') TraceSound.complete();

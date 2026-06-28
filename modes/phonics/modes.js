@@ -41,6 +41,8 @@ class PhonicsMode {
     this.wrapper = null;
     this.isDrawing = false;
     this.doneSet = new Set();
+    // 완료 진도 복원 (#5) — 재방문에도 완료 항목이 유지돼 점수 중복 적립 방지
+    traceLoadDoneInto(this.doneSet, 'tracing.done.phonics.v1', PHONICS_ITEMS.length);
     this._wrapRo = null;
     this._wrapRoRaf = 0;
 
@@ -219,6 +221,7 @@ class PhonicsMode {
       const cov = this.updateFeedback();
       if (cov && cov.done && !this.doneSet.has(this.currentIdx)) {
         this.doneSet.add(this.currentIdx);
+        traceSaveDone('tracing.done.phonics.v1', this.doneSet); // (#5)
         const it = this._current();
         const completeEl = document.getElementById('ph-complete');
         if (completeEl) completeEl.textContent = `${it.syllable} ✓`;

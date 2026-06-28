@@ -19,7 +19,11 @@ class WordCardMode {
     this.canvas = null;
     this.wrapper = null;
     this.isDrawing = false;
-    this.tracedSet = new Set();          // 이번 세션에 따라쓰기 완성한 단어
+    // 따라쓰기 완성한 단어(단어 내용 키) — 영구 저장으로 재방문 시 점수 중복 적립 방지 (#5)
+    this.tracedSet = new Set(
+      (typeof Utils !== 'undefined' ? Utils.loadLocal('tracing.done.wordcard.v1', []) : [])
+        .filter((w) => typeof w === 'string')
+    );
     this.knownSet = new Set(this._loadKnown()); // 아는 단어(영구 저장)
     this._wrapRo = null;
     this._wrapRoRaf = 0;
@@ -234,6 +238,7 @@ class WordCardMode {
         const w = this._current().word;
         if (!this.tracedSet.has(w)) {
           this.tracedSet.add(w);
+          if (typeof Utils !== 'undefined') Utils.saveLocal('tracing.done.wordcard.v1', Array.from(this.tracedSet)); // (#5)
           const completeEl = document.getElementById('wc-complete');
           if (completeEl) completeEl.textContent = `${w} ✓`;
           if (typeof TraceSound !== 'undefined') TraceSound.complete();

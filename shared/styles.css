@@ -714,18 +714,7 @@ to {
   text-align: center;
 }
 
-#prev-btn,
-#next-btn,
-#word-prev-btn,
-#word-next-btn,
-#myword-prev-btn,
-#myword-next-btn,
-#num-prev-btn,
-#num-next-btn,
-#eng-prev-btn,
-#eng-next-btn,
-#adv-prev-btn,
-#adv-next-btn
+.trace-mode-nav > button[data-action]
 {
   width: 52px;
   height: 52px;
@@ -753,49 +742,17 @@ to {
 }
 
 /* 호버: 화살표 방향으로 살짝 시프트 */
-#prev-btn:hover,
-#word-prev-btn:hover,
-#myword-prev-btn:hover,
-#num-prev-btn:hover,
-#eng-prev-btn:hover,
-#adv-prev-btn:hover { transform: translateX(-3px); box-shadow: 0 6px 18px var(--trace-accent-glow); }
+.trace-mode-nav > button[data-action="prev"]:hover { transform: translateX(-3px); box-shadow: 0 6px 18px var(--trace-accent-glow); }
 
-#next-btn:hover,
-#word-next-btn:hover,
-#myword-next-btn:hover,
-#num-next-btn:hover,
-#eng-next-btn:hover,
-#adv-next-btn:hover { transform: translateX(3px); box-shadow: 0 6px 18px var(--trace-accent-glow); }
+.trace-mode-nav > button[data-action="next"]:hover { transform: translateX(3px); box-shadow: 0 6px 18px var(--trace-accent-glow); }
 
-#prev-btn:active,
-#next-btn:active,
-#word-prev-btn:active,
-#word-next-btn:active,
-#myword-prev-btn:active,
-#myword-next-btn:active,
-#num-prev-btn:active,
-#num-next-btn:active,
-#eng-prev-btn:active,
-#eng-next-btn:active,
-#adv-prev-btn:active,
-#adv-next-btn:active
+.trace-mode-nav > button[data-action]:active
 {
   filter: brightness(0.92);
   transform: scale(0.94);
 }
 
-#prev-btn svg,
-#next-btn svg,
-#word-prev-btn svg,
-#word-next-btn svg,
-#myword-prev-btn svg,
-#myword-next-btn svg,
-#num-prev-btn svg,
-#num-next-btn svg,
-#eng-prev-btn svg,
-#eng-next-btn svg,
-#adv-prev-btn svg,
-#adv-next-btn svg
+.trace-mode-nav > button[data-action] svg
 {
   display: block;
   flex-shrink: 0;
@@ -1244,24 +1201,18 @@ button.myword-add-mini.tool-btn.myword-add-del:not(.danger)
 /* 매우 좁은 폰 (≤ 380px): 네비·라벨·툴바·메뉴 카드 패딩/폰트 축소 */
 @media (max-width: 380px)
 {
-  #prev-btn, #next-btn,
-  #word-prev-btn, #word-next-btn,
-  #myword-prev-btn, #myword-next-btn,
-  #num-prev-btn, #num-next-btn,
-  #eng-prev-btn, #eng-next-btn,
-  #adv-prev-btn, #adv-next-btn {
+  .trace-mode-nav > button[data-action] {
     /* 45px — WCAG 최소 44px 를 서브픽셀 스냅(고DPR에서 간헐적 43.999…)
        후에도 항상 만족하도록 1px 여유. */
     width: 45px;
     height: 45px;
   }
 
-  #char-label, #word-label, #num-label, #eng-label,
-  #myword-label, #adv-label {
+  .trace-mode-nav > div > div:first-child {
     font-size: 20px;
   }
 
-  #char-sub, #myword-sub, #num-sub, #eng-sub, #word-sub, #adv-sub {
+  .trace-mode-nav > div > div:last-child {
     font-size: 12px;
   }
 
@@ -1610,10 +1561,13 @@ button.myword-add-mini.tool-btn.myword-add-del:not(.danger)
   #so-canvas-wrap,
   #rv-canvas-wrap,
   #sn-canvas-wrap {
-    max-width: min(72dvh, 52vw);
-    max-height: min(72dvh, 52vw);
+    max-width:  min(46vw, 60dvh, calc(100dvh - 232px));
+    max-height: min(46vw, 60dvh, calc(100dvh - 232px));
     margin: 0 auto;
   }
+
+  .trace-mode-nav { margin-bottom: 6px; }
+  .dots { margin-bottom: 4px; }
 }/* English mode */.alpha-type-toggle
 {
   display: flex;

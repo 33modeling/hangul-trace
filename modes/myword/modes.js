@@ -12,7 +12,12 @@ class MyWordMode {
     this.canvas = null;
     this.wrapper = null;
     this.isDrawing = false;
-    this.doneSet = new Set();
+    // 완료 진도 복원 (#5) — 재방문에도 완료 항목이 유지돼 점수 중복 적립 방지.
+    // 키는 기존 in-memory 와 동일한 문자열 합성('L/P:wordIdx:offset')을 그대로 영속화.
+    this.doneSet = new Set(
+      (typeof Utils !== 'undefined' ? Utils.loadLocal('tracing.done.myword.v1', []) : [])
+        .filter((k) => typeof k === 'string')
+    );
     this._wrapRo = null;
     this._wrapRoRaf = 0;
     this._lastLandscape = null;
@@ -369,6 +374,7 @@ class MyWordMode {
           : `P:${this.wordIdx}:${this.syllableIdx}`;
         if (!this.doneSet.has(visibleKey)) {
           this.doneSet.add(visibleKey);
+          if (typeof Utils !== 'undefined') Utils.saveLocal('tracing.done.myword.v1', Array.from(this.doneSet)); // (#5)
           const w = this.words[this.wordIdx];
           document.getElementById('myword-complete').textContent = `${w} ✓`;
           if (typeof TraceSound !== 'undefined') TraceSound.complete();

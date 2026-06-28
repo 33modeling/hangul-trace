@@ -65,7 +65,13 @@ class AdvancedMode {
     this.canvas = null;
     this.wrapper = null;
     this.isDrawing = false;
-    this.doneSet = new Set();
+    // 완료 진도 복원 (#5) — 재방문에도 완료 항목이 유지돼 점수 중복 적립 방지.
+    // 입장마다 단어를 새로 섞으므로(_shuffleWords) 키는 인덱스가 아니라 단어
+    // 내용 기반('L/P:단어:offset')이어야 셔플 후에도 같은 단어 재추적이 정확히 걸린다.
+    this.doneSet = new Set(
+      (typeof Utils !== 'undefined' ? Utils.loadLocal('tracing.done.advanced.v1', []) : [])
+        .filter((k) => typeof k === 'string')
+    );
     this._wrapRo = null;
     this._wrapRoRaf = 0;
     this._lastLandscape = null;
@@ -355,12 +361,14 @@ class AdvancedMode {
       this._strokeTracker.end();
       const cov = this.updateFeedback();
       if (cov && cov.done) {
+        const w = this.words[this.wordIdx];
+        // 셔플로 인덱스가 흔들리므로 단어 내용으로 키를 잡아 재방문 시 중복 적립 방지.
         const visibleKey = this._isLandscape()
-          ? `L:${this.wordIdx}:${this.windowStart}`
-          : `P:${this.wordIdx}:${this.syllableIdx}`;
+          ? `L:${w}:${this.windowStart}`
+          : `P:${w}:${this.syllableIdx}`;
         if (!this.doneSet.has(visibleKey)) {
           this.doneSet.add(visibleKey);
-          const w = this.words[this.wordIdx];
+          if (typeof Utils !== 'undefined') Utils.saveLocal('tracing.done.advanced.v1', Array.from(this.doneSet)); // (#5)
           document.getElementById('adv-complete').textContent = `${w} ✓`;
           if (typeof TraceSound !== 'undefined') TraceSound.complete();
           if (typeof TraceRewards !== 'undefined') TraceRewards.award(12);

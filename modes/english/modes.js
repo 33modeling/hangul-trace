@@ -200,7 +200,19 @@ class EnglishMode {
     });
   }
   
+  _resetDrawingState() {
+    this.isDrawing = false;
+    if (this.canvas) {
+      this.canvas.lastX = 0;
+      this.canvas.lastY = 0;
+    }
+    if (this._strokeTracker && typeof this._strokeTracker.cancel === 'function') {
+      try { this._strokeTracker.cancel(); } catch (_) { /* tracker may not have cancel */ }
+    }
+  }
+
   updateUI(idx) {
+    this._resetDrawingState();
     this.currentIdx = idx;
     // hint fallback 타이머 취소(#8)
     if (window.__traceHintFallbackTimer) {

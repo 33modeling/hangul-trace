@@ -1244,7 +1244,15 @@ function _traceCovFromMaps(maps, recallMin, precisionMin) {
   // 실제 따라쓰기는 굵은 펜이라도 글자 면적의 ~2.5배를 넘지 않는다.
   const inkRatioOk = maps.inkCount <= maps.maskCount * TRACE_COV_MAX_INK_RATIO;
   const done = maps.inkCount > 0 && recall >= recallMin && precision >= precisionMin && inkRatioOk;
-  const progress = Math.max(0, Math.min(1, recall / recallMin));
+  // 표시용 진행도는 recall 만으로 100%가 되면 안 된다 — recall 은 채웠지만
+  // precision/잉크비율 게이트에서 막혀 '완성'이 안 뜨면 가득 찬 바가 고장처럼 보인다.
+  // 완성이 아니면 precision·잉크비율 부족분만큼 깎아 100% 미만으로 유지한다.
+  let progress = Math.max(0, Math.min(1, recall / recallMin));
+  if (!done) {
+    const precGate = precisionMin > 0 ? Math.min(1, precision / precisionMin) : 1;
+    const inkGate = inkRatioOk ? 1 : Math.min(1, (maps.maskCount * TRACE_COV_MAX_INK_RATIO) / maps.inkCount);
+    progress = Math.min(progress * precGate * inkGate, 0.99);
+  }
   return { recall, precision, progress, done, hasInk: maps.inkCount > 0 };
 }
 

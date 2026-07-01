@@ -4,3 +4,13 @@ playwright-report/
 playwright/.cache/
 .env
 *.log
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/keystore.properties
+android/*.jks
+android/*.keystore
+android/*.apk
+android/*.aab
+android/*.idsig

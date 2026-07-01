@@ -1,0 +1,39 @@
+{
+  "packageId": "app.netlify.ubiquitous_toffee.twa",
+  "host": "ubiquitous-toffee.netlify.app",
+  "name": "채윤 한글",
+  "launcherName": "채윤 한글",
+  "display": "standalone",
+  "orientation": "default",
+  "themeColor": "#a78bfa",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#a78bfa",
+  "enableNotifications": false,
+  "startUrl": "/index.html",
+  "iconUrl": "https://ubiquitous-toffee.netlify.app/icons/icon-512.png",
+  "maskableIconUrl": "https://ubiquitous-toffee.netlify.app/icons/icon-maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "0.0.52",
+  "appVersionCode": 52,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://ubiquitous-toffee.netlify.app/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://ubiquitous-toffee.netlify.app/",
+  "minSdkVersion": 21
+}

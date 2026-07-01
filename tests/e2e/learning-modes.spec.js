@@ -425,6 +425,49 @@ test.describe('소중한글 학습 기능 — 단어 카드 / 퀴즈 / 커버리
     expect(pathCheck.count, '경로 데이터 글자 수(자모24+숫자10)').toBe(34);
     expect(pathCheck.mismatches, '획수 불일치 글자').toEqual([]);
 
+    const stripDirectionCheck = await page.evaluate(() => {
+      if (typeof STROKE_PATHS === 'undefined' || typeof STROKE_ORDER === 'undefined' || typeof renderStrokeOrderStrip !== 'function') {
+        return { mismatches: ['no data'] };
+      }
+      const mismatches = [];
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+      const sign = (n) => Math.abs(n) < 0.001 ? 0 : (n > 0 ? 1 : -1);
+      const pathDelta = (pts) => {
+        const first = pts[0];
+        const last = pts[pts.length - 1];
+        return { dx: sign(last[0] - first[0]), dy: sign(last[1] - first[1]) };
+      };
+      const svgDelta = (d) => {
+        const nums = (d.match(/-?\d+(?:\.\d+)?/g) || []).map(Number);
+        if (nums.length < 4) return { dx: 0, dy: 0 };
+        return {
+          dx: sign(nums[nums.length - 2] - nums[0]),
+          dy: sign(nums[nums.length - 1] - nums[1])
+        };
+      };
+
+      for (const ch in STROKE_PATHS) {
+        container.innerHTML = '';
+        renderStrokeOrderStrip(container, ch, 0);
+        const icons = Array.from(container.querySelectorAll('.stroke-step .step-symbol svg path:first-child'));
+        const paths = STROKE_PATHS[ch];
+        if (icons.length !== paths.length) {
+          mismatches.push(`${ch}: icon ${icons.length} vs paths ${paths.length}`);
+          continue;
+        }
+        paths.forEach((pts, i) => {
+          const expected = pathDelta(pts);
+          const actual = svgDelta(icons[i].getAttribute('d') || '');
+          if (expected.dx && actual.dx !== expected.dx) mismatches.push(`${ch}#${i + 1}: dx ${actual.dx} vs ${expected.dx}`);
+          if (expected.dy && actual.dy !== expected.dy) mismatches.push(`${ch}#${i + 1}: dy ${actual.dy} vs ${expected.dy}`);
+        });
+      }
+      container.remove();
+      return { mismatches };
+    });
+    expect(stripDirectionCheck.mismatches, '획순 카드 화살표 방향 불일치').toEqual([]);
+
     // 재생 클릭 시 글자 위 획순 애니메이션이 시작되고 오류가 없어야 함
     await page.locator('#so-play-btn').click();
     const animStarted = await page.evaluate(() => !!(window.strokeOrderMode && window.strokeOrderMode.guideLayer && window.strokeOrderMode.guideLayer.__soAnim));

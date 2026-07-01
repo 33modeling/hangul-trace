@@ -552,10 +552,60 @@ function _strokeIconSvg(s) {
   return open + body + close;
 }
 
+function _svgNum(n) {
+  return Number.isFinite(n) ? Number(n.toFixed(2)) : 0;
+}
+
+function _strokePathIconSvg(path) {
+  if (!Array.isArray(path) || path.length < 2) return '';
+  const raw = path
+    .filter((p) => Array.isArray(p) && p.length >= 2 && Number.isFinite(p[0]) && Number.isFinite(p[1]))
+    .map((p) => [p[0], p[1]]);
+  if (raw.length < 2) return '';
+
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const p of raw) {
+    minX = Math.min(minX, p[0]);
+    maxX = Math.max(maxX, p[0]);
+    minY = Math.min(minY, p[1]);
+    maxY = Math.max(maxY, p[1]);
+  }
+  const rangeX = Math.max(0.001, maxX - minX);
+  const rangeY = Math.max(0.001, maxY - minY);
+  const scale = 16 / Math.max(rangeX, rangeY);
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+  const pts = raw.map((p) => [12 + (p[0] - cx) * scale, 12 + (p[1] - cy) * scale]);
+  const tip = pts[pts.length - 1];
+  let prev = pts[pts.length - 2];
+  for (let i = pts.length - 2; i >= 0; i--) {
+    if (Math.hypot(tip[0] - pts[i][0], tip[1] - pts[i][1]) > 0.4) {
+      prev = pts[i];
+      break;
+    }
+  }
+  const angle = Math.atan2(tip[1] - prev[1], tip[0] - prev[0]);
+  const arrow = 4.2;
+  const left = [
+    tip[0] - arrow * Math.cos(angle - 0.55),
+    tip[1] - arrow * Math.sin(angle - 0.55)
+  ];
+  const right = [
+    tip[0] - arrow * Math.cos(angle + 0.55),
+    tip[1] - arrow * Math.sin(angle + 0.55)
+  ];
+  const d = pts.map((p, i) => `${i ? 'L' : 'M'}${_svgNum(p[0])} ${_svgNum(p[1])}`).join(' ');
+  const arrowD = `M${_svgNum(left[0])} ${_svgNum(left[1])} L${_svgNum(tip[0])} ${_svgNum(tip[1])} L${_svgNum(right[0])} ${_svgNum(right[1])}`;
+  return `<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/><path d="${arrowD}"/></svg>`;
+}
+
 /**
  * 획순 strip 렌더링 — 캔버스 아래 가로 스크롤 카드.
  * 가로 레이아웃: [번호 배지][화살표 SVG][한국어 라벨]
- * 데이터 출처는 STROKE_ORDER 동일.
+ * STROKE_PATHS가 있는 글자는 실제 획 경로에서 화살표 방향을 계산한다.
  *
  * @param {HTMLElement} container .stroke-strip 컨테이너
  * @param {string} ch 글자
@@ -571,6 +621,7 @@ function renderStrokeOrderStrip(container, ch, activeStep) {
   }
   const steps = data.steps;
   const active = (typeof activeStep === 'number' && activeStep > 0) ? activeStep : 0;
+  const paths = (typeof STROKE_PATHS !== 'undefined' && Array.isArray(STROKE_PATHS[ch])) ? STROKE_PATHS[ch] : null;
 
   // 같은 글자 재렌더면 active 클래스만 갱신 (DOM 재생성 비용 절약 + 깜빡임 방지)
   const existing = container.querySelectorAll('.stroke-step');
@@ -601,7 +652,7 @@ function renderStrokeOrderStrip(container, ch, activeStep) {
 
     const sym = document.createElement('span');
     sym.className = 'step-symbol';
-    sym.innerHTML = _strokeIconSvg(step.s);
+    sym.innerHTML = (paths && paths[i]) ? (_strokePathIconSvg(paths[i]) || _strokeIconSvg(step.s)) : _strokeIconSvg(step.s);
     card.appendChild(sym);
 
     const lbl = document.createElement('span');
